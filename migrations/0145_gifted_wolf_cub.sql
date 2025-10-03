@@ -1,0 +1,1 @@
+ALTER TABLE "enquiry_table" ADD COLUMN "is_expired" boolean DEFAULT false;

@@ -1,0 +1,1 @@
+ALTER TABLE "quote_table" ADD COLUMN "is_expired" boolean DEFAULT false;

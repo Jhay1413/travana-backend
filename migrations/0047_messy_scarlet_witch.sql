@@ -1,0 +1,1 @@
+ALTER TABLE "quote_lounge_pass" ADD COLUMN "date_of_usage" timestamp;

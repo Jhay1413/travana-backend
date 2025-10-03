@@ -1,0 +1,2 @@
+CREATE TYPE "public"."quote_status" AS ENUM('NEW_LEAD', 'QUOTE_IN_PROGRESS', 'QUOTE_READY', 'AWAITING_DECISION', 'REQUOTE', 'WON', 'LOST');--> statement-breakpoint
+ALTER TABLE "quote_table" ADD COLUMN "quote_status" "quote_status";

@@ -1,0 +1,1 @@
+ALTER TABLE "quote_airport_parking" ADD COLUMN "parking_date" timestamp;

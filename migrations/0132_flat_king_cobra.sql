@@ -1,0 +1,1 @@
+DROP TABLE "client_file_table" CASCADE;

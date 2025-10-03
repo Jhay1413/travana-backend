@@ -1,0 +1,2 @@
+ALTER TABLE "passengers" ADD COLUMN "booking_id" uuid;--> statement-breakpoint
+ALTER TABLE "passengers" ADD CONSTRAINT "passengers_booking_id_booking_table_id_fk" FOREIGN KEY ("booking_id") REFERENCES "public"."booking_table"("id") ON DELETE no action ON UPDATE no action;

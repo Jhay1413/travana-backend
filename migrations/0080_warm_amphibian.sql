@@ -1,0 +1,1 @@
+ALTER TABLE "enquiry_table" ALTER COLUMN "status" SET DEFAULT 'ACTIVE';

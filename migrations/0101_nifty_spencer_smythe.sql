@@ -1,0 +1,1 @@
+ALTER TYPE "public"."quote_status" ADD VALUE 'QUOTE_CALL' BEFORE 'QUOTE_READY';

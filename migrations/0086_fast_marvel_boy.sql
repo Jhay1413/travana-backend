@@ -1,0 +1,1 @@
+ALTER TABLE "enquiry_table" ALTER COLUMN "date_expiry" SET DATA TYPE timestamp (0) with time zone;

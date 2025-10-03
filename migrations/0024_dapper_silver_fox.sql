@@ -1,0 +1,1 @@
+CREATE INDEX "lodge_code_idx" ON "lodges_table" USING btree ("lodge_code");

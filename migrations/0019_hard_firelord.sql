@@ -1,0 +1,2 @@
+ALTER TABLE "transaction" ADD COLUMN "holiday_type" uuid;--> statement-breakpoint
+ALTER TABLE "transaction" ADD CONSTRAINT "transaction_holiday_type_package_type_table_id_fk" FOREIGN KEY ("holiday_type") REFERENCES "public"."package_type_table"("id") ON DELETE no action ON UPDATE no action;

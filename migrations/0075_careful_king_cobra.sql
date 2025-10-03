@@ -1,0 +1,1 @@
+ALTER TYPE "public"."enquiry_status" ADD VALUE 'INACTIVE';

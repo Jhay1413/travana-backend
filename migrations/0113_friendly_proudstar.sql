@@ -1,0 +1,2 @@
+ALTER TABLE "notes_table" ADD COLUMN "parent_id" uuid;--> statement-breakpoint
+ALTER TABLE "notes_table" ADD CONSTRAINT "notes_table_parent_id_notes_table_id_fk" FOREIGN KEY ("parent_id") REFERENCES "public"."notes_table"("id") ON DELETE cascade ON UPDATE no action;

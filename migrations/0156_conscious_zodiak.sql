@@ -1,0 +1,1 @@
+ALTER TABLE "task_table" ADD COLUMN "deal_id" varchar;

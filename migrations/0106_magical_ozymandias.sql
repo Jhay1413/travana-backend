@@ -1,0 +1,1 @@
+ALTER TABLE "enquiry_table" ADD COLUMN "title" varchar;

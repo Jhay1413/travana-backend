@@ -1,0 +1,2634 @@
+{
+  "id": "18f9f507-3228-4ade-8ad7-f02709e41078",
+  "prevId": "52773872-7cc8-4fbb-8658-464a7704d507",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.client_table": {
+      "name": "client_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "firstName": {
+          "name": "firstName",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "surename": {
+          "name": "surename",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "DOB": {
+          "name": "DOB",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phoneNumber": {
+          "name": "phoneNumber",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "emailIsAllowed": {
+          "name": "emailIsAllowed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "VMB": {
+          "name": "VMB",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "VMBfirstAccess": {
+          "name": "VMBfirstAccess",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "whatsAppVerified": {
+          "name": "whatsAppVerified",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "mailAllowed": {
+          "name": "mailAllowed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "houseNumber": {
+          "name": "houseNumber",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "city": {
+          "name": "city",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "street": {
+          "name": "street",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country": {
+          "name": "country",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "post_code": {
+          "name": "post_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cruise_destination_table": {
+      "name": "cruise_destination_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cruise_line_table": {
+      "name": "cruise_line_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.ship_table": {
+      "name": "ship_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cruise_line_id": {
+          "name": "cruise_line_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ship_table_cruise_line_id_cruise_line_table_id_fk": {
+          "name": "ship_table_cruise_line_id_cruise_line_table_id_fk",
+          "tableFrom": "ship_table",
+          "tableTo": "cruise_line_table",
+          "columnsFrom": [
+            "cruise_line_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.port_table": {
+      "name": "port_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "cruise_destination_id": {
+          "name": "cruise_destination_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "port_table_cruise_destination_id_cruise_destination_table_id_fk": {
+          "name": "port_table_cruise_destination_id_cruise_destination_table_id_fk",
+          "tableFrom": "port_table",
+          "tableTo": "cruise_destination_table",
+          "columnsFrom": [
+            "cruise_destination_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_accomodation": {
+      "name": "enquiry_accomodation",
+      "schema": "",
+      "columns": {
+        "accomodation_id": {
+          "name": "accomodation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_accomodation_accomodation_id_accomodation_list_table_id_fk": {
+          "name": "enquiry_accomodation_accomodation_id_accomodation_list_table_id_fk",
+          "tableFrom": "enquiry_accomodation",
+          "tableTo": "accomodation_list_table",
+          "columnsFrom": [
+            "accomodation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_accomodation_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_accomodation_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_accomodation",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_board_basis": {
+      "name": "enquiry_board_basis",
+      "schema": "",
+      "columns": {
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "board_basis_id": {
+          "name": "board_basis_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_board_basis_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_board_basis_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_board_basis",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "enquiry_board_basis_board_basis_id_board_basis_id_fk": {
+          "name": "enquiry_board_basis_board_basis_id_board_basis_id_fk",
+          "tableFrom": "enquiry_board_basis",
+          "tableTo": "board_basis",
+          "columnsFrom": [
+            "board_basis_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_cruise_destination": {
+      "name": "enquiry_cruise_destination",
+      "schema": "",
+      "columns": {
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cruise_destination_id": {
+          "name": "cruise_destination_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_cruise_destination_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_cruise_destination_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_cruise_destination",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "enquiry_cruise_destination_cruise_destination_id_cruise_destination_table_id_fk": {
+          "name": "enquiry_cruise_destination_cruise_destination_id_cruise_destination_table_id_fk",
+          "tableFrom": "enquiry_cruise_destination",
+          "tableTo": "cruise_destination_table",
+          "columnsFrom": [
+            "cruise_destination_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_cruise_line": {
+      "name": "enquiry_cruise_line",
+      "schema": "",
+      "columns": {
+        "cruise_line_id": {
+          "name": "cruise_line_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_cruise_line_cruise_line_id_cruise_line_table_id_fk": {
+          "name": "enquiry_cruise_line_cruise_line_id_cruise_line_table_id_fk",
+          "tableFrom": "enquiry_cruise_line",
+          "tableTo": "cruise_line_table",
+          "columnsFrom": [
+            "cruise_line_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_cruise_line_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_cruise_line_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_cruise_line",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_departure_airport": {
+      "name": "enquiry_departure_airport",
+      "schema": "",
+      "columns": {
+        "airport_id": {
+          "name": "airport_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_departure_airport_airport_id_airport_table_id_fk": {
+          "name": "enquiry_departure_airport_airport_id_airport_table_id_fk",
+          "tableFrom": "enquiry_departure_airport",
+          "tableTo": "airport_table",
+          "columnsFrom": [
+            "airport_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_departure_airport_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_departure_airport_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_departure_airport",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_departure_port": {
+      "name": "enquiry_departure_port",
+      "schema": "",
+      "columns": {
+        "port_id": {
+          "name": "port_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_departure_port_port_id_port_table_id_fk": {
+          "name": "enquiry_departure_port_port_id_port_table_id_fk",
+          "tableFrom": "enquiry_departure_port",
+          "tableTo": "port_table",
+          "columnsFrom": [
+            "port_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_departure_port_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_departure_port_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_departure_port",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_destination": {
+      "name": "enquiry_destination",
+      "schema": "",
+      "columns": {
+        "destination_id": {
+          "name": "destination_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_destination_destination_id_destination_table_id_fk": {
+          "name": "enquiry_destination_destination_id_destination_table_id_fk",
+          "tableFrom": "enquiry_destination",
+          "tableTo": "destination_table",
+          "columnsFrom": [
+            "destination_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_destination_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_destination_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_destination",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_location": {
+      "name": "enquiry_location",
+      "schema": "",
+      "columns": {
+        "location_id": {
+          "name": "location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_location_location_id_location_table_id_fk": {
+          "name": "enquiry_location_location_id_location_table_id_fk",
+          "tableFrom": "enquiry_location",
+          "tableTo": "location_table",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_location_enquiry_id_enquiry_table_id_fk": {
+          "name": "enquiry_location_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "enquiry_location",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.enquiry_table": {
+      "name": "enquiry_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "holiday_type": {
+          "name": "holiday_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accomodation_type_id": {
+          "name": "accomodation_type_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agent_id": {
+          "name": "agent_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "travel_date": {
+          "name": "travel_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "adults": {
+          "name": "adults",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "children": {
+          "name": "children",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flexibility_date": {
+          "name": "flexibility_date",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "infants": {
+          "name": "infants",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cabin_type": {
+          "name": "cabin_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flexible_date": {
+          "name": "flexible_date",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "weekend_lodge": {
+          "name": "weekend_lodge",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accom_min_star_rating": {
+          "name": "accom_min_star_rating",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_of_nights": {
+          "name": "no_of_nights",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "budget": {
+          "name": "budget",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_of_guests": {
+          "name": "no_of_guests",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_of_pets": {
+          "name": "no_of_pets",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pre_cruise_stay": {
+          "name": "pre_cruise_stay",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "post_cruise_stay": {
+          "name": "post_cruise_stay",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "enquiry_table_transaction_id_transaction_id_fk": {
+          "name": "enquiry_table_transaction_id_transaction_id_fk",
+          "tableFrom": "enquiry_table",
+          "tableTo": "transaction",
+          "columnsFrom": [
+            "transaction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "enquiry_table_accomodation_type_id_accomodation_type_id_fk": {
+          "name": "enquiry_table_accomodation_type_id_accomodation_type_id_fk",
+          "tableFrom": "enquiry_table",
+          "tableTo": "accomodation_type",
+          "columnsFrom": [
+            "accomodation_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_table_client_id_client_table_id_fk": {
+          "name": "enquiry_table_client_id_client_table_id_fk",
+          "tableFrom": "enquiry_table",
+          "tableTo": "client_table",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "enquiry_table_agent_id_user_table_id_fk": {
+          "name": "enquiry_table_agent_id_user_table_id_fk",
+          "tableFrom": "enquiry_table",
+          "tableTo": "user_table",
+          "columnsFrom": [
+            "agent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.airport_table": {
+      "name": "airport_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "airport_code": {
+          "name": "airport_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "airport_name": {
+          "name": "airport_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_id": {
+          "name": "country_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "airport_table_country_id_country_table_id_fk": {
+          "name": "airport_table_country_id_country_table_id_fk",
+          "tableFrom": "airport_table",
+          "tableTo": "country_table",
+          "columnsFrom": [
+            "country_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.flights_table": {
+      "name": "flights_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "flight_id": {
+          "name": "flight_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flight_number": {
+          "name": "flight_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flight_route": {
+          "name": "flight_route",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "departure_date": {
+          "name": "departure_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "departure_time": {
+          "name": "departure_time",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arrival_date": {
+          "name": "arrival_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arrival_time": {
+          "name": "arrival_time",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "departure_airport_id": {
+          "name": "departure_airport_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "destination_airport_id": {
+          "name": "destination_airport_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "flights_table_departure_airport_id_airport_table_id_fk": {
+          "name": "flights_table_departure_airport_id_airport_table_id_fk",
+          "tableFrom": "flights_table",
+          "tableTo": "airport_table",
+          "columnsFrom": [
+            "departure_airport_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "flights_table_destination_airport_id_airport_table_id_fk": {
+          "name": "flights_table_destination_airport_id_airport_table_id_fk",
+          "tableFrom": "flights_table",
+          "tableTo": "airport_table",
+          "columnsFrom": [
+            "destination_airport_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.notes_table": {
+      "name": "notes_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "enquiry_id": {
+          "name": "enquiry_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agent_id": {
+          "name": "agent_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "timestamp2": {
+          "name": "timestamp2",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "notes_table_enquiry_id_enquiry_table_id_fk": {
+          "name": "notes_table_enquiry_id_enquiry_table_id_fk",
+          "tableFrom": "notes_table",
+          "tableTo": "enquiry_table",
+          "columnsFrom": [
+            "enquiry_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "notes_table_agent_id_user_table_id_fk": {
+          "name": "notes_table_agent_id_user_table_id_fk",
+          "tableFrom": "notes_table",
+          "tableTo": "user_table",
+          "columnsFrom": [
+            "agent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.passengers": {
+      "name": "passengers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "age": {
+          "name": "age",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lounge_pass_id": {
+          "name": "lounge_pass_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "passengers_quote_id_quote_table_id_fk": {
+          "name": "passengers_quote_id_quote_table_id_fk",
+          "tableFrom": "passengers",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "passengers_lounge_pass_id_quote_lounge_pass_id_fk": {
+          "name": "passengers_lounge_pass_id_quote_lounge_pass_id_fk",
+          "tableFrom": "passengers",
+          "tableTo": "quote_lounge_pass",
+          "columnsFrom": [
+            "lounge_pass_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_table": {
+      "name": "quote_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "transaction_id": {
+          "name": "transaction_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sales_price": {
+          "name": "sales_price",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "package_commission": {
+          "name": "package_commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "travel_date": {
+          "name": "travel_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "discounts": {
+          "name": "discounts",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "service_charge": {
+          "name": "service_charge",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_table_transaction_id_transaction_id_fk": {
+          "name": "quote_table_transaction_id_transaction_id_fk",
+          "tableFrom": "quote_table",
+          "tableTo": "transaction",
+          "columnsFrom": [
+            "transaction_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_accomodation": {
+      "name": "quote_accomodation",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_of_nights": {
+          "name": "no_of_nights",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "room_type": {
+          "name": "room_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "board_basis": {
+          "name": "board_basis",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_included_in_package": {
+          "name": "is_included_in_package",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commission": {
+          "name": "commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accomodation_id": {
+          "name": "accomodation_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_accomodation_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "quote_accomodation_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "quote_accomodation",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "quote_accomodation_accomodation_id_accomodation_list_table_id_fk": {
+          "name": "quote_accomodation_accomodation_id_accomodation_list_table_id_fk",
+          "tableFrom": "quote_accomodation",
+          "tableTo": "accomodation_list_table",
+          "columnsFrom": [
+            "accomodation_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "quote_accomodation_quote_id_quote_table_id_fk": {
+          "name": "quote_accomodation_quote_id_quote_table_id_fk",
+          "tableFrom": "quote_accomodation",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_airport_parking": {
+      "name": "quote_airport_parking",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "airport_id": {
+          "name": "airport_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parking_type": {
+          "name": "parking_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "car_make": {
+          "name": "car_make",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "colour": {
+          "name": "colour",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "car_reg_number": {
+          "name": "car_reg_number",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duration": {
+          "name": "duration",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_included_in_package": {
+          "name": "is_included_in_package",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commission": {
+          "name": "commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_airport_parking_quote_id_quote_table_id_fk": {
+          "name": "quote_airport_parking_quote_id_quote_table_id_fk",
+          "tableFrom": "quote_airport_parking",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "quote_airport_parking_airport_id_airport_table_id_fk": {
+          "name": "quote_airport_parking_airport_id_airport_table_id_fk",
+          "tableFrom": "quote_airport_parking",
+          "tableTo": "airport_table",
+          "columnsFrom": [
+            "airport_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "quote_airport_parking_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "quote_airport_parking_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "quote_airport_parking",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_attraction_ticket": {
+      "name": "quote_attraction_ticket",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ticket_type": {
+          "name": "ticket_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commission": {
+          "name": "commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "number_of_tickets": {
+          "name": "number_of_tickets",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_included_in_package": {
+          "name": "is_included_in_package",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_attraction_ticket_quote_id_quote_table_id_fk": {
+          "name": "quote_attraction_ticket_quote_id_quote_table_id_fk",
+          "tableFrom": "quote_attraction_ticket",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "quote_attraction_ticket_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "quote_attraction_ticket_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "quote_attraction_ticket",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_car_hire": {
+      "name": "quote_car_hire",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pick_up_location": {
+          "name": "pick_up_location",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drop_off_location": {
+          "name": "drop_off_location",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pick_up_time": {
+          "name": "pick_up_time",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drop_off_time": {
+          "name": "drop_off_time",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_of_days": {
+          "name": "no_of_days",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "driver_age": {
+          "name": "driver_age",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_included_in_package": {
+          "name": "is_included_in_package",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commission": {
+          "name": "commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_car_hire_quote_id_quote_table_id_fk": {
+          "name": "quote_car_hire_quote_id_quote_table_id_fk",
+          "tableFrom": "quote_car_hire",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "quote_car_hire_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "quote_car_hire_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "quote_car_hire",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_flights": {
+      "name": "quote_flights",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "departing_airport_id": {
+          "name": "departing_airport_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arrival_airport_id": {
+          "name": "arrival_airport_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flight_type": {
+          "name": "flight_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "departure_date": {
+          "name": "departure_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arrival_date": {
+          "name": "arrival_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_included_in_package": {
+          "name": "is_included_in_package",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commission": {
+          "name": "commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_flights_quote_id_quote_table_id_fk": {
+          "name": "quote_flights_quote_id_quote_table_id_fk",
+          "tableFrom": "quote_flights",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "quote_flights_departing_airport_id_airport_table_id_fk": {
+          "name": "quote_flights_departing_airport_id_airport_table_id_fk",
+          "tableFrom": "quote_flights",
+          "tableTo": "airport_table",
+          "columnsFrom": [
+            "departing_airport_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "quote_flights_arrival_airport_id_airport_table_id_fk": {
+          "name": "quote_flights_arrival_airport_id_airport_table_id_fk",
+          "tableFrom": "quote_flights",
+          "tableTo": "airport_table",
+          "columnsFrom": [
+            "arrival_airport_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "quote_flights_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "quote_flights_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "quote_flights",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_lounge_pass": {
+      "name": "quote_lounge_pass",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "terminal": {
+          "name": "terminal",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commission": {
+          "name": "commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_included_in_package": {
+          "name": "is_included_in_package",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "note": {
+          "name": "note",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_lounge_pass_quote_id_quote_table_id_fk": {
+          "name": "quote_lounge_pass_quote_id_quote_table_id_fk",
+          "tableFrom": "quote_lounge_pass",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "quote_lounge_pass_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "quote_lounge_pass_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "quote_lounge_pass",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.quote_transfers": {
+      "name": "quote_transfers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pick_up_location": {
+          "name": "pick_up_location",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drop_off_location": {
+          "name": "drop_off_location",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pick_up_time": {
+          "name": "pick_up_time",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "drop_off_time": {
+          "name": "drop_off_time",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_included_in_package": {
+          "name": "is_included_in_package",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cost": {
+          "name": "cost",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "commission": {
+          "name": "commission",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "quote_id": {
+          "name": "quote_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "note": {
+          "name": "note",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quote_transfers_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "quote_transfers_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "quote_transfers",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "quote_transfers_quote_id_quote_table_id_fk": {
+          "name": "quote_transfers_quote_id_quote_table_id_fk",
+          "tableFrom": "quote_transfers",
+          "tableTo": "quote_table",
+          "columnsFrom": [
+            "quote_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.task_table": {
+      "name": "task_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "agent_id": {
+          "name": "agent_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "client_id": {
+          "name": "client_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "assigned_by_id": {
+          "name": "assigned_by_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "task": {
+          "name": "task",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "due_date": {
+          "name": "due_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "priority": {
+          "name": "priority",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "task_table_agent_id_user_table_id_fk": {
+          "name": "task_table_agent_id_user_table_id_fk",
+          "tableFrom": "task_table",
+          "tableTo": "user_table",
+          "columnsFrom": [
+            "agent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "task_table_client_id_client_table_id_fk": {
+          "name": "task_table_client_id_client_table_id_fk",
+          "tableFrom": "task_table",
+          "tableTo": "client_table",
+          "columnsFrom": [
+            "client_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "task_table_assigned_by_id_user_table_id_fk": {
+          "name": "task_table_assigned_by_id_user_table_id_fk",
+          "tableFrom": "task_table",
+          "tableTo": "user_table",
+          "columnsFrom": [
+            "assigned_by_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.accomodation_list_table": {
+      "name": "accomodation_list_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "type_id": {
+          "name": "type_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location_id": {
+          "name": "location_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "accomodation_list_table_type_id_accomodation_type_id_fk": {
+          "name": "accomodation_list_table_type_id_accomodation_type_id_fk",
+          "tableFrom": "accomodation_list_table",
+          "tableTo": "accomodation_type",
+          "columnsFrom": [
+            "type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "accomodation_list_table_location_id_location_table_id_fk": {
+          "name": "accomodation_list_table_location_id_location_table_id_fk",
+          "tableFrom": "accomodation_list_table",
+          "tableTo": "location_table",
+          "columnsFrom": [
+            "location_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.accomodation_type": {
+      "name": "accomodation_type",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.board_basis": {
+      "name": "board_basis",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.country_table": {
+      "name": "country_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "country_name": {
+          "name": "country_name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_code": {
+          "name": "country_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.destination_table": {
+      "name": "destination_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "country_id": {
+          "name": "country_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "destination_table_country_id_country_table_id_fk": {
+          "name": "destination_table_country_id_country_table_id_fk",
+          "tableFrom": "destination_table",
+          "tableTo": "country_table",
+          "columnsFrom": [
+            "country_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.location_table": {
+      "name": "location_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "destination_id": {
+          "name": "destination_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "location_table_destination_id_destination_table_id_fk": {
+          "name": "location_table_destination_id_destination_table_id_fk",
+          "tableFrom": "location_table",
+          "tableTo": "destination_table",
+          "columnsFrom": [
+            "destination_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.package_type_table": {
+      "name": "package_type_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tour_operator_table": {
+      "name": "tour_operator_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tour_package_commission_table": {
+      "name": "tour_package_commission_table",
+      "schema": "",
+      "columns": {
+        "package_type_id": {
+          "name": "package_type_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tour_operator_id": {
+          "name": "tour_operator_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "percentage_commission": {
+          "name": "percentage_commission",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tour_package_commission_table_package_type_id_package_type_table_id_fk": {
+          "name": "tour_package_commission_table_package_type_id_package_type_table_id_fk",
+          "tableFrom": "tour_package_commission_table",
+          "tableTo": "package_type_table",
+          "columnsFrom": [
+            "package_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tour_package_commission_table_tour_operator_id_tour_operator_table_id_fk": {
+          "name": "tour_package_commission_table_tour_operator_id_tour_operator_table_id_fk",
+          "tableFrom": "tour_package_commission_table",
+          "tableTo": "tour_operator_table",
+          "columnsFrom": [
+            "tour_operator_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "id": {
+          "name": "id",
+          "columns": [
+            "package_type_id",
+            "tour_operator_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.transaction": {
+      "name": "transaction",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "status": {
+          "name": "status",
+          "type": "transaction_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "holiday_type": {
+          "name": "holiday_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_table": {
+      "name": "user_table",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "role": {
+          "name": "role",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "firstName": {
+          "name": "firstName",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lastName": {
+          "name": "lastName",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phoneNumber": {
+          "name": "phoneNumber",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "accountId": {
+          "name": "accountId",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "user_table_accountId_unique": {
+          "name": "user_table_accountId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "accountId"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.transaction_status": {
+      "name": "transaction_status",
+      "schema": "public",
+      "values": [
+        "on_quote",
+        "on_enquiry",
+        "on_booking"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

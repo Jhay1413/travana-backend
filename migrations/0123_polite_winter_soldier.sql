@@ -1,0 +1,1 @@
+ALTER TABLE "client_file_table" ALTER COLUMN "fileType" DROP NOT NULL;

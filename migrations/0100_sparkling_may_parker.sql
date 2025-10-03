@@ -1,0 +1,1 @@
+ALTER TABLE "notes_table" ADD COLUMN "content" text;

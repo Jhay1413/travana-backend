@@ -1,0 +1,2 @@
+ALTER TABLE "ticket" ADD COLUMN "created_by" uuid;--> statement-breakpoint
+ALTER TABLE "ticket" ADD CONSTRAINT "ticket_created_by_user_table_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."user_table"("id") ON DELETE no action ON UPDATE no action;

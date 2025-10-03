@@ -1,0 +1,1 @@
+ALTER TABLE "client_file_table" ADD COLUMN "createdAt" timestamp DEFAULT now() NOT NULL;

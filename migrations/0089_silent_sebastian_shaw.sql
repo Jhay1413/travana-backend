@@ -1,0 +1,1 @@
+ALTER TABLE "notification_token" ADD COLUMN "due_date" timestamp;

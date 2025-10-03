@@ -1,0 +1,1 @@
+ALTER TABLE "quote_accomodation" ALTER COLUMN "check_in_date_time" SET DATA TYPE timestamp (6) with time zone;
