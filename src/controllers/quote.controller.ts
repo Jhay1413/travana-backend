@@ -85,7 +85,7 @@ export const quoteController = {
       const { id } = req.params;
       const  data  = req.body;
       const quote = await service.updateQuote(data, id);
-      res.status(200).json(quote);
+      res.status(200).json({message:'Quote updated successfully'});
     } catch (error) {
       console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });

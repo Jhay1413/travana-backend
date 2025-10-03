@@ -73,8 +73,8 @@ export const transactionController = {
     try {
       const { country_ids, selected_ids, search } = req.query as { country_ids: string; selected_ids: string; search: string };
 
-      const selectedIds = (selected_ids as string)?.split(",") ?? [];
-      const countryIds = (country_ids as string)?.split(',') ?? [];
+      const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
+      const countryIds = (country_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
 
         console.log(countryIds, selectedIds, search)
       const destination = await service.fetchDestination(countryIds ?? [], selectedIds ?? [], search ?? undefined);
@@ -108,10 +108,13 @@ export const transactionController = {
   },
   fetchAirport: async (req: Request, res: Response) => {
     try {
-      const { search, selected_ids } = req.query as { search: string; selected_ids: string[] };
-      const airport = await service.fetchAirport(search ?? undefined, selected_ids ?? []);
+      const { search, selected_ids } = req.query as { search: string; selected_ids: string };
+
+      const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];  
+      const airport = await service.fetchAirport(search ?? undefined, selectedIds ?? []);
       res.status(200).json( airport );
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
@@ -146,8 +149,8 @@ export const transactionController = {
   fetchAccomodation: async (req: Request, res: Response) => {
     try {
       const { search, resort_ids, selected_ids } = req.query as { search: string; resort_ids: string; selected_ids: string };
-      const resortIds = (resort_ids as string)?.split(',') ?? [];
-      const selectedIds = (selected_ids as string)?.split(',') ?? [];
+      const resortIds = (resort_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
+      const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const accomodation = await service.fetchAccomodation(search ?? undefined, resortIds ?? [], selectedIds ?? []);
       res.status(200).json( accomodation );
     } catch (error) {
@@ -157,8 +160,8 @@ export const transactionController = {
   fetchResorts: async (req: Request, res: Response) => {
     try {
       const { search, destination_ids, selected_ids } = req.query as { search: string; destination_ids: string; selected_ids: string };
-      const destinationIds = (destination_ids as string)?.split(',') ?? [];
-      const selectedIds = (selected_ids as string)?.split(',') ?? [];
+      const destinationIds = (destination_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
+      const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const resorts = await service.fetchResorts(search ?? undefined, destinationIds ?? [], selectedIds ?? []);
       res.status(200).json( resorts );
     } catch (error) {
@@ -186,8 +189,9 @@ export const transactionController = {
   },
   fetchTourOperator: async (req: Request, res: Response) => {
     try {
-      const { search } = req.query as { search: string };
-      const tour_operator = await service.fetchTourOperator(search ?? undefined);
+      const { search ,selected_ids } = req.query as { search: string; selected_ids: string };
+      const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
+      const tour_operator = await service.fetchTourOperator(search ?? undefined, selectedIds ?? []);
       res.status(200).json( tour_operator );
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });

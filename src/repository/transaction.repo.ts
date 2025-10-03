@@ -108,7 +108,7 @@ export type TransactionRepo = {
     page?: number,
     limit?: number
   ) => Promise<{ data: z.infer<typeof cruiseDestinationQuerySchema>[]; pagination: any }>;
-  fetchTourOperator: (search?: string) => Promise<z.infer<typeof tourOperatorQuerySchema>[]>;
+  fetchTourOperator: (search?: string, selectedIds?: string[]) => Promise<z.infer<typeof tourOperatorQuerySchema>[]>;
   fetchPackageType: () => Promise<{ id: string; name: string }[]>;
 
   fetchLodges: (search?: string) => Promise<z.infer<typeof lodgeQuerySchema>[]>;
@@ -560,8 +560,8 @@ export const transactionRepo: TransactionRepo = {
       },
     };
   },
-  fetchTourOperator: async (search) => {
-    const conditions = [search ? ilike(tour_operator.name, `%${search}%`) : undefined].filter(Boolean);
+  fetchTourOperator: async (search, selectedIds) => {
+    const conditions = [search ? ilike(tour_operator.name, `%${search}%`) : undefined, selectedIds?.length ? inArray(tour_operator.id, selectedIds) : undefined].filter(Boolean);
 
     const whereClause = nestedBuilder(conditions);
 

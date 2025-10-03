@@ -18,13 +18,15 @@ export const quoteService = (
 ) => {
   return {
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
-      const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
-      if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
+      // const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
+
+      // console.log(holiday_type)
+      // if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
       let id: string | undefined;
 
-      if (holiday_type.name === 'Cruise Package ') {
-        const result = await repo.convertQuote(transaction_id, data);
+      if (data.holiday_type_name === 'Cruise Package') {
+        const result = await repo.convertQuoteCruise(transaction_id, data);
         id = result.id;
       } else {
         const result = await repo.convertQuote(transaction_id, data);
@@ -59,10 +61,10 @@ export const quoteService = (
     },
     insertQuote: async (data: z.infer<typeof quote_mutate_schema>) => {
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
-
+      console.log(holiday_type)
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
-      if (holiday_type.name === 'Cruise Package ') return await repo.insertCruise(data);
+      if (holiday_type.name === 'Cruise Package') return await repo.insertCruise(data);
 
       return await repo.insertQuote(data);
     },
@@ -90,7 +92,9 @@ export const quoteService = (
 
       if (!holiday_type) throw new AppError('No holiday type found', true, 400);
 
-      if (holiday_type === 'Cruise Package ') return await repo.fetchCruiseToUpdate(quote_id);
+      if (holiday_type === 'Cruise Package'){
+        console.log('Cruise Package');
+        return await repo.fetchCruiseToUpdate(quote_id)};
 
       return await repo.fetchPackageToUpdate(quote_id);
     },

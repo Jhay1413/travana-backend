@@ -77,8 +77,8 @@ export const transactionService = (repo: TransactionRepo,userRepo:UserRepo,clien
     fetchCruiseDestination: async (search?: string, page?: number, limit?: number) => {
       return await repo.fetchCruiseDestination(search, page, limit);
     },
-    fetchTourOperator: async (search?: string) => {
-      return await repo.fetchTourOperator(search);
+    fetchTourOperator: async (search?: string, selectedIds?: string[]) => {
+      return await repo.fetchTourOperator(search, selectedIds);
     },
     fetchPackageType: async () => {
       return await repo.fetchPackageType();

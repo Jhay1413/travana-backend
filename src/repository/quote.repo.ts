@@ -2003,18 +2003,22 @@ export const quoteRepo: QuoteRepo = {
       const datas = await query;
 
       const data = datas[0] as any;
+
+
+      console.log(data.post_cruise_stay)
       const payload = {
         ...data,
         cruise_date: data?.cruise_date ? new Date(data.cruise_date) : null,
-        post_cruise_stay: data?.post_cruise_stay ? parseInt(data.post_cruise_stay) : null,
-        pre_cruise_stay: data?.pre_cruise_stay ? parseInt(data.pre_cruise_stay) : null,
-        future_deal_date: data?.future_deal_date ? new Date(data.future_deal_date) : null,
+        post_cruise_stay: data?.post_cruise_stay ,
+        pre_cruise_stay: data?.pre_cruise_stay ,
+        future_deal_date: new Date(data?.future_deal_date)  ,
         travel_date: data?.travel_date ? new Date(data.travel_date) : null,
         sales_price: parseFloat(data?.sales_price ?? 0),
         overall_commission: parseFloat(data?.overall_commission ?? 0),
         package_commission: parseFloat(data?.package_commission ?? 0),
         discount: parseFloat(data?.discount ?? 0),
         service_charge: parseFloat(data?.service_charge ?? 0),
+
         num_of_nights: data.num_of_nights ? parseInt(data?.num_of_nights) : 0,
         overall_cost: parseFloat(data?.overall_cost ?? 0),
         referrerName: data?.referrerName ? data?.referrerName : undefined,
@@ -2259,27 +2263,38 @@ export const quoteRepo: QuoteRepo = {
           })),
           transfers: response.transfers.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
             pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
           })),
           car_hire: response.car_hire.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
             pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
           })),
           attraction_tickets: response.attraction_tickets.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             date_of_visit: data.date_of_visit ? new Date(data.date_of_visit).toISOString() : null,
           })),
 
           lounge_pass: response.lounge_pass.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             date_of_usage: data.date_of_usage ? new Date(data.date_of_usage).toISOString() : null,
           })),
           hotels: response.accomodation
             .filter((accomodation) => accomodation.is_primary === false)
             .map((data) => ({
               ...data,
+              commission: parseFloat(data.commission ?? '0'),
+              cost: parseFloat(data.cost ?? '0'),
+              no_of_nights: data.no_of_nights.toString() ?? '0',
               is_primary: data.is_primary,
               resort: data.accomodation?.resorts_id,
               destination: data.accomodation?.resorts?.destination_id,
@@ -2311,7 +2326,7 @@ export const quoteRepo: QuoteRepo = {
           service_charge: parseFloat(response.service_charge ?? '0'),
           holiday_type: response.holiday_type_id,
           transfer_type: response.transfer_type,
-          no_of_nights: response.num_of_nights,
+          no_of_nights: response.num_of_nights.toString() ?? '0',
           agent_id: response.transaction?.user_id,
           client_id: response.transaction?.client_id,
           is_future_deal: response.is_future_deal,
@@ -2337,37 +2352,51 @@ export const quoteRepo: QuoteRepo = {
           passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
           flights: response.flights.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
             arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
           })),
           transfers: response.transfers.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
             pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
           })),
           car_hire: response.car_hire.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
             pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
           })),
           attraction_tickets: response.attraction_tickets.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             date_of_visit: data.date_of_visit ? new Date(data.date_of_visit).toISOString() : null,
           })),
           airport_parking: response.airport_parking.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             make: data.car_make,
             parking_date: data.parking_date ? new Date(data.parking_date).toISOString() : null,
           })),
           lounge_pass: response.lounge_pass.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             date_of_usage: data.date_of_usage ? new Date(data.date_of_usage).toISOString() : null,
           })),
           hotels: response.accomodation
             .filter((accomodation) => accomodation.is_primary === false)
             .map((data) => ({
               ...data,
-
+              no_of_nights: data.no_of_nights.toString() ?? '0',
+              commission: parseFloat(data.commission ?? '0'),
+              cost: parseFloat(data.cost ?? '0'),
               resort: data.accomodation?.resorts_id,
               destination: data.accomodation?.resorts?.destination_id,
               country: data.accomodation?.resorts?.destination?.country_id,
@@ -2398,6 +2427,7 @@ export const quoteRepo: QuoteRepo = {
           service_charge: parseFloat(response.service_charge ?? '0'),
           holiday_type: response.holiday_type_id,
           transfer_type: response.transfer_type,
+          no_of_nights: response.num_of_nights.toString() ?? '0',
           title: response.title,
           quote_ref: response.quote_ref,
           agent_id: response.transaction?.user_id,
@@ -2416,37 +2446,51 @@ export const quoteRepo: QuoteRepo = {
           passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
           flights: response.flights.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
             arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
           })),
           transfers: response.transfers.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
             pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
           })),
           car_hire: response.car_hire.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
             pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
           })),
           attraction_tickets: response.attraction_tickets.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             date_of_visit: data.date_of_visit ? new Date(data.date_of_visit).toISOString() : null,
           })),
           airport_parking: response.airport_parking.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             make: data.car_make,
             parking_date: data.parking_date ? new Date(data.parking_date).toISOString() : null,
           })),
           lounge_pass: response.lounge_pass.map((data) => ({
             ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             date_of_usage: data.date_of_usage ? new Date(data.date_of_usage).toISOString() : null,
           })),
           hotels: response.accomodation
             .filter((accomodation) => accomodation.is_primary === false)
             .map((data) => ({
               ...data,
-
+              no_of_nights: data.no_of_nights.toString() ?? '0',
+              commission: parseFloat(data.commission ?? '0'),
+              cost: parseFloat(data.cost ?? '0'),
               resort: data.accomodation?.resorts_id,
               destination: data.accomodation?.resorts?.destination_id,
               country: data.accomodation?.resorts?.destination?.country_id,
@@ -2563,6 +2607,7 @@ export const quoteRepo: QuoteRepo = {
         future_deal_date: response.future_deal_date,
         service_charge: parseFloat(response.service_charge ?? '0'),
         holiday_type: response.holiday_type_id,
+        holiday_type_name: response.holiday_type?.name,
         date_expiry: response.date_expiry ? format(response.date_expiry, 'yyyy-MM-dd') : null,
         title: response.title,
         quote_ref: response.quote_ref,
@@ -2579,7 +2624,7 @@ export const quoteRepo: QuoteRepo = {
         cruise_line: response.quote_cruise.cruise_line,
         cruise_ship: response.quote_cruise.ship,
         cruise_name: response.quote_cruise.cruise_name,
-        no_of_nights: response.num_of_nights,
+        no_of_nights: response.num_of_nights.toString() ?? '0',
 
         transfer_type: response.transfer_type,
         agent_id: response.transaction?.user_id,
@@ -2590,6 +2635,9 @@ export const quoteRepo: QuoteRepo = {
           .filter((accomodation) => accomodation.is_primary === false)
           .map((data) => ({
             ...data,
+            no_of_nights: data.no_of_nights.toString() ?? '0',
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
             resort: data.accomodation?.resorts_id,
             destination: data.accomodation?.resorts?.destination_id,
             country: data.accomodation?.resorts?.destination?.country_id,
@@ -2602,19 +2650,42 @@ export const quoteRepo: QuoteRepo = {
         post_cruise_stay: response.quote_cruise.post_cruise_stay.toString(),
         flights: response.flights.map((data) => ({
           ...data,
+          commission: parseFloat(data.commission ?? '0'),
+          cost: parseFloat(data.cost ?? '0'),
           departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
           arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
         })),
-        transfers: response.transfers,
-        car_hire: response.car_hire,
-        attraction_tickets: response.attraction_tickets,
+          transfers: response.transfers.map((data) => ({
+            ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
+            drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
+            pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
+          })),
+          car_hire: response.car_hire.map((data) => ({
+            ...data,
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
+            drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
+            pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
+          })),
+        attraction_tickets: response.attraction_tickets.map((data) => ({
+          ...data,
+          commission: parseFloat(data.commission ?? '0'),
+          cost: parseFloat(data.cost ?? '0'),
+          date_of_visit: data.date_of_visit ? new Date(data.date_of_visit).toISOString() : null,
+        })),
         airport_parking: response.airport_parking.map((data) => ({
           ...data,
+          commission: parseFloat(data.commission ?? '0'),
+          cost: parseFloat(data.cost ?? '0'),
           make: data.car_make,
           parking_date: data.parking_date ? new Date(data.parking_date).toISOString() : null,
         })),
         lounge_pass: response.lounge_pass.map((data) => ({
           ...data,
+          commission: parseFloat(data.commission ?? '0'),
+          cost: parseFloat(data.cost ?? '0'),
           date_of_usage: data.date_of_usage ? new Date(data.date_of_usage).toISOString() : null,
         })),
       };
