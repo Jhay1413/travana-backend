@@ -1009,11 +1009,10 @@ export const bookingRepo: BookingRepo = {
         service_charge: parseFloat(response?.service_charge ?? '0'),
         holiday_type: response?.holiday_type_id,
         transfer_type: response?.transfer_type,
-        no_of_nights: primary_accomodation?.no_of_nights,
         agent_id: response?.transaction.user_id,
         client_id: response?.transaction.client_id,
         check_in_date_time: new Date(primary_accomodation?.check_in_date_time!).toISOString(),
-
+        no_of_nights: primary_accomodation?.no_of_nights.toString() || "0",
         country: primary_accomodation?.accomodation?.resorts?.destination?.country_id,
         destination: primary_accomodation?.accomodation?.resorts?.destination_id,
         resort: primary_accomodation?.accomodation?.resorts_id,

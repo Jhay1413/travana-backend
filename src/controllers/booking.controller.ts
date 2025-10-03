@@ -45,7 +45,10 @@ export const bookingController = {
   },
   fetchBookingToUpdate: async (req: Request, res: Response) => {
     try {
+
+      console.log("fetchBookingToUpdate")
       const { id } = req.params;
+      const { holiday_type_id } = req.query;
       const booking = await service.fetchBookingToUpdate(id);
       res.status(200).json(booking);
     } catch (error) {
@@ -56,10 +59,13 @@ export const bookingController = {
   updateBooking: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { data } = req.body;
+      const  data  = req.body;
       const booking = await service.updateBooking(data, id);
-      res.status(200).json(booking);
+      res.status(200).json({
+        message: "Booking updated successfully",
+      });
     } catch (error) {
+      console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },

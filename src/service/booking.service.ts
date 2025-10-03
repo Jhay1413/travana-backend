@@ -82,9 +82,9 @@ export const bookingService = (
       return await repo.fetchBookingSummaryByAgent(agent_id, type, isFetchAll, agentIdToFetch);
     },
     fetchBookingToUpdate: async (booking_id: string) => {
-      const holiday_type = await sharedRepo.fetchHolidayTypeById(booking_id);
+      const holiday_type = await sharedRepo.fetchHolidayTypeByBookingId(booking_id);
       if (!holiday_type) throw new AppError('No holiday type found', true, 400);
-      if (holiday_type.name === 'Cruise Package ') return await repo.fetchCruiseToUpdate(booking_id);
+      if (holiday_type === 'Cruise Package ') return await repo.fetchCruiseToUpdate(booking_id);
       return await repo.fetchPackageToUpdate(booking_id);
     },
     updateBooking: async (data: z.infer<typeof booking_mutate_schema>, booking_id: string) => {
