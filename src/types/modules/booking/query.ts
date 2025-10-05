@@ -112,6 +112,11 @@ export const bookingQuerySchema = z.object({
       })
     )
     .optional(),
+  referrals: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    commission: z.number(),
+  })).optional(),
   referrerName: z.nullable(z.string()).optional(),
   referrerId: z.nullable(z.string()).optional(),
   potentialCommission: z.nullable(z.number()).optional(),

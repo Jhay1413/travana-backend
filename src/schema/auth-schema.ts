@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer } from 'drizzle-orm/pg-core';
 import { referral, referralRequest } from './referral-schema';
 import { relations } from 'drizzle-orm';
 import { clientTable } from './client-schema';
@@ -31,6 +31,7 @@ export const user = pgTable("user", {
   role: text("role").notNull(),
   phoneNumber: text("phone_number").notNull(),
   orgName: text("org_name"),
+  percentageCommission: integer("percentage_commission"),
 });
 
 export const session = pgTable("session", {

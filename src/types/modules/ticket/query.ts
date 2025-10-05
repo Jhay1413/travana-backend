@@ -77,3 +77,15 @@ export const ticketReplyQuerySchema = z.object({
     )
     .optional(),
 });
+export const ticketFilters = z.object({
+  status: z.string().optional(),
+  priority: z.string().optional(),
+  category: z.string().optional(),
+  agent_id: z.string().optional(),
+  client_id: z.string().optional(),
+  ticket_type: z.string().optional(),
+  search: z.string().optional(),
+  sort: z.string().optional(),
+});
+
+export type TicketsFilters = z.infer<typeof ticketFilters>;

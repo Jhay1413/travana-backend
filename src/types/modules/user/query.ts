@@ -28,6 +28,7 @@ export const usersQuerySchemaV2 = z.object({
 });
 
 export const accountRequestQuerySchema = z.object({
+  id: z.string(),
   email: z.string(),
   phoneNumber: z.string().nullable(),
   firstName: z.string(),

@@ -54,7 +54,7 @@ export type BookingRepo = {
   convertCruise: (transaction_id: string, data: z.infer<typeof booking_mutate_schema>) => Promise<{ id: string }>;
   convertPackage: (transaction_id: string, data: z.infer<typeof booking_mutate_schema>) => Promise<{ id: string }>;
   fetchHolidayTypeById: (booking_id: string) => Promise<string | undefined>;
-  insert: (data: z.infer<typeof booking_mutate_schema>) => Promise<{ id: string }>;
+  insert: (data: z.infer<typeof booking_mutate_schema>) => Promise<{ id: string, transaction_id: string }>;
   insertCruise: (data: z.infer<typeof booking_mutate_schema>) => Promise<{ id: string }>;
   fetchBookingSummaryByAgent: (
     id: string,
@@ -292,7 +292,7 @@ export const bookingRepo: BookingRepo = {
             )
           )
       );
-      return { id: booking_id.id };
+      return { id: booking_id.id, transaction_id: transaction_id };
     });
   },
   convertPackage: async (transaction_id, data) => {
@@ -640,15 +640,8 @@ export const bookingRepo: BookingRepo = {
             )
           )
       );
-      if (data.referrerId) {
-        await tx.insert(referral).values({
-          transactionId: transaction_data.id,
-          referrerId: data.referrerId,
-          potentialCommission: data.potentialCommission?.toString() || '0',
-          commission: '0',
-        });
-      }
-      return { id: booking_id.id };
+
+      return { id: booking_id.id, transaction_id: transaction_data.id };
     });
   },
   insertCruise: async (data) => {
@@ -1029,7 +1022,7 @@ export const bookingRepo: BookingRepo = {
         passengers: response?.passengers.map((data) => ({ ...data, age: data.age })),
         flights: response?.flights.map((data) => ({
           ...data,
-          
+
           commission: parseFloat(data.commission ?? '0'),
           cost: parseFloat(data.cost ?? '0'),
           departure_date_time: new Date(data.departure_date_time!).toISOString(),
@@ -1094,7 +1087,7 @@ export const bookingRepo: BookingRepo = {
         service_charge: parseFloat(response?.service_charge ?? '0'),
         holiday_type: response?.holiday_type_id,
         transfer_type: response?.transfer_type,
-        no_of_nights: response?.num_of_nights.toString() ?? '0' ,
+        no_of_nights: response?.num_of_nights.toString() ?? '0',
         agent_id: response?.transaction.user_id,
         client_id: response?.transaction.client_id,
 
@@ -1147,7 +1140,7 @@ export const bookingRepo: BookingRepo = {
 
             accomodation_id: data.accomodation_id,
             check_in_date_time: new Date(data.check_in_date_time!).toISOString(),
-         
+
           })),
 
         // referralId: response.transaction.referrals ? response.transaction.referrals.id : undefined,
@@ -1178,7 +1171,7 @@ export const bookingRepo: BookingRepo = {
         service_charge: parseFloat(response?.service_charge ?? '0'),
         holiday_type: response?.holiday_type_id,
         transfer_type: response?.transfer_type,
-        no_of_nights: response?.num_of_nights.toString() ?? '0' ,
+        no_of_nights: response?.num_of_nights.toString() ?? '0',
         agent_id: response?.transaction.user_id,
         client_id: response?.transaction.client_id,
 
@@ -1336,7 +1329,7 @@ export const bookingRepo: BookingRepo = {
       cruise_line: response?.booking_cruise.cruise_line,
       cruise_ship: response?.booking_cruise.ship,
       cruise_name: response?.booking_cruise.cruise_name,
-      no_of_nights: response?.num_of_nights.toString() ?? '0' ,
+      no_of_nights: response?.num_of_nights.toString() ?? '0',
 
       transfer_type: response?.transfer_type,
       agent_id: response?.transaction.user_id,
@@ -1348,7 +1341,7 @@ export const bookingRepo: BookingRepo = {
         .map((data) => ({
           ...data,
           no_of_nights: data.no_of_nights.toString() ?? '0',
-          
+
           resort: data.accomodation?.resorts_id,
           destination: data.accomodation?.resorts?.destination_id,
           country: data.accomodation?.resorts?.destination?.country_id,
@@ -1382,7 +1375,7 @@ export const bookingRepo: BookingRepo = {
         pick_up_time: new Date(data.pick_up_time!).toISOString(),
         commission: parseFloat(data.commission ?? '0'),
         cost: parseFloat(data.cost ?? '0'),
-          })),
+      })),
       attraction_tickets: response?.attraction_tickets.map((data) => ({ ...data, date_of_visit: new Date(data.date_of_visit!).toISOString(), commission: parseFloat(data.commission ?? '0'), cost: parseFloat(data.cost ?? '0') })),
       airport_parking: response?.airport_parking.map((data) => ({ ...data, make: data.car_make, parking_date: data.parking_date!.toISOString(), commission: parseFloat(data.commission ?? '0'), cost: parseFloat(data.cost ?? '0') })),
       lounge_pass: response?.lounge_pass.map((data) => ({ ...data, date_of_usage: new Date(data.date_of_usage!).toISOString(), commission: parseFloat(data.commission ?? '0'), cost: parseFloat(data.cost ?? '0') })),
@@ -1545,7 +1538,7 @@ export const bookingRepo: BookingRepo = {
     });
   },
   updateCruise: async (data: z.infer<typeof booking_mutate_schema>, booking_id: string) => {
-    const pre_process_data = await preProcessUpdate(booking_id, data,'BOOKING');
+    const pre_process_data = await preProcessUpdate(booking_id, data, 'BOOKING');
 
     await db.transaction(async (tx) => {
       const deletions = [
@@ -2218,37 +2211,35 @@ export const bookingRepo: BookingRepo = {
       booking.child,
       booking.adult,
       booking.date_created,
-      referral.referrerId,
-      referral.potentialCommission,
       user.firstName,
       user.lastName,
       transaction.lead_source,
       ...(result.length > 0 && result[0].name === 'Hot Tub Break'
         ? [
-            booking.lodge_id,
-            lodges.lodge_name,
-            lodges.lodge_code,
-            park.name,
-            park.location,
-            park.code,
-            booking.cottage_id,
-            cottages.cottage_name,
-            cottages.cottage_code,
-            cottages.location,
-          ]
+          booking.lodge_id,
+          lodges.lodge_name,
+          lodges.lodge_code,
+          park.name,
+          park.location,
+          park.code,
+          booking.cottage_id,
+          cottages.cottage_name,
+          cottages.cottage_code,
+          cottages.location,
+        ]
         : []),
       ...(result.length > 0 && result[0].name === 'Cruise Package'
         ? [
-            booking_cruise.id,
-            cruise_operator.name,
-            booking_cruise.cruise_line,
-            booking_cruise.ship,
-            booking_cruise.cruise_date,
-            booking_cruise.cabin_type,
-            booking_cruise.cruise_name,
-            booking_cruise.pre_cruise_stay,
-            booking_cruise.post_cruise_stay,
-          ]
+          booking_cruise.id,
+          cruise_operator.name,
+          booking_cruise.cruise_line,
+          booking_cruise.ship,
+          booking_cruise.cruise_date,
+          booking_cruise.cabin_type,
+          booking_cruise.cruise_name,
+          booking_cruise.pre_cruise_stay,
+          booking_cruise.post_cruise_stay,
+        ]
         : []),
     ];
 
@@ -2278,9 +2269,6 @@ export const bookingRepo: BookingRepo = {
       adults: booking.adult,
       date_created: booking.date_created,
       lead_source: transaction.lead_source,
-      referrerName: sql`${userReferrer.firstName} || ' ' || ${userReferrer.lastName}`,
-      referrerId: referral.referrerId,
-      potentialCommission: referral.potentialCommission,
     };
 
     if (result.length > 0 && result[0].name === 'Hot Tub Break') {
@@ -2469,6 +2457,11 @@ export const bookingRepo: BookingRepo = {
                 'cost', ${booking_flights.cost},
                 'commission', ${booking_flights.commission}
                 ))`.as('flights'),
+        referrals: sql`json_agg(json_build_object(
+                'id', ${referral.id},
+                'name', ${userReferrer.firstName} || ' ' || ${userReferrer.lastName},
+                'commission', ${referral.potentialCommission}
+                ))`.as('referrals'),
       })
       .from(booking)
       .innerJoin(transaction, eq(booking.transaction_id, transaction.id))
@@ -2523,6 +2516,10 @@ export const bookingRepo: BookingRepo = {
     const datas = await query;
     const data = datas[0] as any;
 
+
+    const referrals = Array.from(new Map((data?.referrals ?? []).filter((r: any) => r?.id).map((r: any) => [r.id, { ...r, id: r.id }])).values()) || [];
+    const percentageComission = referrals.reduce((acc: number, curr: any) => acc + parseFloat(curr.commission), 0);
+    console.log(data.referrals, "referrers")
     console.log(booking_id);
     const payload = {
       ...data,
@@ -2539,12 +2536,11 @@ export const bookingRepo: BookingRepo = {
       overall_commission: parseFloat(data?.overall_commission ?? 0),
       overall_cost: parseFloat(data?.overall_cost ?? 0),
 
-      referrerName: data?.referrerName ? data?.referrerName : undefined,
-      referrerId: data?.referrerId ? data?.referrerId : undefined,
-      potentialCommission: data?.potentialCommission ? parseFloat(data?.potentialCommission) : undefined,
-      referrerCommission: parseFloat(data?.overall_commission ?? 0) * (parseFloat(data?.potentialCommission ?? 0) / 100),
+
+      potentialCommission: percentageComission,
+      referrerCommission: parseFloat(data?.overall_commission ?? 0) * (percentageComission) / 100,
       finalCommission:
-        parseFloat(data?.overall_commission ?? 0) - parseFloat(data?.overall_commission ?? 0) * (parseFloat(data?.potentialCommission ?? 0) / 100),
+        parseFloat(data?.overall_commission ?? 0) - parseFloat(data?.overall_commission ?? 0) * (percentageComission / 100),
       cruise_extra: Array.from(new Set((data?.cruise_extra ?? []).filter((c: any) => c?.id).map((c: any) => c.name))),
 
       voyages: Array.from(new Map((data?.voyages ?? []).filter((v: any) => v?.id).map((v: any) => [v.id, { ...v, id: v.id }])).values()),
@@ -2552,6 +2548,7 @@ export const bookingRepo: BookingRepo = {
       passengers: Array.from(
         new Map((data?.passengers ?? []).filter((p: any) => p?.id).map((p: any) => [p.id, { ...p, age: parseInt(p.age) }])).values()
       ),
+      referrals: referrals,
 
       hotels: Array.from(
         new Map(

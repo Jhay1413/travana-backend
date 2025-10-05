@@ -1,18 +1,11 @@
-// import { Router } from 'express';
-// import { AuthController } from '../controllers/authController';
+import { authController } from '../controllers/auth.controller';
+import { Router } from 'express';
 
-// const router = Router();
+const router = Router();
 
-// // POST /api/auth/register
-// router.post('/register', authController.register);
 
-// // POST /api/auth/login
-// router.post('/login', authController.login);
+router.post('/invitation', authController.createInvitation);
+router.post('/accept-invitation/:invitationId', authController.acceptInvitation);
 
-// // POST /api/auth/logout
-// router.post('/logout', authController.logout);
 
-// // GET /api/auth/me
-// router.get('/me', authController.getCurrentUser);
-
-// export default router;
+export default router;

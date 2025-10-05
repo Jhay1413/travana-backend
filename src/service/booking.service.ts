@@ -7,6 +7,10 @@ import { NotificationProvider } from '../provider/notification.provider';
 import z from 'zod';
 import { booking_mutate_schema } from '../types/modules/booking';
 import { AppError } from '../middleware/errorHandler';
+import { auth } from '../lib/auth';
+import { AuthService } from './auth.service';
+import { AuthRepo } from '../repository/auth.repo';
+import { ReferralRepo } from '../repository/referrals.repo';
 
 export const bookingService = (
   repo: BookingRepo,
@@ -14,11 +18,13 @@ export const bookingService = (
   userRepo: UserRepo,
   clientRepo: ClientRepo,
   notificationRepo: NotificationRepo,
-  notificationProvider: NotificationProvider
+  notificationProvider: NotificationProvider,
+  authRepo: AuthRepo,
+  referralRepo: ReferralRepo
 ) => {
   return {
     convert: async (transaction_id: string, data: z.infer<typeof booking_mutate_schema>, user_id: string) => {
-      
+
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
       let id: string | undefined;
@@ -54,6 +60,7 @@ export const bookingService = (
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
       let id: string | undefined;
+      let transaction_id: string | undefined;
       if (holiday_type.name === 'Cruise Package') {
         console.log('Cruise Package');
         const result = await repo.insertCruise(data);
@@ -61,6 +68,33 @@ export const bookingService = (
       } else {
         const result = await repo.insert(data);
         id = result.id;
+        transaction_id = result.transaction_id;
+      }
+
+
+
+      const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
+      if (transaction_id && referrer.referrerId) {
+        const organization = await authRepo.fetchOrganizationByUserId(referrer.referrerId);
+        if (organization) {
+          const owner = await authRepo.fetchOwnerOrganizationByOrgId(organization.organizationId);
+
+          if (!owner) {
+            referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+          }
+
+          else {
+            if(owner.userId === referrer.referrerId){
+              await referralRepo.insertReferral(transaction_id, owner.userId, referrer.percentageCommission?.toString() ?? '0');
+            }else{
+              await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+              await referralRepo.insertReferral(transaction_id, owner.userId, '5');
+            }
+          }
+        }
+        else {
+          await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+        }
       }
 
       const [client] = await Promise.all([clientRepo.fetchClientById(data.client_id)]);

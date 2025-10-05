@@ -5,7 +5,7 @@ import { db } from "../db/db";
 import { usersTable } from "../schema/user-schema";
 import { member } from "../schema/auth-schema";
 import { fromNodeHeaders } from "better-auth/node";
-import { send_registration_email_service } from "../service/email.service";
+import { send_registration_email_service, send_referrer_invitation_email_service } from "../service/email.service";
 
 const authConfig = {
   database: drizzleAdapter(db, {
@@ -58,6 +58,10 @@ const authConfig = {
         type: "string",
         required: false,
       },
+      percentageCommission: {
+        type: "number",
+        required: false,
+      },
     },
   },
   databaseHooks: {},
@@ -69,18 +73,15 @@ const authConfig = {
   },
   plugins: [
     organization({
-      organizationHooks: {
-        beforeCreateOrganization: async ({ organization }) => {
-          return {
-            data: {
-              ...organization,
-              metadata: {
-                isAdminOrganization:
-                  organization.metadata?.isAdminOrganization || false,
-              },
-            },
-          };
-        },
+      async sendInvitationEmail(data) {
+        const inviteLink = `${process.env.CLIENT_URL}/dashboard/invitation/${data.id}`;
+        send_referrer_invitation_email_service(
+          inviteLink,
+          data.inviter.user.name,
+          data.inviter.user.email,
+          data.organization.name,
+          data.email,
+        );
       },
     }),
   ],

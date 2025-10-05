@@ -9,10 +9,10 @@ export const userController = {
     try {
       const { search } = req.query;
       const users = await service.fetchUsers(search as string);
-      res.status(200).json({
-        success: true,
-        data: users,
-      });
+      res.status(200).json(
+
+        users
+      );
     } catch (error) {
       res.status(500).json({
         success: false,
@@ -83,7 +83,7 @@ export const userController = {
   },
   async createAccountRequest(req: Request, res: Response) {
     try {
-      const { data } = req.body;
+      const data = req.body;
       await service.createAccountRequest(data);
       res.status(201).json({
         success: true,
@@ -99,11 +99,9 @@ export const userController = {
   async getAllAccountRequests(req: Request, res: Response) {
     try {
       const accountRequests = await service.fetchAllAccountRequests();
-      res.status(200).json({
-        success: true,
-        data: accountRequests,
-      });
+      res.status(200).json(accountRequests);
     } catch (error) {
+      console.log(error, "from user controller")
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Something went wrong',
@@ -114,7 +112,7 @@ export const userController = {
     try {
       const { id } = req.params;
       const { status } = req.body;
-      await service.updateAccountRequest(id, status);
+      await service.updateAccountRequest(id, status, req.headers);
       res.status(200).json({
         success: true,
         message: 'Account request updated successfully',

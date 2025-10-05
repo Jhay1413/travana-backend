@@ -28,7 +28,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.all('/api/auth/*splat', (req, res) => toNodeHandler(auth)(req, res));
+app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

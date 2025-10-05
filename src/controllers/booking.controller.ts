@@ -6,13 +6,15 @@ import { clientRepo } from '../repository/client.repo';
 import { notificationRepo } from '../repository/notification.repo';
 import { notificationProvider } from '../provider/notification.provider';
 import { Request, Response } from 'express';
+import { authRepo } from '../repository/auth.repo';
+import { referralRepo } from '../repository/referrals.repo';
 
-const service = bookingService(bookingRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider);
+const service = bookingService(bookingRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo);
 
 export const bookingController = {
   convertBooking: async (req: Request, res: Response) => {
     try {
-      const data= req.body;
+      const data = req.body;
       const { transaction_id } = req.params;
       const { user_id } = req.query;
       const booking = await service.convert(transaction_id, data, user_id as string);
@@ -26,7 +28,7 @@ export const bookingController = {
   },
   createBooking: async (req: Request, res: Response) => {
     try {
-      const data= req.body;
+      const data = req.body;
       const booking = await service.insert(data);
       res.status(201).json(booking);
     } catch (error) {
@@ -59,7 +61,7 @@ export const bookingController = {
   updateBooking: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const  data  = req.body;
+      const data = req.body;
       const booking = await service.updateBooking(data, id);
       res.status(200).json({
         message: "Booking updated successfully",

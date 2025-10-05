@@ -20,7 +20,11 @@ export type UserRepo = {
   fetchAccountRequestById: (id: string) => Promise<AccountRequestQuerySchema[]>;
 };
 export const userRepo: UserRepo = {
+  
   async fetchUsers(search?: string) {
+
+
+    console.log(search,"from user repo")
     try {
       const response = await db.query.user.findMany({
         where: search ? ilike(user.firstName, `%${search}%`) : undefined,
@@ -67,7 +71,6 @@ export const userRepo: UserRepo = {
   },
   async fetchUserById(user_id: string) {
     try {
-      console.log(user_id,"from user")
       const response = await db.query.user.findFirst({
         where: eq(user.id, user_id),
       });
@@ -112,8 +115,9 @@ export const userRepo: UserRepo = {
   },
   async fetchAllAccountRequests() {
     try {
+
+      console.log("from user repo")
       const response = await db.query.account_request.findMany({
-        where: eq(account_request.status, 'pending'),
       });
 
       return response.map((item) => ({
@@ -139,7 +143,7 @@ export const userRepo: UserRepo = {
         where: eq(account_request.id, id),
       });
       if (!response) {
-        return [];
+        throw new AppError('Account request not found', true, 404);
       }
       return [
         {
