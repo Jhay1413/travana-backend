@@ -369,15 +369,7 @@ export const inquiryRepo: InquiryRepo = {
           await tx.insert(enquiry_departure_airport).values(airportPayload);
         }
 
-        //insert referral
-        if (data.referrerId) {
-          await tx.insert(referral).values({
-            transactionId: transaction_id.id,
-            referrerId: data.referrerId,
-            potentialCommission: data.potentialCommission?.toString() || '0',
-            commission: '0',
-          });
-        }
+
         return {
           transaction_id: transaction_id.id,
         };

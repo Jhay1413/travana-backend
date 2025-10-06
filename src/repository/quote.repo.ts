@@ -65,16 +65,16 @@ export type QuoteRepo = {
     transaction_id: string;
     quote_id: string;
     quote_status:
-      | 'LOST'
-      | 'INACTIVE'
-      | 'EXPIRED'
-      | 'NEW_LEAD'
-      | 'QUOTE_IN_PROGRESS'
-      | 'QUOTE_CALL'
-      | 'QUOTE_READY'
-      | 'AWAITING_DECISION'
-      | 'REQUOTE'
-      | 'WON';
+    | 'LOST'
+    | 'INACTIVE'
+    | 'EXPIRED'
+    | 'NEW_LEAD'
+    | 'QUOTE_IN_PROGRESS'
+    | 'QUOTE_CALL'
+    | 'QUOTE_READY'
+    | 'AWAITING_DECISION'
+    | 'REQUOTE'
+    | 'WON';
     holiday_type: string;
   }>;
   insertCruise: (data: z.infer<typeof quote_mutate_schema>) => Promise<{
@@ -87,16 +87,16 @@ export type QuoteRepo = {
     transaction_id: string;
     quote_id: string;
     quote_status:
-      | 'LOST'
-      | 'INACTIVE'
-      | 'EXPIRED'
-      | 'NEW_LEAD'
-      | 'QUOTE_IN_PROGRESS'
-      | 'QUOTE_CALL'
-      | 'QUOTE_READY'
-      | 'AWAITING_DECISION'
-      | 'REQUOTE'
-      | 'WON';
+    | 'LOST'
+    | 'INACTIVE'
+    | 'EXPIRED'
+    | 'NEW_LEAD'
+    | 'QUOTE_IN_PROGRESS'
+    | 'QUOTE_CALL'
+    | 'QUOTE_READY'
+    | 'AWAITING_DECISION'
+    | 'REQUOTE'
+    | 'WON';
     holiday_type: string;
   }>;
   fetchQuoteSummaryByClient: (clientId: string) => Promise<z.infer<typeof quoteQuerySummarySchema>[]>;
@@ -763,14 +763,7 @@ export const quoteRepo: QuoteRepo = {
             }))
           );
         }
-        if (data.referrerId) {
-          await tx.insert(referral).values({
-            transactionId: transaction_id.id,
-            referrerId: data.referrerId,
-            potentialCommission: data.potentialCommission?.toString() ?? '0',
-            commission: '0',
-          });
-        }
+
         return {
           transaction_id: transaction_id.id,
           quote_id: quote_id.id,
@@ -1193,14 +1186,7 @@ export const quoteRepo: QuoteRepo = {
             }))
           );
         }
-        if (data.referrerId) {
-          await tx.insert(referral).values({
-            transactionId: transaction_id.id,
-            referrerId: data.referrerId,
-            potentialCommission: data.potentialCommission?.toString() ?? '0',
-            commission: '0',
-          });
-        }
+
         return {
           transaction_id: transaction_id.id,
           quote_id: quote_id.id,
@@ -1667,14 +1653,17 @@ export const quoteRepo: QuoteRepo = {
 
       const groupByFields = [
         quote.id,
+        userReferrer.firstName,
+        userReferrer.lastName,
+        agentTable.firstName,
+        agentTable.lastName,
         package_type.name,
         clientTable.firstName,
         clientTable.surename,
         transaction.client_id,
-        agentTable.firstName,
-        user.lastName,
+
+
         transaction.status,
-        transaction.lead_source,
         transaction.id,
         quote.sales_price,
         quote.package_commission,
@@ -1693,38 +1682,36 @@ export const quoteRepo: QuoteRepo = {
         quote.date_expiry,
         quote.is_future_deal,
         quote.future_deal_date,
-        agentTable.firstName,
-        userReferrer.lastName,
-        userReferrer.firstName,
-        referral.referrerId,
-        referral.potentialCommission,
+        user.firstName,
+        user.lastName,
+        transaction.lead_source,
 
         ...(result.length > 0 && result[0].name === 'Hot Tub Break'
           ? [
-              quote.lodge_id,
-              lodges.lodge_name,
-              lodges.lodge_code,
-              park.name,
-              park.location,
-              park.code,
-              quote.cottage_id,
-              cottages.cottage_name,
-              cottages.cottage_code,
-              cottages.location,
-            ]
+            quote.lodge_id,
+            lodges.lodge_name,
+            lodges.lodge_code,
+            park.name,
+            park.location,
+            park.code,
+            quote.cottage_id,
+            cottages.cottage_name,
+            cottages.cottage_code,
+            cottages.location,
+          ]
           : []),
         ...(result.length > 0 && result[0].name === 'Cruise Package'
           ? [
-              quote_cruise.id,
-              cruise_operator.name,
-              quote_cruise.cruise_line,
-              quote_cruise.ship,
-              quote_cruise.cruise_date,
-              quote_cruise.cabin_type,
-              quote_cruise.cruise_name,
-              quote_cruise.pre_cruise_stay,
-              quote_cruise.post_cruise_stay,
-            ]
+            quote_cruise.id,
+            cruise_operator.name,
+            quote_cruise.cruise_line,
+            quote_cruise.ship,
+            quote_cruise.cruise_date,
+            quote_cruise.cabin_type,
+            quote_cruise.cruise_name,
+            quote_cruise.pre_cruise_stay,
+            quote_cruise.post_cruise_stay,
+          ]
           : []),
       ];
 
@@ -1758,9 +1745,7 @@ export const quoteRepo: QuoteRepo = {
         future_deal_date: quote.future_deal_date,
         quote_ref: quote.quote_ref,
 
-        referrerName: sql`${userReferrer.firstName} || ' ' || ${userReferrer.lastName}`,
-        referrerId: referral.referrerId,
-        potentialCommission: referral.potentialCommission,
+
       };
 
       if (result.length > 0 && result[0].name === 'Hot Tub Break') {
@@ -1950,6 +1935,11 @@ export const quoteRepo: QuoteRepo = {
                 'cost', ${quote_flights.cost},
                 'commission', ${quote_flights.commission}
                 ))`.as('flights'),
+          referrals: sql`json_agg(json_build_object(
+                'id', ${referral.id},
+                'name', ${userReferrer.firstName} || ' ' || ${userReferrer.lastName},
+                'commission', ${referral.potentialCommission}
+                ))`.as('referrals'),
         })
         .from(quote)
         .innerJoin(transaction, eq(quote.transaction_id, transaction.id))
@@ -2004,14 +1994,16 @@ export const quoteRepo: QuoteRepo = {
 
       const data = datas[0] as any;
 
+      const referrals = Array.from(new Map((data?.referrals ?? []).filter((r: any) => r?.id).map((r: any) => [r.id, { ...r, id: r.id }])).values()) || [];
+      const percentageComission = referrals.reduce((acc: number, curr: any) => acc + parseFloat(curr.commission), 0);
 
       console.log(data.post_cruise_stay)
       const payload = {
         ...data,
         cruise_date: data?.cruise_date ? new Date(data.cruise_date) : null,
-        post_cruise_stay: data?.post_cruise_stay ,
-        pre_cruise_stay: data?.pre_cruise_stay ,
-        future_deal_date: new Date(data?.future_deal_date)  ,
+        post_cruise_stay: data?.post_cruise_stay,
+        pre_cruise_stay: data?.pre_cruise_stay,
+        future_deal_date: new Date(data?.future_deal_date),
         travel_date: data?.travel_date ? new Date(data.travel_date) : null,
         sales_price: parseFloat(data?.sales_price ?? 0),
         overall_commission: parseFloat(data?.overall_commission ?? 0),
@@ -2021,12 +2013,10 @@ export const quoteRepo: QuoteRepo = {
 
         num_of_nights: data.num_of_nights ? parseInt(data?.num_of_nights) : 0,
         overall_cost: parseFloat(data?.overall_cost ?? 0),
-        referrerName: data?.referrerName ? data?.referrerName : undefined,
-        referrerId: data?.referrerId ? data?.referrerId : undefined,
-        potentialCommission: data?.potentialCommission ? parseInt(data?.potentialCommission) : undefined,
-        referrerCommission: (parseFloat(data?.overall_commission ?? 0) * (data?.potentialCommission ?? 0)) / 100,
+        potentialCommission: percentageComission,
+        referrerCommission: (parseFloat(data?.overall_commission ?? 0) * (percentageComission ?? 0)) / 100,
         finalCommission:
-          parseFloat(data?.overall_commission ?? 0) - (parseFloat(data?.overall_commission ?? 0) * (data?.potentialCommission ?? 0)) / 100,
+          parseFloat(data?.overall_commission ?? 0) - (parseFloat(data?.overall_commission ?? 0) * (percentageComission ?? 0)) / 100,
         cruise_extra: Array.from(new Set((data?.cruise_extra ?? []).filter((c: any) => c?.id).map((c: any) => c.name))),
 
         voyages: Array.from(new Map((data?.voyages ?? []).filter((v: any) => v?.id).map((v: any) => [v.id, { ...v, id: v.id }])).values()),
@@ -2034,6 +2024,8 @@ export const quoteRepo: QuoteRepo = {
         passengers: Array.from(
           new Map((data?.passengers ?? []).filter((p: any) => p?.id).map((p: any) => [p.id, { ...p, age: parseInt(p.age) }])).values()
         ),
+        referrals: referrals,
+
 
         hotels: Array.from(
           new Map(
@@ -2655,20 +2647,20 @@ export const quoteRepo: QuoteRepo = {
           departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
           arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
         })),
-          transfers: response.transfers.map((data) => ({
-            ...data,
-            commission: parseFloat(data.commission ?? '0'),
-            cost: parseFloat(data.cost ?? '0'),
-            drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
-            pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
-          })),
-          car_hire: response.car_hire.map((data) => ({
-            ...data,
-            commission: parseFloat(data.commission ?? '0'),
-            cost: parseFloat(data.cost ?? '0'),
-            drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
-            pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
-          })),
+        transfers: response.transfers.map((data) => ({
+          ...data,
+          commission: parseFloat(data.commission ?? '0'),
+          cost: parseFloat(data.cost ?? '0'),
+          drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
+          pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
+        })),
+        car_hire: response.car_hire.map((data) => ({
+          ...data,
+          commission: parseFloat(data.commission ?? '0'),
+          cost: parseFloat(data.cost ?? '0'),
+          drop_off_time: data.drop_off_time ? new Date(data.drop_off_time).toISOString() : null,
+          pick_up_time: data.pick_up_time ? new Date(data.pick_up_time).toISOString() : null,
+        })),
         attraction_tickets: response.attraction_tickets.map((data) => ({
           ...data,
           commission: parseFloat(data.commission ?? '0'),
@@ -3371,16 +3363,16 @@ export const quoteRepo: QuoteRepo = {
               eq(
                 quote.quote_status,
                 filters.quote_status as
-                  | 'NEW_LEAD'
-                  | 'QUOTE_IN_PROGRESS'
-                  | 'QUOTE_CALL'
-                  | 'QUOTE_READY'
-                  | 'AWAITING_DECISION'
-                  | 'REQUOTE'
-                  | 'WON'
-                  | 'LOST'
-                  | 'INACTIVE'
-                  | 'EXPIRED'
+                | 'NEW_LEAD'
+                | 'QUOTE_IN_PROGRESS'
+                | 'QUOTE_CALL'
+                | 'QUOTE_READY'
+                | 'AWAITING_DECISION'
+                | 'REQUOTE'
+                | 'WON'
+                | 'LOST'
+                | 'INACTIVE'
+                | 'EXPIRED'
               )
             );
           }
@@ -3705,17 +3697,17 @@ export const quoteRepo: QuoteRepo = {
       const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
       const searchOrs = words.length
         ? words.map((word) =>
-            or(
-              ilike(quote.title, `%${word}%`),
-              ilike(lodges.lodge_name, `%${word}%`),
-              ilike(cottages.location, `%${word}%`),
-              ilike(quote_cruise.cruise_name, `%${word}%`),
-              ilike(destination.name, `%${word}%`),
-              ilike(country.country_name, `%${word}%`),
-              ilike(resorts.name, `%${word}%`),
-              ilike(accomodation_list.name, `%${word}%`)
-            )
+          or(
+            ilike(quote.title, `%${word}%`),
+            ilike(lodges.lodge_name, `%${word}%`),
+            ilike(cottages.location, `%${word}%`),
+            ilike(quote_cruise.cruise_name, `%${word}%`),
+            ilike(destination.name, `%${word}%`),
+            ilike(country.country_name, `%${word}%`),
+            ilike(resorts.name, `%${word}%`),
+            ilike(accomodation_list.name, `%${word}%`)
           )
+        )
         : [];
 
       const filters = [
@@ -3751,10 +3743,10 @@ export const quoteRepo: QuoteRepo = {
           destination: quote.holiday_destination
             ? [quote.country, quote.holiday_destination, quote.resort_name].filter(Boolean).join(', ')
             : quote.lodge_name
-            ? [quote.lodge_name, quote.lodge_destination].filter(Boolean).join(', ')
-            : quote.cruise_destination
-            ? quote.cruise_destination
-            : '',
+              ? [quote.lodge_name, quote.lodge_destination].filter(Boolean).join(', ')
+              : quote.cruise_destination
+                ? quote.cruise_destination
+                : '',
           sales_price: parseFloat(quote.sales_price as string),
         })),
         nextCursor,

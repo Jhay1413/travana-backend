@@ -7,10 +7,10 @@ import { desc, eq, ilike, or } from 'drizzle-orm';
 import z from 'zod';
 
 export type UserRepo = {
-  fetchUsers: (search?: string) => Promise<UserQuerySchema[]>;
+  fetchUsers: (search?: string, user_id?: string) => Promise<UserQuerySchema[]>;
   createUser: (data: z.infer<typeof userMutationSchema>) => Promise<void>;
   fetchAgentByAccountId: (account_id: string) => Promise<UserQuerySchema>;
-  fetchAllAgent: (agentName?: string) => Promise<UserQuerySchema[]>;
+  fetchAllAgent: (agentName?: string, user_id?: string) => Promise<UserQuerySchema[]>;
   fetchUserById: (user_id: string) => Promise<UserQuerySchema>;
   updateUser: (data: z.infer<typeof userMutationSchema>, user_id: string) => Promise<void>;
   deleteUser: (user_id: string) => Promise<void>;
@@ -20,14 +20,20 @@ export type UserRepo = {
   fetchAccountRequestById: (id: string) => Promise<AccountRequestQuerySchema[]>;
 };
 export const userRepo: UserRepo = {
-  
-  async fetchUsers(search?: string) {
 
+  async fetchUsers(search?: string, user_id?: string) {
 
-    console.log(search,"from user repo")
+    const conditions = [];
+    if (search) {
+      conditions.push(ilike(user.firstName, `%${search}%`));
+    }
+    if (user_id) {
+      conditions.push(eq(user.id, user_id));
+    }
+    console.log(search, "from user repo")
     try {
       const response = await db.query.user.findMany({
-        where: search ? ilike(user.firstName, `%${search}%`) : undefined,
+        where: conditions.length > 0 ? or(...conditions) : undefined,
         limit: 10,
       });
       return response;
@@ -58,10 +64,18 @@ export const userRepo: UserRepo = {
       throw new AppError('Something went wrong', true, 500);
     }
   },
-  async fetchAllAgent(agentName?: string) {
+  async fetchAllAgent(agentName?: string, user_id?: string) {
     try {
+      const conditions = [];
+      if (agentName) {
+        conditions.push(ilike(user.firstName, `${agentName}%`));
+      }
+      if (user_id) {
+        conditions.push(eq(user.id, user_id));
+      }
+
       const response = await db.query.user.findMany({
-        where: agentName ? or(ilike(user.firstName, `${agentName}%`), ilike(user.lastName, `${agentName}%`)) : undefined,
+        where: conditions.length > 0 ? or(...conditions) : undefined,
       });
       return response;
     } catch (error) {

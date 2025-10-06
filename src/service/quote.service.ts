@@ -7,6 +7,8 @@ import { NotificationRepo } from '../repository/notification.repo';
 import { quote_mutate_schema } from '../types/modules/transaction/mutation';
 import z from 'zod';
 import { NotificationProvider } from '../provider/notification.provider';
+import { AuthRepo } from '../repository/auth.repo';
+import { ReferralRepo } from '../repository/referrals.repo';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -14,7 +16,9 @@ export const quoteService = (
   userRepo: UserRepo,
   clientRepo: ClientRepo,
   notificationRepo: NotificationRepo,
-  notificationProvider: NotificationProvider
+  notificationProvider: NotificationProvider,
+  authRepo: AuthRepo,
+  referralRepo: ReferralRepo
 ) => {
   return {
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
@@ -60,13 +64,47 @@ export const quoteService = (
       return { id };
     },
     insertQuote: async (data: z.infer<typeof quote_mutate_schema>) => {
+
+      let id: string | undefined;
+      let transaction_id: string | undefined;
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       console.log(holiday_type)
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
-      if (holiday_type.name === 'Cruise Package') return await repo.insertCruise(data);
+      if (holiday_type.name === 'Cruise Package'){
 
-      return await repo.insertQuote(data);
+        const result = await repo.insertCruise(data);
+        id = result.quote_id;
+        transaction_id = result.transaction_id;
+      } else {
+        const result = await repo.insertQuote(data);
+        id = result.quote_id;
+        transaction_id = result.transaction_id;
+      }
+
+      const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
+      if (transaction_id && referrer.referrerId) {
+        const organization = await authRepo.fetchOrganizationByUserId(referrer.referrerId);
+        if (organization) {
+          const owner = await authRepo.fetchOwnerOrganizationByOrgId(organization.organizationId);
+          if (!owner) {
+            await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+          }
+          else {
+            if (owner.userId === referrer.referrerId) {
+              await referralRepo.insertReferral(transaction_id, owner.userId, referrer.percentageCommission?.toString() ?? '0');
+            } else {
+              await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+              await referralRepo.insertReferral(transaction_id, owner.userId, '5');
+            }
+          }
+        }
+        else {
+          await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+        }
+      } 
+
+      return { id, transaction_id };
     },
 
     duplicateQuote: async (data: z.infer<typeof quote_mutate_schema>) => {

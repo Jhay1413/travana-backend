@@ -1,8 +1,10 @@
 import { InquiryRepo } from '../repository/inquiry.repo';
+import { ReferralRepo } from '../repository/referrals.repo';
 import { enquiry_mutate_schema } from '../types/modules/transaction/mutation';
 import z from 'zod';
+import { AuthRepo } from '../repository/auth.repo';
 
-export const inquiryService = (repo: InquiryRepo) => {
+export const inquiryService = (repo: InquiryRepo, referralRepo: ReferralRepo, authRepo: AuthRepo) => {
   return {
     markDeletionCodeAsUsed: async (deletionCodeId: string) => {
       return await repo.markDeletionCodeAsUsed(deletionCodeId);
@@ -17,7 +19,34 @@ export const inquiryService = (repo: InquiryRepo) => {
       return await repo.getDeletedInquiries(page, limit);
     },
     insertInquiry: async (data: z.infer<typeof enquiry_mutate_schema>) => {
-      return await repo.insertInquiry(data);
+
+
+      const result = await repo.insertInquiry(data);
+
+      const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
+      if (result.transaction_id && referrer.referrerId) {
+        const organization = await authRepo.fetchOrganizationByUserId(referrer.referrerId);
+        if (organization) {
+          const owner = await authRepo.fetchOwnerOrganizationByOrgId(organization.organizationId);
+          if (!owner) {
+            await referralRepo.insertReferral(result.transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+          }
+          else {
+            if (owner.userId === referrer.referrerId) {
+              await referralRepo.insertReferral(result.transaction_id, owner.userId, referrer.percentageCommission?.toString() ?? '0' + '5');
+            } else {
+              await referralRepo.insertReferral(result.transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+              await referralRepo.insertReferral(result.transaction_id, owner.userId, '5');
+            }
+          }
+        }
+        else {
+          await referralRepo.insertReferral(result.transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
+        }
+      }
+      return {
+        transaction_id: result.transaction_id,
+      };
     },
     updateInquiry: async (inquiryId: string, data: z.infer<typeof enquiry_mutate_schema>) => {
       return await repo.updateInquiry(inquiryId, data);

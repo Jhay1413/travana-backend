@@ -7,11 +7,12 @@ const service = userService(userRepo);
 export const userController = {
   async getAllUsers(req: Request, res: Response) {
     try {
-      const { search } = req.query;
-      const users = await service.fetchUsers(search as string);
+      const { search, user_id } = req.query;
+      const users = await service.fetchUsers(search as string, user_id as string);
       res.status(200).json(
 
-        users
+        users,
+        
       );
     } catch (error) {
       res.status(500).json({

@@ -57,7 +57,7 @@ const authConfig = {
       orgName: {
         type: "string",
         required: false,
-      },
+      },                                                                                                                                                                              
       percentageCommission: {
         type: "number",
         required: false,

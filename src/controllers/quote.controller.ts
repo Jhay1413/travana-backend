@@ -5,9 +5,11 @@ import { userRepo } from '../repository/user.repo';
 import { clientRepo } from '../repository/client.repo';
 import { notificationRepo } from '../repository/notification.repo';
 import { notificationProvider } from '../provider/notification.provider';
+import { authRepo } from '../repository/auth.repo';
+import { referralRepo } from '../repository/referrals.repo';
 import { Request, Response } from 'express';
 
-const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider);
+const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo);
 
 export const quoteController = {
   convertQuote: async (req: Request, res: Response) => {

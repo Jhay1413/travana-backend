@@ -1,8 +1,10 @@
 import { inquiryService } from '../service/inquiry.service';
 import { inquiryRepo } from '../repository/inquiry.repo';
+import { referralRepo } from '../repository/referrals.repo';
+import { authRepo } from '../repository/auth.repo';
 import { Request, Response } from 'express';
 
-const service = inquiryService(inquiryRepo);
+const service = inquiryService(inquiryRepo,referralRepo,authRepo);
 
 export const inquiryController = {
   deleteInquiry: async (req: Request, res: Response) => {

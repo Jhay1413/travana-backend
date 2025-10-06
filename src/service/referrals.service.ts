@@ -23,6 +23,8 @@ export const ReferralService = (repo: ReferralRepo) => {
             return await repo.fetchReferrerStatsByUserId(id);
         },
         fetchReferralCommissionByUserId: async (id: string) => {
+
+            
             return await repo.fetchReferralCommissionByUserId(id);
         },
         insertReferral: async (transaction_id:string,referrerId:string,commission:string) => {

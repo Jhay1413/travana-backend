@@ -78,6 +78,11 @@ export const quoteBasedSchema = z.object({
   is_future_deal: z.nullable(z.boolean()).optional(),
   future_deal_date: z.nullable(z.date()).optional(),
   quote_ref: z.nullable(z.string()).optional(),
+  referrals: z.array(z.object({
+    id: z.string(),
+    name: z.string(),
+    commission: z.number(),
+  })).optional(),
   passengers: z
     .array(
       z.object({

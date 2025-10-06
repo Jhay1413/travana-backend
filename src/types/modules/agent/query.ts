@@ -6,9 +6,9 @@ import { destinationQuerySchema } from '../destination';
 
 export const taskQuerySchema = z.object({
   id: z.string(),
-  agent: userQuerySchema,
+  agent: userQuerySchema.nullable(),
   client: clientQuerySchema.optional(),
-  assignedBy: userQuerySchema,
+  assignedBy: userQuerySchema.nullable(),
   task: z.string(),
   title: z.string(),
   number: z.nullable(z.string() ).optional(),

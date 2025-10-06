@@ -8,8 +8,8 @@ import { IncomingHttpHeaders } from 'http';
 
 export const userService = (repo: UserRepo) => {
   return {
-    fetchUsers: async (search?: string) => {
-      return await repo.fetchUsers(search);
+    fetchUsers: async (search?: string, user_id?: string) => {
+      return await repo.fetchUsers(search, user_id);
     },
     createUser: async (data: z.infer<typeof userMutationSchema>) => {
       return await repo.createUser(data);
@@ -17,8 +17,8 @@ export const userService = (repo: UserRepo) => {
     fetchAgentByAccountId: async (account_id: string) => {
       return await repo.fetchAgentByAccountId(account_id);
     },
-    fetchAllAgent: async (agentName?: string) => {
-      return await repo.fetchAllAgent(agentName);
+    fetchAllAgent: async (agentName?: string, user_id?: string) => {
+      return await repo.fetchAllAgent(agentName, user_id);
     },
     fetchUserById: async (user_id: string) => {
       return await repo.fetchUserById(user_id);
