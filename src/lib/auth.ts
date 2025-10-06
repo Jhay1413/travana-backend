@@ -19,9 +19,10 @@ const authConfig = {
   },
   emailVerification: {
     sendVerificationEmail: async ({ user, url, token }, request) => {
-      await send_registration_email_service(url, user.name, user.email);
+      const new_url = `${process.env.CLIENT_URL}`;
+      await send_registration_email_service(new_url, user.name, user.email);
     },
-    sendOnSignUp: false,
+    sendOnSignUp: true,
   },
   trustedOrigins: [
     "https://www.travana.app",

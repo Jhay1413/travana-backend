@@ -4,6 +4,7 @@ import {Resend} from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 export const send_registration_email_service = async (url:string,name:string,email:string) => {
+    const new_url = 
     console.log(email,"from email service")
     await resend.emails.send({
         from: 'noreply@confirm.travana.app',
