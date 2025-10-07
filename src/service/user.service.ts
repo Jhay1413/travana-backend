@@ -39,7 +39,7 @@ export const userService = (repo: UserRepo) => {
 
       const account_request = await repo.fetchAccountRequestById(id);
 
-      console.log(account_request,"from user service")
+      console.log(account_request, "from user service")
       if (!account_request) {
         throw new AppError('Account request not found', true, 404);
       }
@@ -53,9 +53,10 @@ export const userService = (repo: UserRepo) => {
             name: `${account_request[0]?.firstName} ${account_request[0]?.lastName}`,
             role: account_request[0]?.role as 'owner' | 'member' | 'admin',
             phoneNumber: account_request[0]?.phoneNumber!,
-            percentageCommission:25,
+            percentageCommission: 25,
           },
         })
+
 
         if (account_request[0]?.role === 'owner') {
 
@@ -63,7 +64,7 @@ export const userService = (repo: UserRepo) => {
             body: {
               name: account_request[0]?.orgName!,
               slug: account_request[0]?.orgName!.toLowerCase().replace(/ /g, '-'),
-             
+
               metadata: {
                 isAdminOrganization: false,
               },
@@ -72,6 +73,12 @@ export const userService = (repo: UserRepo) => {
 
           })
         }
+
+        await auth.api.sendVerificationEmail({
+          body:{
+            email: account_request[0]?.email!,
+          }
+        })
       }
       return await repo.updateAccountRequest(id, status);
     },

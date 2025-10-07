@@ -28,7 +28,6 @@ export const AuthService = (repo: AuthRepo) => {
 
             if (user) {
 
-
                 await auth.api.createInvitation({
                     body: {
                         email: email,

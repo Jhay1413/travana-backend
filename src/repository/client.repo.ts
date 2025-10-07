@@ -15,7 +15,7 @@ import { cruise_destination } from '../schema/cruise-schema';
 export type ClientRepo = {
   fetchClientById: (id: string) => Promise<z.infer<typeof clientQuerySchema>>;
   fetchClients: (page: number, query?: string, clientId?: string) => Promise<z.infer<typeof clientQuerySchema>[]>;
-  createClient: (data: z.infer<typeof clientMutationSchema>) => Promise<void>;
+  createClient: (data: z.infer<typeof clientMutationSchema>) => Promise<{clientId: string}>;
   updateClient: (id: string, data: z.infer<typeof clientMutationSchema>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
   fetchInquirySummary: (clientId: string) => Promise<z.infer<typeof enquirySummaryQuerySchema>[]>;
@@ -210,7 +210,7 @@ export const clientRepo: ClientRepo = {
       })
       .returning({ id: clientTable.id });
 
-
+      return { clientId: response[0].id };
   },
   updateClient: async (id, data) => {
     await db

@@ -27,8 +27,8 @@ export const clientController = {
     createClient: async (req: Request, res: Response) => {
         try {
             const data = req.body;
-            await service.createClient(data);
-            res.status(201).json({ message: 'Client created successfully' });
+            const clientId = await service.createClient(data);
+            res.status(201).json({ client_id: clientId.clientId });
         } catch (error) {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
