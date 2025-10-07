@@ -1,5 +1,20 @@
 import { z } from 'zod';
 
+
+export const agentStatsQuerySchema = z.object({
+  today_profit: z.number(),
+  weekly_profit: z.number(),
+  monthly_profit: z.number(),
+  ppb: z.number().optional(),
+  target_remaining: z.number(),
+  daily_percentage: z.number(),
+  weekly_percentage: z.number(),
+  monthly_percentage: z.number(),
+  averagePPU: z.number(),
+  closure_rate: z.number(),
+  target_deals: z.number(),
+  monthly_target: z.number(),
+});
 export const booking = z.object({
   agentName: z.string(),
   clientName: z.string(),

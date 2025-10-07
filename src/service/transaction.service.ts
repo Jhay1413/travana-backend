@@ -8,6 +8,9 @@ import z from 'zod';
 
 export const transactionService = (repo: TransactionRepo,userRepo:UserRepo,clientRepo:ClientRepo,notificationRepo:NotificationRepo,notificationProvider:NotificationProvider) => {
   return {
+    fetchRoomTypes: async () => {
+      return await repo.fetchRoomTypes();
+    },
     fetchExpiredQuotes: async (agent_id?: string) => {
       return await repo.fetchExpiredQuotes(agent_id);
     },

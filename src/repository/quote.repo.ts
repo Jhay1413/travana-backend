@@ -1653,8 +1653,6 @@ export const quoteRepo: QuoteRepo = {
 
       const groupByFields = [
         quote.id,
-        userReferrer.firstName,
-        userReferrer.lastName,
         agentTable.firstName,
         agentTable.lastName,
         package_type.name,

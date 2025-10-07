@@ -168,9 +168,22 @@ export type TransactionRepo = {
   updateLodge: (lodge_id: string, data: z.infer<typeof lodgeMutateSchema>) => Promise<void>;
   deleteLodge: (lodge_id: string) => Promise<void>;
   insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>;
+  fetchRoomTypes: () => Promise<{ id: string; name: string }[]>;
 };
 
 export const transactionRepo: TransactionRepo = {
+  fetchRoomTypes: async () => {
+    const response = await db.query.room_type.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+    });
+    return response.map((data) => ({
+      id: data.id,
+      name: data.name ?? '',
+    }));
+  },
   reassignTransaction: async (transactionId, agent_id) => {
     await db
       .update(transaction)
@@ -216,9 +229,9 @@ export const transactionRepo: TransactionRepo = {
       country_id: data.country_id ?? '',
       country: data.country
         ? {
-            id: data.country.id,
-            country_name: data.country.country_name ?? '',
-          }
+          id: data.country.id,
+          country_name: data.country.country_name ?? '',
+        }
         : null,
     }));
   },
@@ -260,9 +273,9 @@ export const transactionRepo: TransactionRepo = {
         name: data.name ?? '',
         cruise_destination: data.cruise_destination
           ? {
-              id: data.cruise_destination.id,
-              name: data.cruise_destination.name ?? '',
-            }
+            id: data.cruise_destination.id,
+            name: data.cruise_destination.name ?? '',
+          }
           : null,
       })),
       pagination: {
@@ -421,9 +434,9 @@ export const transactionRepo: TransactionRepo = {
       ...(whereClause ? { where: whereClause } : {}),
       orderBy: search
         ? [
-            desc(ilike(accomodation_list.name, `${search}%`)), // Exact prefix match first
-            desc(ilike(accomodation_list.name, `%${search}%`)), // Partial match
-          ]
+          desc(ilike(accomodation_list.name, `${search}%`)), // Exact prefix match first
+          desc(ilike(accomodation_list.name, `%${search}%`)), // Partial match
+        ]
         : undefined,
       limit: 100,
     });
@@ -434,22 +447,22 @@ export const transactionRepo: TransactionRepo = {
 
       type: data.type
         ? {
-            id: data.type.id,
-            type: data.type.type ?? '',
-          }
+          id: data.type.id,
+          type: data.type.type ?? '',
+        }
         : null,
       resorts: data.resorts
         ? {
-            id: data.resorts.id,
-            name: data.resorts.name ?? '',
-            destination_id: data.resorts.destination?.id ?? '',
-            destination: data.resorts.destination
-              ? {
-                  id: data.resorts.destination.id,
-                  name: data.resorts.destination.name ?? '',
-                }
-              : null,
-          }
+          id: data.resorts.id,
+          name: data.resorts.name ?? '',
+          destination_id: data.resorts.destination?.id ?? '',
+          destination: data.resorts.destination
+            ? {
+              id: data.resorts.destination.id,
+              name: data.resorts.destination.name ?? '',
+            }
+            : null,
+        }
         : null,
     }));
   },
@@ -457,7 +470,7 @@ export const transactionRepo: TransactionRepo = {
 
     console.log(search, destinationIds, selectedIds)
 
-  
+
     const conditions = [
       search && ilike(resorts.name, `%${search}%`),
       destinationIds?.length && inArray(resorts.destination_id, destinationIds),
@@ -497,16 +510,16 @@ export const transactionRepo: TransactionRepo = {
       destination_id: data.destination_id ?? '',
       destination: data.destination
         ? {
-            id: data.destination.id,
-            name: data.destination.name ?? '',
-            country_id: data.destination.country_id ?? '',
-            country: data.destination.country
-              ? {
-                  id: data.destination.country.id,
-                  country_name: data.destination.country.country_name ?? '',
-                }
-              : null,
-          }
+          id: data.destination.id,
+          name: data.destination.name ?? '',
+          country_id: data.destination.country_id ?? '',
+          country: data.destination.country
+            ? {
+              id: data.destination.country.id,
+              country_name: data.destination.country.country_name ?? '',
+            }
+            : null,
+        }
         : null,
     }));
   },
@@ -659,14 +672,14 @@ export const transactionRepo: TransactionRepo = {
       infants: data.infants ?? 0,
       park: data.park
         ? {
-            id: data.park.id,
-            name: data.park.name ?? '',
-            city: data.park.city ?? '',
-            location: data.park.location ?? '',
-            county: data.park.county ?? '',
-            code: data.park.code ?? '',
-            description: data.park.description ?? '',
-          }
+          id: data.park.id,
+          name: data.park.name ?? '',
+          city: data.park.city ?? '',
+          location: data.park.location ?? '',
+          county: data.park.county ?? '',
+          code: data.park.code ?? '',
+          description: data.park.description ?? '',
+        }
         : null,
     }));
   },
@@ -1168,7 +1181,8 @@ export const transactionRepo: TransactionRepo = {
     }
 
     const bookingData = await bookingQuery;
-    const dataToValidate = bookingData.map((data) => ({ ...data, travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : null ,
+    const dataToValidate = bookingData.map((data) => ({
+      ...data, travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : null,
       no_of_nights: data.no_of_nights?.toString() ?? '0',
     }));
     const validateBooking = z.array(bookingPipelineSchema).safeParse(dataToValidate);
@@ -1261,10 +1275,10 @@ export const transactionRepo: TransactionRepo = {
       destination: data.enquiry.resortss?.length
         ? data.enquiry.resortss.map((item) => item.resorts?.name).join(', ')
         : data.enquiry.destination?.length
-        ? data.enquiry.destination.map((item) => item.destination?.name).join(', ')
-        : data.enquiry.enquiry_cruise_destination?.length
-        ? data.enquiry.enquiry_cruise_destination.map((item) => item.cruise_destination?.name).join(', ')
-        : 'No Destination',
+          ? data.enquiry.destination.map((item) => item.destination?.name).join(', ')
+          : data.enquiry.enquiry_cruise_destination?.length
+            ? data.enquiry.enquiry_cruise_destination.map((item) => item.cruise_destination?.name).join(', ')
+            : 'No Destination',
       no_of_nights: data.enquiry.no_of_nights?.toString() ?? '0',
       board_basis: data.enquiry.board_basis?.length ? data.enquiry.board_basis.map((data) => data.board_basis?.type).join(',') : 'No Board Basis',
       amount: parseFloat(data.enquiry.budget || '0').toFixed(2),
@@ -2637,9 +2651,9 @@ export const transactionRepo: TransactionRepo = {
           status === 'EXPIRED'
             ? lt(quote.date_expiry, new Date())
             : eq(
-                quote.quote_status,
-                status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
-              ),
+              quote.quote_status,
+              status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
+            ),
           or(ilike(quote.title, `%${search}%`), ilike(sql`${clientTable.firstName} || ' ' || ${clientTable.surename}`, `%${search}%`))
         )
       );
@@ -2657,9 +2671,9 @@ export const transactionRepo: TransactionRepo = {
           status === 'EXPIRED'
             ? lt(quote.date_expiry, new Date())
             : eq(
-                quote.quote_status,
-                status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
-              )
+              quote.quote_status,
+              status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
+            )
         )
       );
     } else {
@@ -2675,9 +2689,9 @@ export const transactionRepo: TransactionRepo = {
           status === 'EXPIRED'
             ? lt(quote.date_expiry, new Date())
             : eq(
-                quote.quote_status,
-                status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
-              )
+              quote.quote_status,
+              status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
+            )
         )
       );
     }
@@ -2704,9 +2718,9 @@ export const transactionRepo: TransactionRepo = {
           status === 'EXPIRED'
             ? lt(quote.date_expiry, new Date())
             : eq(
-                quote.quote_status,
-                status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
-              ),
+              quote.quote_status,
+              status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
+            ),
           or(ilike(quote.title, `%${search}%`), ilike(sql`${clientTable.firstName} || ' ' || ${clientTable.surename}`, `%${search}%`))
         )
       );
@@ -2724,9 +2738,9 @@ export const transactionRepo: TransactionRepo = {
           status === 'EXPIRED'
             ? lt(quote.date_expiry, new Date())
             : eq(
-                quote.quote_status,
-                status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
-              )
+              quote.quote_status,
+              status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
+            )
         )
       );
     } else {
@@ -2742,9 +2756,9 @@ export const transactionRepo: TransactionRepo = {
           status === 'EXPIRED'
             ? lt(quote.date_expiry, new Date())
             : eq(
-                quote.quote_status,
-                status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
-              )
+              quote.quote_status,
+              status as 'EXPIRED' | 'NEW_LEAD' | 'QUOTE_IN_PROGRESS' | 'QUOTE_READY' | 'AWAITING_DECISION' | 'REQUOTE' | 'WON' | 'LOST' | 'INACTIVE'
+            )
         )
       );
     }

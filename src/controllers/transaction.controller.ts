@@ -9,6 +9,14 @@ import { Request, Response } from 'express';
 const service = transactionService(transactionRepo, userRepo, clientRepo, notificationRepo, notificationProvider);
 
 export const transactionController = {
+  fetchRoomTypes: async (req: Request, res: Response) => {
+    try {
+      const roomTypes = await service.fetchRoomTypes();
+      res.status(200).json(roomTypes);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
   fetchExpiredQuotes: async (req: Request, res: Response) => {
     try {
       const { agent_id } = req.query;
@@ -35,7 +43,7 @@ export const transactionController = {
         intLimit ?? undefined,
         search ?? undefined
       );
-      res.status(200).json( quotes );
+      res.status(200).json(quotes);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -76,9 +84,9 @@ export const transactionController = {
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const countryIds = (country_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
 
-        console.log(countryIds, selectedIds, search)
+      console.log(countryIds, selectedIds, search)
       const destination = await service.fetchDestination(countryIds ?? [], selectedIds ?? [], search ?? undefined);
-      res.status(200).json( destination );
+      res.status(200).json(destination);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -101,7 +109,7 @@ export const transactionController = {
         intPage ?? undefined,
         intLimit ?? undefined
       );
-      res.status(200).json( port );
+      res.status(200).json(port);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -110,9 +118,9 @@ export const transactionController = {
     try {
       const { search, selected_ids } = req.query as { search: string; selected_ids: string };
 
-      const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];  
+      const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const airport = await service.fetchAirport(search ?? undefined, selectedIds ?? []);
-      res.status(200).json( airport );
+      res.status(200).json(airport);
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
@@ -121,7 +129,7 @@ export const transactionController = {
   fetchBoardBasis: async (req: Request, res: Response) => {
     try {
       const board_basis = await service.fetchBoardBasis();
-      res.status(200).json( board_basis );
+      res.status(200).json(board_basis);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -132,7 +140,7 @@ export const transactionController = {
       const intPage = page ? Number(page) : 1;
       const intLimit = limit ? Number(limit) : 10;
       const cruise_line = await service.fetchCruiseLine(search ?? undefined, intPage ?? undefined, intLimit ?? undefined);
-      res.status(200).json( cruise_line );
+      res.status(200).json(cruise_line);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -141,7 +149,7 @@ export const transactionController = {
     try {
       const { search } = req.query as { search: string };
       const country = await service.fetchCountry(search ?? undefined);
-      res.status(200).json( country );
+      res.status(200).json(country);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -152,7 +160,7 @@ export const transactionController = {
       const resortIds = (resort_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const accomodation = await service.fetchAccomodation(search ?? undefined, resortIds ?? [], selectedIds ?? []);
-      res.status(200).json( accomodation );
+      res.status(200).json(accomodation);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -163,7 +171,7 @@ export const transactionController = {
       const destinationIds = (destination_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const resorts = await service.fetchResorts(search ?? undefined, destinationIds ?? [], selectedIds ?? []);
-      res.status(200).json( resorts );
+      res.status(200).json(resorts);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -171,7 +179,7 @@ export const transactionController = {
   fetchAccomodationType: async (req: Request, res: Response) => {
     try {
       const accomodation_type = await service.fetchAccomodationType();
-      res.status(200).json( accomodation_type );
+      res.status(200).json(accomodation_type);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -182,17 +190,17 @@ export const transactionController = {
       const intPage = page ? Number(page) : 1;
       const intLimit = limit ? Number(limit) : 10;
       const cruise_destination = await service.fetchCruiseDestination(search ?? undefined, intPage ?? undefined, intLimit ?? undefined);
-      res.status(200).json( cruise_destination );
+      res.status(200).json(cruise_destination);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
   fetchTourOperator: async (req: Request, res: Response) => {
     try {
-      const { search ,selected_ids } = req.query as { search: string; selected_ids: string };
+      const { search, selected_ids } = req.query as { search: string; selected_ids: string };
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const tour_operator = await service.fetchTourOperator(search ?? undefined, selectedIds ?? []);
-      res.status(200).json( tour_operator );
+      res.status(200).json(tour_operator);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -200,7 +208,7 @@ export const transactionController = {
   fetchPackageType: async (req: Request, res: Response) => {
     try {
       const package_type = await service.fetchPackageType();
-          res.status(200).json( package_type );
+      res.status(200).json(package_type);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -209,7 +217,7 @@ export const transactionController = {
     try {
       const { search } = req.query as { search: string };
       const lodges = await service.fetchLodges(search ?? undefined);
-      res.status(200).json( lodges );
+      res.status(200).json(lodges);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -218,7 +226,7 @@ export const transactionController = {
     try {
       const { date, ship_id } = req.query as { date: string; ship_id: string };
       const cruise_date = await service.fetchCruiseDate(date, ship_id);
-      res.status(200).json( cruise_date );
+      res.status(200).json(cruise_date);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -226,7 +234,7 @@ export const transactionController = {
   fetchCruises: async (req: Request, res: Response) => {
     try {
       const cruises = await service.fetchCruises();
-      res.status(200).json( cruises );
+      res.status(200).json(cruises);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -237,7 +245,7 @@ export const transactionController = {
       const intPage = page ? Number(page) : 1;
       const intLimit = limit ? Number(limit) : 10;
       const ships = await service.fetchShips(cruise_line_id ?? '', search ?? undefined, intPage ?? undefined, intLimit ?? undefined);
-      res.status(200).json( ships );
+      res.status(200).json(ships);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -245,7 +253,7 @@ export const transactionController = {
   fetchCruiseExtras: async (req: Request, res: Response) => {
     try {
       const cruise_extras = await service.fetchCruiseExtras();
-      res.status(200).json( cruise_extras );
+      res.status(200).json(cruise_extras);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -254,7 +262,7 @@ export const transactionController = {
     try {
       const { transaction_id } = req.params;
       const notes = await service.fetchNotes(transaction_id);
-      res.status(200).json( notes );
+      res.status(200).json(notes);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -263,7 +271,7 @@ export const transactionController = {
     try {
       const { id } = req.params;
       const note = await service.fetchNoteById(id);
-      res.status(200).json( note );
+      res.status(200).json(note);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -284,7 +292,7 @@ export const transactionController = {
       const intPage = page ? Number(page) : undefined;
       const intLimit = limit ? Number(limit) : undefined;
       const kanban_inquries = await service.fetchKanbanInquries(agent_id ?? undefined, intPage ?? undefined, intLimit ?? undefined, search ?? undefined);
-      res.status(200).json( kanban_inquries );
+      res.status(200).json(kanban_inquries);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -293,7 +301,7 @@ export const transactionController = {
     try {
       const { agent_id } = req.query as { agent_id: string };
       const bookings = await service.fetchBookings(agent_id ?? undefined);
-      res.status(200).json( bookings );
+      res.status(200).json(bookings);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -302,7 +310,7 @@ export const transactionController = {
     try {
       const { agent_id } = req.params;
       const transaction_summary = await service.fetchTransactionSummaryByAgent(agent_id);
-      res.status(200).json( transaction_summary );
+      res.status(200).json(transaction_summary);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -319,7 +327,7 @@ export const transactionController = {
         intLimit ?? undefined,
         search ?? undefined
       );
-      res.status(200).json( future_deals_kanban );
+      res.status(200).json(future_deals_kanban);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -328,7 +336,7 @@ export const transactionController = {
     try {
       const { client_id } = req.params;
       const future_deal = await service.fetchFutureDeal(client_id);
-      res.status(200).json( future_deal );
+      res.status(200).json(future_deal);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -346,7 +354,7 @@ export const transactionController = {
     try {
       const { agent_id } = req.query as { agent_id: string };
       const dashboard_summary = await service.fetchDashboardSummary(agent_id ?? undefined);
-      res.status(200).json( dashboard_summary);
+      res.status(200).json(dashboard_summary);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }

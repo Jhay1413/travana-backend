@@ -1,4 +1,4 @@
-import { quote } from '@/schema/quote-schema';
+import { quote } from '../schema/quote-schema';
 import { db } from '../db/db';
 import { AppError } from '../middleware/errorHandler';
 import { package_type } from '../schema/transactions-schema';

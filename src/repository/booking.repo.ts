@@ -2187,8 +2187,6 @@ export const bookingRepo: BookingRepo = {
 
     const groupByFields = [
       booking.id,
-      userReferrer.firstName,
-      userReferrer.lastName,
       agentTable.firstName,
       agentTable.lastName,
       package_type.name,
@@ -2515,7 +2513,6 @@ export const bookingRepo: BookingRepo = {
 
     const datas = await query;
     const data = datas[0] as any;
-
 
     const referrals = Array.from(new Map((data?.referrals ?? []).filter((r: any) => r?.id).map((r: any) => [r.id, { ...r, id: r.id }])).values()) || [];
     const percentageComission = referrals.reduce((acc: number, curr: any) => acc + parseFloat(curr.commission), 0);

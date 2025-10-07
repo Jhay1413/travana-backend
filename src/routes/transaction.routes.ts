@@ -30,7 +30,7 @@ router.get('/accommodation-types', transactionController.fetchAccomodationType);
 router.get('/cruise-destinations', transactionController.fetchCruiseDestination);
 router.get('/tour-operators', transactionController.fetchTourOperator);
 router.get('/package-types', transactionController.fetchPackageType);
-
+router.get('/room-types', transactionController.fetchRoomTypes);
 // Lodge management endpoints
 router.get('/lodges', transactionController.fetchLodges);
 router.post('/lodges', transactionController.insertLodge);

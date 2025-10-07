@@ -10,6 +10,7 @@ import agentRoutes from './agent.routes';
 import referralRoutes from './referral.routes';
 import ticketRoutes from './ticket.routes';
 import taskRoutes from './task.routes';
+import dashboardRoutes from './dashboard.routes';
 import { fromNodeHeaders } from 'better-auth/node';
 import { auth } from '../lib/auth';
 import authRoutes from './authRoutes';
@@ -29,6 +30,7 @@ router.use('/agents', agentRoutes);
 router.use('/referrals', referralRoutes);
 router.use('/tickets', ticketRoutes);
 router.use('/tasks', taskRoutes);
+router.use('/dashboard', dashboardRoutes);
 router.use('/auth-options', authRoutes);
 
 
@@ -82,6 +84,7 @@ router.get('/', (req, res) => {
       referrals: '/api/referrals',
       tickets: '/api/tickets',
       tasks: '/api/tasks',
+      dashboard: '/api/dashboard',
       health: '/health'
     }
   });
