@@ -19,12 +19,12 @@ const authConfig = {
   },
   emailVerification: {
     sendVerificationEmail: async ({ user, url, token }, request) => {
-      const new_url = `${process.env.CLIENT_URL}/verify-email?token=${token}&isFirstLogin=true`;
+      const new_url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
       await send_registration_email_service(new_url, user.name, user.email);
     },
     autoSignInAfterVerification: true,
-    sendOnSignUp: false,
+    sendOnSignUp: true,
   },
   trustedOrigins: [
     "https://www.travana.app",
@@ -40,7 +40,7 @@ const authConfig = {
   
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
   },
   user: {
     additionalFields: {
@@ -80,7 +80,7 @@ const authConfig = {
   plugins: [
     organization({
       async sendInvitationEmail(data) {
-        const inviteLink = `${process.env.CLIENT_URL}/dashboard/invitation/${data.id}?email=${data.email}`;
+        const inviteLink = `${process.env.CLIENT_URL}/signup?token=${data.id}&email=${data.email}`;
         send_referrer_invitation_email_service(
           inviteLink,
           data.inviter.user.name,

@@ -74,11 +74,6 @@ export const userService = (repo: UserRepo) => {
           })
         }
 
-        await auth.api.sendVerificationEmail({
-          body:{
-            email: account_request[0]?.email!,
-          }
-        })
       }
       return await repo.updateAccountRequest(id, status);
     },
