@@ -28,6 +28,7 @@ export const referralController = {
             const data = await service.fetchReferralRequests();
             res.status(200).json(data);
         } catch (error) {
+
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },
@@ -47,6 +48,7 @@ export const referralController = {
             const data = await service.fetchReferralByUserId(id);
             res.status(200).json(data);
         } catch (error) {
+            console.log(error);
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },
@@ -56,6 +58,7 @@ export const referralController = {
             const data = await service.fetchReferrerStatsByUserId(id);
             res.status(200).json(data);
         } catch (error) {
+            console.log(error);
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },
@@ -65,6 +68,7 @@ export const referralController = {
             const data = await service.fetchReferralCommissionByUserId(id);
             res.status(200).json(data);
         } catch (error) {
+            console.log(error);
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },

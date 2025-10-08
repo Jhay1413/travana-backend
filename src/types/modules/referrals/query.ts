@@ -21,6 +21,7 @@ export const fetchReferralSchema = z.object({
   transactionId: z.string(),
   status: z.string(),
   clientName: z.string(),
+  referredBy: z.string(),
   referralStatus: z.enum(['PENDING', 'RELEASED', 'REJECTED']),
   potentialCommission: z.number(),
   commission: z.number(),

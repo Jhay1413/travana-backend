@@ -150,6 +150,7 @@ export const referralRepo: ReferralRepo = {
                 referralStatus: referral.referralStatus,
                 clientName: sql`${clientTable.firstName} || ' ' || ${clientTable.surename}`,
                 transaction_status: transaction.status,
+                referredBy: sql`${user.firstName} || ' ' || ${user.lastName}`,
                 potentialCommission: referral.potentialCommission,
                 createdAt: referral.createdAt,
                 updatedAt: referral.updatedAt,
@@ -167,6 +168,7 @@ export const referralRepo: ReferralRepo = {
             .from(referral)
             .innerJoin(transaction, eq(referral.transactionId, transaction.id))
             .innerJoin(clientTable, eq(transaction.client_id, clientTable.id))
+            .innerJoin(user, eq(referral.referrerId, user.id))
             .where(eq(referral.referrerId, id));
 
         return respo.map((data) => ({
@@ -174,6 +176,7 @@ export const referralRepo: ReferralRepo = {
             transactionId: data.transaction_id ?? '',
             referralStatus: data.referralStatus ?? 'PENDING',
             status: data.transaction_status === 'on_enquiry' ? 'In Enquiry' : data.transaction_status === 'on_booking' ? 'In Booking' : 'In Quote',
+            referredBy: data.referredBy as string,
             clientName: data.clientName as string,
             potentialCommission: parseInt(data.potentialCommission as string),
             commission: parseFloat(data.commission as string),
@@ -224,6 +227,7 @@ export const referralRepo: ReferralRepo = {
                 referralStatus: referral.referralStatus,
                 clientName: sql`${clientTable.firstName} || ' ' || ${clientTable.surename}`,
                 transaction_status: transaction.status,
+                referredBy: sql`${user.firstName} || ' ' || ${user.lastName}`,
                 potentialCommission: referral.potentialCommission,
                 createdAt: referral.createdAt,
                 updatedAt: referral.updatedAt,
@@ -233,6 +237,7 @@ export const referralRepo: ReferralRepo = {
             .from(referral)
             .innerJoin(transaction, eq(referral.transactionId, transaction.id))
             .innerJoin(clientTable, eq(transaction.client_id, clientTable.id))
+            .innerJoin(user, eq(referral.referrerId, user.id))
             .where(and(eq(referral.referrerId, id), eq(transaction.status, 'on_booking')));
 
         return respo.map((data) => ({
@@ -240,6 +245,7 @@ export const referralRepo: ReferralRepo = {
             transactionId: data.transaction_id ?? '',
             referralStatus: data.referralStatus ?? 'PENDING',
             status: data.transaction_status === 'on_enquiry' ? 'In Enquiry' : data.transaction_status === 'on_booking' ? 'In Booking' : 'In Quote',
+            referredBy: data.referredBy as string,
             clientName: data.clientName as string,
             potentialCommission: parseInt(data.potentialCommission as string),
             commission: parseFloat(data.commission as string),

@@ -19,10 +19,11 @@ const authConfig = {
   },
   emailVerification: {
     sendVerificationEmail: async ({ user, url, token }, request) => {
-      const new_url = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+      const new_url = `${process.env.CLIENT_URL}/verify-email?token=${token}&isFirstLogin=true`;
 
       await send_registration_email_service(new_url, user.name, user.email);
     },
+    autoSignInAfterVerification: true,
     sendOnSignUp: false,
   },
   trustedOrigins: [
@@ -36,6 +37,7 @@ const authConfig = {
     'https://dev-travana-client.travana.app',
     'https://www.dev-travana-client.travana.app' // Add this line
   ],
+  
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
