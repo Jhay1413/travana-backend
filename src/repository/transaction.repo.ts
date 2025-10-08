@@ -169,9 +169,21 @@ export type TransactionRepo = {
   deleteLodge: (lodge_id: string) => Promise<void>;
   insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>;
   fetchRoomTypes: () => Promise<{ id: string; name: string }[]>;
+  updateLeadSource: (transaction_id: string, lead_source: "SHOP" | "FACEBOOK" | "WHATSAPP" | "INSTAGRAM" | "PHONE_ENQUIRY") => Promise<void>;
 };
 
 export const transactionRepo: TransactionRepo = {
+  
+  updateLeadSource: async (transaction_id, lead_source) => {
+
+    console.log(transaction_id, lead_source,"asdsadsaddsa");
+    await db
+      .update(transaction)
+      .set({
+        lead_source: lead_source,
+      })
+      .where(eq(transaction.id, transaction_id));
+  },
   fetchRoomTypes: async () => {
     const response = await db.query.room_type.findMany({
       columns: {

@@ -825,14 +825,7 @@ export const bookingRepo: BookingRepo = {
             )
           )
       );
-      if (data.referrerId) {
-        await tx.insert(referral).values({
-          transactionId: transaction_data.id,
-          referrerId: data.referrerId,
-          potentialCommission: data.potentialCommission?.toString() || '0',
-          commission: '0',
-        });
-      }
+     
       return { id: booking_id.id };
     });
   },

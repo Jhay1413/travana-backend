@@ -130,8 +130,16 @@ export const userRepo: UserRepo = {
   async fetchAllAccountRequests() {
     try {
 
-      console.log("from user repo")
       const response = await db.query.account_request.findMany({
+
+        with: {
+          referrer: {
+            columns: {
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
       });
 
       return response.map((item) => ({

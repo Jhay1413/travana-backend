@@ -16,6 +16,7 @@ router.delete('/note/:note_id', transactionController.deleteNote);
 
 // Transaction management endpoints
 router.put('/reassign/:transaction_id', transactionController.reassignTransaction);
+router.patch('/lead-source/:transaction_id', transactionController.updateLeadSource);
 
 // Data fetching endpoints
 router.get('/destinations', transactionController.fetchDestination);

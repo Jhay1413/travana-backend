@@ -140,5 +140,8 @@ export const transactionService = (repo: TransactionRepo,userRepo:UserRepo,clien
     insertLodge: async (data: z.infer<typeof lodgeMutateSchema>) => {
       return await repo.insertLodge(data);
     },
+    updateLeadSource: async (transaction_id: string, lead_source: "SHOP" | "FACEBOOK" | "WHATSAPP" | "INSTAGRAM" | "PHONE_ENQUIRY") => {
+      return await repo.updateLeadSource(transaction_id, lead_source);
+    },
   };
 };

@@ -14,6 +14,7 @@ export const transactionController = {
       const roomTypes = await service.fetchRoomTypes();
       res.status(200).json(roomTypes);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
@@ -384,6 +385,17 @@ export const transactionController = {
       await service.insertLodge(data);
       res.status(200).json({ message: 'Lodge inserted' });
     } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateLeadSource: async (req: Request, res: Response) => {
+    try {
+      const { transaction_id } = req.params;
+      const { status } = req.body;
+      await service.updateLeadSource(transaction_id, status);
+      res.status(200).json({ message: 'Lead source updated' });
+    } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
