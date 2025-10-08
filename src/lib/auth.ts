@@ -6,6 +6,7 @@ import { usersTable } from "../schema/user-schema";
 import { member } from "../schema/auth-schema";
 import { fromNodeHeaders } from "better-auth/node";
 import { send_registration_email_service, send_referrer_invitation_email_service } from "../service/email.service";
+import { finalizeIssue } from "zod/v4/core/util.cjs";
 
 const authConfig = {
   database: drizzleAdapter(db, {
@@ -24,7 +25,7 @@ const authConfig = {
       await send_registration_email_service(new_url, user.name, user.email);
     },
     autoSignInAfterVerification: true,
-    sendOnSignUp: true,
+    sendOnSignUp: false,
   },
   trustedOrigins: [
     "https://www.travana.app",
