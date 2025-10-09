@@ -435,5 +435,706 @@ export const transactionController = {
       console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
+  },
+  // Headlines endpoints
+  insertHeadline: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertHeadline(data);
+      res.status(201).json({ message: 'Headline created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateHeadline: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateHeadline(id, data);
+      res.status(200).json({ message: 'Headline updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllHeadlines: async (req: Request, res: Response) => {
+    try {
+      const headlines = await service.fetchAllHeadlines();
+      res.status(200).json(headlines);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchHeadlineById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const headline = await service.fetchHeadlineById(id);
+      res.status(200).json(headline);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteHeadline: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteHeadline(id);
+      res.status(200).json({ message: 'Headline deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Tour Operator endpoints
+  fetchTourOperators: async (req: Request, res: Response) => {
+    try {
+      const { search } = req.query as { search: string };
+      const tourOperators = await service.fetchTourOperators(search);
+      res.status(200).json(tourOperators);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchTourOperatorById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const tourOperator = await service.fetchTourOperatorById(id);
+      res.status(200).json(tourOperator);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  insertTourOperator: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertTourOperator(data);
+      res.status(201).json({ message: 'Tour operator created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateTourOperator: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateTourOperator(id, data);
+      res.status(200).json({ message: 'Tour operator updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Accommodation endpoints
+  fetchAccomodationById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const accommodation = await service.fetchAccomodationById(id);
+      res.status(200).json(accommodation);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateAccomodation: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateAccomodation(id, data);
+      res.status(200).json({ message: 'Accommodation updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Cruise Itinerary endpoints
+  insertCruiseItinerary: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertCruiseItinerary(data);
+      res.status(201).json({ message: 'Cruise itinerary created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateCruiseItinerary: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateCruiseItinerary(id, data);
+      res.status(200).json({ message: 'Cruise itinerary updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllCruiseItineraries: async (req: Request, res: Response) => {
+    try {
+      const { search, ship_id, page, limit } = req.query as { search: string; ship_id: string; page: string; limit: string };
+      const intPage = page ? Number(page) : undefined;
+      const intLimit = limit ? Number(limit) : undefined;
+      const itineraries = await service.fetchAllCruiseItineraries(search, ship_id, intPage, intLimit);
+      res.status(200).json(itineraries);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchCruiseItineraryById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const itinerary = await service.fetchCruiseItineraryById(id);
+      res.status(200).json(itinerary);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteCruiseItinerary: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteCruiseItinerary(id);
+      res.status(200).json({ message: 'Cruise itinerary deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Cruise Voyage endpoints
+  insertCruiseVoyage: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertCruiseVoyage(data);
+      res.status(201).json({ message: 'Cruise voyage created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateCruiseVoyage: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateCruiseVoyage(id, data);
+      res.status(200).json({ message: 'Cruise voyage updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllCruiseVoyages: async (req: Request, res: Response) => {
+    try {
+      const { search, itinerary_id, page, limit } = req.query as { search: string; itinerary_id: string; page: string; limit: string };
+      const intPage = page ? Number(page) : undefined;
+      const intLimit = limit ? Number(limit) : undefined;
+      const voyages = await service.fetchAllCruiseVoyages(search, itinerary_id, intPage, intLimit);
+      res.status(200).json(voyages);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchCruiseVoyageById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const voyage = await service.fetchCruiseVoyageById(id);
+      res.status(200).json(voyage);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteCruiseVoyage: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteCruiseVoyage(id);
+      res.status(200).json({ message: 'Cruise voyage deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Room Types endpoints
+  fetchAllRoomTypes: async (req: Request, res: Response) => {
+    try {
+      const roomTypes = await service.fetchAllRoomTypes();
+      res.status(200).json(roomTypes);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  insertRoomType: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertRoomType(data);
+      res.status(201).json({ message: 'Room type created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateRoomType: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateRoomType(id, data);
+      res.status(200).json({ message: 'Room type updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteRoomType: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteRoomType(id);
+      res.status(200).json({ message: 'Room type deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Airport endpoints
+  fetchAllAirports: async (req: Request, res: Response) => {
+    try {
+      const { search, page, limit } = req.query as { search: string; page: string; limit: string };
+      const intPage = page ? Number(page) : undefined;
+      const intLimit = limit ? Number(limit) : undefined;
+      const airports = await service.fetchAllAirports(search, intPage, intLimit);
+      res.status(200).json(airports);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  insertAirport: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertAirport(data);
+      res.status(201).json({ message: 'Airport created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateAirport: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateAirport(id, data);
+      res.status(200).json({ message: 'Airport updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAirportById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const airport = await service.fetchAirportById(id);
+      res.status(200).json(airport);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteAirport: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteAirport(id);
+      res.status(200).json({ message: 'Airport deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Country endpoints
+  fetchCountryById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const country = await service.fetchCountryById(id);
+      res.status(200).json(country);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateCountry: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateCountry(id, data);
+      res.status(200).json({ message: 'Country updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteCountry: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteCountry(id);
+      res.status(200).json({ message: 'Country deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Lodge endpoints
+  fetchAllLodges: async (req: Request, res: Response) => {
+    try {
+      const lodges = await service.fetchAllLodges();
+      res.status(200).json(lodges);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchLodgeById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const lodge = await service.fetchLodgeById(id);
+      res.status(200).json(lodge);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Parks endpoints
+  fetchAllParks: async (req: Request, res: Response) => {
+    try {
+      const parks = await service.fetchAllParks();
+      res.status(200).json(parks);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Deletion Codes endpoints
+  generateDeletionCodes: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.generateDeletionCodes(data);
+      res.status(201).json({ message: 'Deletion codes generated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  insertDeletionCode: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertDeletionCode(data);
+      res.status(201).json({ message: 'Deletion code created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateDeletionCode: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateDeletionCode(id, data);
+      res.status(200).json({ message: 'Deletion code updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteDeletionCode: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteDeletionCode(id);
+      res.status(200).json({ message: 'Deletion code deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllDeletionCodes: async (req: Request, res: Response) => {
+    try {
+      const deletionCodes = await service.fetchAllDeletionCodes();
+      res.status(200).json(deletionCodes);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchDeletionCodeById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const deletionCode = await service.fetchDeletionCodeById(id);
+      res.status(200).json(deletionCode);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Cruise Line endpoints
+  insertCruiseLine: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertCruiseLine(data);
+      res.status(201).json({ message: 'Cruise line created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateCruiseLine: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateCruiseLine(id, data);
+      res.status(200).json({ message: 'Cruise line updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllCruiseLines: async (req: Request, res: Response) => {
+    try {
+      const { search, page, limit } = req.query as { search: string; page: string; limit: string };
+      const intPage = page ? Number(page) : undefined;
+      const intLimit = limit ? Number(limit) : undefined;
+      const cruiseLines = await service.fetchAllCruiseLines(search, intPage, intLimit);
+      res.status(200).json(cruiseLines);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchCruiseLineById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const cruiseLine = await service.fetchCruiseLineById(id);
+      res.status(200).json(cruiseLine);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteCruiseLine: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteCruiseLine(id);
+      res.status(200).json({ message: 'Cruise line deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Cruise Ship endpoints
+  insertCruiseShip: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertCruiseShip(data);
+      res.status(201).json({ message: 'Cruise ship created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateCruiseShip: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateCruiseShip(id, data);
+      res.status(200).json({ message: 'Cruise ship updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllCruiseShips: async (req: Request, res: Response) => {
+    try {
+      const { search, cruise_line_id, page, limit } = req.query as { search: string; cruise_line_id: string; page: string; limit: string };
+      const intPage = page ? Number(page) : undefined;
+      const intLimit = limit ? Number(limit) : undefined;
+      const cruiseShips = await service.fetchAllCruiseShips(search, cruise_line_id, intPage, intLimit);
+      res.status(200).json(cruiseShips);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchCruiseShipById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const cruiseShip = await service.fetchCruiseShipById(id);
+      res.status(200).json(cruiseShip);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteCruiseShip: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteCruiseShip(id);
+      res.status(200).json({ message: 'Cruise ship deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Cruise Destination endpoints
+  insertCruiseDestination: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertCruiseDestination(data);
+      res.status(201).json({ message: 'Cruise destination created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateCruiseDestination: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateCruiseDestination(id, data);
+      res.status(200).json({ message: 'Cruise destination updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllCruiseDestinations: async (req: Request, res: Response) => {
+    try {
+      const { search, page, limit } = req.query as { search: string; page: string; limit: string };
+      const intPage = page ? Number(page) : undefined;
+      const intLimit = limit ? Number(limit) : undefined;
+      const cruiseDestinations = await service.fetchAllCruiseDestinations(search, intPage, intLimit);
+      res.status(200).json(cruiseDestinations);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchCruiseDestinationById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const cruiseDestination = await service.fetchCruiseDestinationById(id);
+      res.status(200).json(cruiseDestination);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deleteCruiseDestination: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deleteCruiseDestination(id);
+      res.status(200).json({ message: 'Cruise destination deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Port endpoints
+  insertPort: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      await service.insertPort(data);
+      res.status(201).json({ message: 'Port created successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updatePort: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updatePort(id, data);
+      res.status(200).json({ message: 'Port updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchAllPorts: async (req: Request, res: Response) => {
+    try {
+      const { search, cruise_destination_id, page, limit } = req.query as { search: string; cruise_destination_id: string; page: string; limit: string };
+      const intPage = page ? Number(page) : undefined;
+      const intLimit = limit ? Number(limit) : undefined;
+      const ports = await service.fetchAllPorts(search, cruise_destination_id, intPage, intLimit);
+      res.status(200).json(ports);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchPortById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const port = await service.fetchPortById(id);
+      res.status(200).json(port);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  deletePort: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await service.deletePort(id);
+      res.status(200).json({ message: 'Port deleted successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Destination endpoints
+  updateDestination: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateDestination(id, data);
+      res.status(200).json({ message: 'Destination updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchDestinationById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const destination = await service.fetchDestinationById(id);
+      res.status(200).json(destination);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  // Resort endpoints
+  updateResort: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      await service.updateResort(id, data);
+      res.status(200).json({ message: 'Resort updated successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  fetchResortById: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const resort = await service.fetchResortById(id);
+      res.status(200).json(resort);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
   }
 };

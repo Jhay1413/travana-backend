@@ -3,7 +3,20 @@ import { NotificationRepo } from '../repository/notification.repo';
 import { TransactionRepo } from '../repository/transaction.repo';
 import { UserRepo } from '../repository/user.repo';
 import { NotificationProvider } from '../provider/notification.provider';
-import { lodgeMutateSchema } from '../types/modules/data-management';
+import { 
+  lodgeMutateSchema, 
+  headlinesMutationSchema,
+  tour_operator_mutate_schema,
+  accomodation_mutate_schema,
+  cruise_itinerary_mutate_schema,
+  cruise_voyage_mutate_schema,
+  cruise_line_mutate_schema,
+  cruise_ship_mutate_schema,
+  cruise_destination_mutate_schema,
+  port_mutate_schema
+} from '../types/modules/data-management';
+import { airportMutationSchema } from '../types/modules/airports/mutation';
+import { countryMutateSchema } from '../types/modules/country/mutation';
 import { destinationMutateSchema } from '../types/modules/transaction/mutation';
 import { resortMutateSchema } from '../types/modules/transaction/mutation';
 import z from 'zod';
@@ -156,6 +169,221 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
     },
     insertCountry: async (name: string, code: string) => {
       return await repo.insertCountry(name, code)
+    },
+    // Headlines endpoints
+    insertHeadline: async (data: z.infer<typeof headlinesMutationSchema>) => {
+      return await repo.insertHeadline(data);
+    },
+    updateHeadline: async (id: string, data: z.infer<typeof headlinesMutationSchema>) => {
+      return await repo.updateHeadline(id, data);
+    },
+    fetchAllHeadlines: async () => {
+      return await repo.fetchAllHeadlines();
+    },
+    fetchHeadlineById: async (id: string) => {
+      return await repo.fetchHeadlineById(id);
+    },
+    deleteHeadline: async (id: string) => {
+      return await repo.deleteHeadline(id);
+    },
+    // Tour Operator endpoints
+    fetchTourOperators: async (search?: string) => {
+      return await repo.fetchTourOperators(search);
+    },
+    fetchTourOperatorById: async (id: string) => {
+      return await repo.fetchTourOperatorById(id);
+    },
+    insertTourOperator: async (data: z.infer<typeof tour_operator_mutate_schema>) => {
+      return await repo.insertTourOperator(data);
+    },
+    updateTourOperator: async (id: string, data: z.infer<typeof tour_operator_mutate_schema>) => {
+      return await repo.updateTourOperator(id, data);
+    },
+    // Accommodation endpoints
+    fetchAccomodationById: async (id: string) => {
+      return await repo.fetchAccomodationById(id);
+    },
+    updateAccomodation: async (id: string, data: z.infer<typeof accomodation_mutate_schema>) => {
+      return await repo.updateAccomodation(id, data);
+    },
+    // Cruise Itinerary endpoints
+    insertCruiseItinerary: async (data: z.infer<typeof cruise_itinerary_mutate_schema>) => {
+      return await repo.insertCruiseItinerary(data);
+    },
+    updateCruiseItinerary: async (id: string, data: z.infer<typeof cruise_itinerary_mutate_schema>) => {
+      return await repo.updateCruiseItinerary(id, data);
+    },
+    fetchAllCruiseItineraries: async (search?: string, ship_id?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllCruiseItineraries(search, ship_id, page, limit);
+    },
+    fetchCruiseItineraryById: async (id: string) => {
+      return await repo.fetchCruiseItineraryById(id);
+    },
+    deleteCruiseItinerary: async (id: string) => {
+      return await repo.deleteCruiseItinerary(id);
+    },
+    // Cruise Voyage endpoints
+    insertCruiseVoyage: async (data: z.infer<typeof cruise_voyage_mutate_schema>) => {
+      return await repo.insertCruiseVoyage(data);
+    },
+    updateCruiseVoyage: async (id: string, data: z.infer<typeof cruise_voyage_mutate_schema>) => {
+      return await repo.updateCruiseVoyage(id, data);
+    },
+    fetchAllCruiseVoyages: async (search?: string, itinerary_id?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllCruiseVoyages(search, itinerary_id, page, limit);
+    },
+    fetchCruiseVoyageById: async (id: string) => {
+      return await repo.fetchCruiseVoyageById(id);
+    },
+    deleteCruiseVoyage: async (id: string) => {
+      return await repo.deleteCruiseVoyage(id);
+    },
+    // Room Types endpoints
+    fetchAllRoomTypes: async () => {
+      return await repo.fetchAllRoomTypes();
+    },
+    insertRoomType: async (data: { name: string }) => {
+      return await repo.insertRoomType(data);
+    },
+    updateRoomType: async (id: string, data: { name: string }) => {
+      return await repo.updateRoomType(id, data);
+    },
+    deleteRoomType: async (id: string) => {
+      return await repo.deleteRoomType(id);
+    },
+    // Airport endpoints
+    fetchAllAirports: async (search?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllAirports(search, page, limit);
+    },
+    insertAirport: async (data: z.infer<typeof airportMutationSchema>) => {
+      return await repo.insertAirport(data);
+    },
+    updateAirport: async (id: string, data: z.infer<typeof airportMutationSchema>) => {
+      return await repo.updateAirport(id, data);
+    },
+    fetchAirportById: async (id: string) => {
+      return await repo.fetchAirportById(id);
+    },
+    deleteAirport: async (id: string) => {
+      return await repo.deleteAirport(id);
+    },
+    // Country endpoints
+    fetchCountryById: async (id: string) => {
+      return await repo.fetchCountryById(id);
+    },
+    updateCountry: async (id: string, data: z.infer<typeof countryMutateSchema>) => {
+      return await repo.updateCountry(id, data);
+    },
+    deleteCountry: async (id: string) => {
+      return await repo.deleteCountry(id);
+    },
+    // Lodge endpoints
+    fetchAllLodges: async () => {
+      return await repo.fetchAllLodges();
+    },
+    fetchLodgeById: async (id: string) => {
+      return await repo.fetchLodgeById(id);
+    },
+    // Parks endpoints
+    fetchAllParks: async () => {
+      return await repo.fetchAllParks();
+    },
+    // Deletion Codes endpoints
+    generateDeletionCodes: async (data: { numberOfCodes: number }) => {
+      return await repo.generateDeletionCodes(data);
+    },
+    insertDeletionCode: async (data: { code: string }) => {
+      return await repo.insertDeletionCode(data);
+    },
+    updateDeletionCode: async (id: string, data: { code: string; isUsed: boolean }) => {
+      return await repo.updateDeletionCode(id, data);
+    },
+    deleteDeletionCode: async (id: string) => {
+      return await repo.deleteDeletionCode(id);
+    },
+    fetchAllDeletionCodes: async () => {
+      return await repo.fetchAllDeletionCodes();
+    },
+    fetchDeletionCodeById: async (id: string) => {
+      return await repo.fetchDeletionCodeById(id);
+    },
+    // Cruise Line endpoints
+    insertCruiseLine: async (data: z.infer<typeof cruise_line_mutate_schema>) => {
+      return await repo.insertCruiseLine(data);
+    },
+    updateCruiseLine: async (id: string, data: z.infer<typeof cruise_line_mutate_schema>) => {
+      return await repo.updateCruiseLine(id, data);
+    },
+    fetchAllCruiseLines: async (search?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllCruiseLines(search, page, limit);
+    },
+    fetchCruiseLineById: async (id: string) => {
+      return await repo.fetchCruiseLineById(id);
+    },
+    deleteCruiseLine: async (id: string) => {
+      return await repo.deleteCruiseLine(id);
+    },
+    // Cruise Ship endpoints
+    insertCruiseShip: async (data: z.infer<typeof cruise_ship_mutate_schema>) => {
+      return await repo.insertCruiseShip(data);
+    },
+    updateCruiseShip: async (id: string, data: z.infer<typeof cruise_ship_mutate_schema>) => {
+      return await repo.updateCruiseShip(id, data);
+    },
+    fetchAllCruiseShips: async (search?: string, cruise_line_id?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllCruiseShips(search, cruise_line_id, page, limit);
+    },
+    fetchCruiseShipById: async (id: string) => {
+      return await repo.fetchCruiseShipById(id);
+    },
+    deleteCruiseShip: async (id: string) => {
+      return await repo.deleteCruiseShip(id);
+    },
+    // Cruise Destination endpoints
+    insertCruiseDestination: async (data: z.infer<typeof cruise_destination_mutate_schema>) => {
+      return await repo.insertCruiseDestination(data);
+    },
+    updateCruiseDestination: async (id: string, data: z.infer<typeof cruise_destination_mutate_schema>) => {
+      return await repo.updateCruiseDestination(id, data);
+    },
+    fetchAllCruiseDestinations: async (search?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllCruiseDestinations(search, page, limit);
+    },
+    fetchCruiseDestinationById: async (id: string) => {
+      return await repo.fetchCruiseDestinationById(id);
+    },
+    deleteCruiseDestination: async (id: string) => {
+      return await repo.deleteCruiseDestination(id);
+    },
+    // Port endpoints
+    insertPort: async (data: z.infer<typeof port_mutate_schema>) => {
+      return await repo.insertPort(data);
+    },
+    updatePort: async (id: string, data: z.infer<typeof port_mutate_schema>) => {
+      return await repo.updatePort(id, data);
+    },
+    fetchAllPorts: async (search?: string, cruise_destination_id?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllPorts(search, cruise_destination_id, page, limit);
+    },
+    fetchPortById: async (id: string) => {
+      return await repo.fetchPortById(id);
+    },
+    deletePort: async (id: string) => {
+      return await repo.deletePort(id);
+    },
+    // Destination endpoints
+    updateDestination: async (id: string, data: z.infer<typeof destinationMutateSchema>) => {
+      return await repo.updateDestination(id, data);
+    },
+    fetchDestinationById: async (id: string) => {
+      return await repo.fetchDestinationById(id);
+    },
+    // Resort endpoints
+    updateResort: async (id: string, data: z.infer<typeof resortMutateSchema>) => {
+      return await repo.updateResort(id, data);
+    },
+    fetchResortById: async (id: string) => {
+      return await repo.fetchResortById(id);
     }
   };
 };

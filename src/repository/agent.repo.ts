@@ -11,6 +11,16 @@ import { enquirySummaryQuerySchema } from '../types/modules/agent';
 
 export type AgentRepo = {
     fetchEnquirySummaryByAgent: (agentId: string, isFetchAll: boolean, agentToFetch: string) => Promise<z.infer<typeof enquirySummaryQuerySchema>[]>;
+    // fetchAllAgentTargets: () => Promise<z.infer<typeof agentTargetQuerySchema>[]>;
+    // fetchAgentTargetById: (id: string) => Promise<z.infer<typeof agentTargetQuerySchema>>;
+    // insertAgentTarget: (data: z.infer<typeof agentTargetMutationSchema>) => Promise<{ message: string }>;
+    // updateAgentTarget: (id: string, data: z.infer<typeof agentTargetMutationSchema>) => Promise<{ message: string }>;
+    // deleteAgentTarget: (id: string) => Promise<{ message: string }>;
+
+    // insertUser: (data: z.infer<typeof userMutationSchema>) => Promise<{ message: string }>;
+    // updateUser: (id: string, data: z.infer<typeof userMutationSchema>) => Promise<{ message: string }>;
+    // deleteUser: (id: string) => Promise<{ message: string }>;
+    // fetchUserById: (id: string) => Promise<z.infer<typeof userQuerySchema>>;
 
 }
 
@@ -24,7 +34,7 @@ export const agentRepo: AgentRepo = {
                 id: enquiry_table.id,
                 holiday_type: package_type.name,
                 status: transaction.status,
-                transaction_id: transaction.id,                                                                                      
+                transaction_id: transaction.id,
                 agent_id: transaction.user_id,
                 enquiry_status: enquiry_table.status,
                 agentName: sql<string>`${user.firstName} || ' ' || ${user.lastName}`,
@@ -77,10 +87,10 @@ export const agentRepo: AgentRepo = {
                 acc[id] = { id, ...rest, is_future_deal: rest.is_future_deal || false, travel_date: rest.travel_date || '', budget: rest.budget || '0', no_of_nights: rest.no_of_nights?.toString() || '0', agent_id: rest.agent_id || '', clientId: rest.clientId || '', transaction_id: rest.transaction_id || '', holiday_type: rest.holiday_type || '', status: rest.status || 'on_enquiry', enquiry_status: rest.enquiry_status || 'ACTIVE', enquiry_cruise_destination: [], destination: [] };
             }
             if (curr.enquiry_cruise_destination && curr.enquiry_cruise_destination.id) {
-                acc[id].enquiry_cruise_destination.push({ id: curr.enquiry_cruise_destination.id || '', name: curr.enquiry_cruise_destination.name || ''});
+                acc[id].enquiry_cruise_destination.push({ id: curr.enquiry_cruise_destination.id || '', name: curr.enquiry_cruise_destination.name || '' });
             }
             if (curr.destination) {
-                acc[id].destination.push({ id: curr.destination.id || '', name: curr.destination.name || '', country: curr.destination.country || ''});
+                acc[id].destination.push({ id: curr.destination.id || '', name: curr.destination.name || '', country: curr.destination.country || '' });
             }
             return acc;
         }, {} as Record<string, z.infer<typeof enquirySummaryQuerySchema>>);

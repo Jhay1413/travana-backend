@@ -85,7 +85,7 @@ export const bookingService = (
 
           else {
             if(owner.userId === referrer.referrerId){
-              await referralRepo.insertReferral(transaction_id, owner.userId, (referrer.percentageCommission?.toString() ?? '0') + '5');
+              await referralRepo.insertReferral(transaction_id, owner.userId, ((referrer.percentageCommission ?? 0) + 5).toString());
             }else{
               await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
               await referralRepo.insertReferral(transaction_id, owner.userId, '5');

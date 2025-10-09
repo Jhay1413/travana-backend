@@ -131,16 +131,9 @@ export const userRepo: UserRepo = {
     try {
 
       const response = await db.query.account_request.findMany({
-
-        with: {
-          referrer: {
-            columns: {
-              firstName: true,
-              lastName: true,
-            },
-          },
-        },
       });
+
+
 
       return response.map((item) => ({
         ...item,

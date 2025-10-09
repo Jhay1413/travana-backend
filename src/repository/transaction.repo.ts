@@ -1,7 +1,7 @@
 import { db } from '../db/db';
 import { user } from '../schema/auth-schema';
 import { clientTable } from '../schema/client-schema';
-import { sql, like, ilike, inArray, or, eq, and, gte, lt, desc, asc, ne, aliasedTable, lte, gt, sum } from 'drizzle-orm';
+import { sql, ilike, inArray, or, eq, and, gte, lt, desc, asc, ne, aliasedTable, lte, gt, sum } from 'drizzle-orm';
 import {
   passengers,
   quote,
@@ -23,19 +23,21 @@ import {
   cottages,
   country,
   cruise_extra_item,
+  deletion_codes,
   destination,
   lodges,
   package_type,
   park,
   resorts,
+  room_type,
   tour_operator,
 } from '../schema/transactions-schema';
 import { transaction } from '../schema/transactions-schema';
 import { boardBasisQuerySchema } from '../types/modules/accomodations';
-import { airportQuerySchema } from '../types/modules/airports';
-import { countryQuerySchema } from '../types/modules/country';
+import { airportMutationSchema, airportQuerySchema } from '../types/modules/airports';
+import { countryMutateSchema, countryQuerySchema } from '../types/modules/country';
 import { cruiseDestinationQuerySchema, cruiseLineQuerySchema, portQuerySchema } from '../types/modules/cruise';
-import { lodgeMutateSchema, lodgeQuerySchema } from '../types/modules/data-management';
+import { accomodation_mutate_schema, cruise_destination_mutate_schema, cruise_destination_query_schema, cruise_itinerary_mutate_schema, cruise_itinerary_query_schema, cruise_ship_mutate_schema, cruise_ship_query_schema, cruise_line_mutate_schema, cruise_line_query_schema, cruise_voyage_mutate_schema, cruise_voyage_query_schema, lodgeMutateSchema, lodgeQuerySchema, tour_operator_mutate_schema, tour_operator_query_schema, port_mutate_schema, port_query_schema, headlinesSchema, headlinesMutationSchema } from '../types/modules/data-management';
 import { destinationQuerySchema } from '../types/modules/destination';
 import { unionAllType, unionAllTypeWithChildren } from '../types/modules/quote';
 import {
@@ -66,6 +68,7 @@ import { allDealsQueryResult } from './type';
 import { notes } from '../schema/note-schema';
 import { nestedBuilder } from '../utils/nested-condition';
 import { task } from '../schema/task-schema';
+import { headlinesTable } from '../schema/headlines-schema';
 
 export type TransactionRepo = {
   fetchExpiredQuotes: (agent_id?: string) => Promise<{ data: z.infer<typeof quotePipelineSchema>[] }>;
@@ -172,21 +175,408 @@ export type TransactionRepo = {
   fetchRoomTypes: () => Promise<{ id: string; name: string }[]>;
   updateLeadSource: (transaction_id: string, lead_source: "SHOP" | "FACEBOOK" | "WHATSAPP" | "INSTAGRAM" | "PHONE_ENQUIRY") => Promise<void>;
 
+
+  fetchTourOperators: (search?: string) => Promise<z.infer<typeof tour_operator_query_schema>[]>
+  fetchTourOperatorById: (id: string) => Promise<z.infer<typeof tour_operator_mutate_schema>>
+  fetchAccomodationById: (id: string) => Promise<z.infer<typeof accomodation_mutate_schema>>
+
+
   insertDestination: (data: z.infer<typeof destinationMutateSchema>) => Promise<void>
   insertResort: (data: z.infer<typeof resortMutateSchema>) => Promise<void>
   insertAccomodation: (data: { resort_id: string, name: string, type_id: string }) => Promise<void>
   insertCountry: (name: string, code: string) => Promise<void>
   insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>
+  insertTourOperator: (data: z.infer<typeof tour_operator_mutate_schema>) => Promise<void>
+
+  updateTourOperator: (id: string, data: z.infer<typeof tour_operator_mutate_schema>) => Promise<void>
+
+  // Cruise Itinerary endpoints
+  insertCruiseItinerary: (data: z.infer<typeof cruise_itinerary_mutate_schema>) => Promise<void>;
+  updateCruiseItinerary: (id: string, data: z.infer<typeof cruise_itinerary_mutate_schema>) => Promise<void>;
+  fetchAllCruiseItineraries: (search?: string, ship_id?: string, page?: number, limit?: number) => Promise<{
+    data: z.infer<typeof cruise_itinerary_query_schema>[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>;
+  fetchCruiseItineraryById: (id: string) => Promise<z.infer<typeof cruise_itinerary_mutate_schema>>;
+  deleteCruiseItinerary: (id: string) => Promise<void>;
+
+  // Cruise Voyage endpoints
+  insertCruiseVoyage: (data: z.infer<typeof cruise_voyage_mutate_schema>) => Promise<void>;
+  updateCruiseVoyage: (id: string, data: z.infer<typeof cruise_voyage_mutate_schema>) => Promise<void>;
+  fetchAllCruiseVoyages: (search?: string, itinerary_id?: string, page?: number, limit?: number) => Promise<{
+    data: z.infer<typeof cruise_voyage_query_schema>[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>;
+  fetchCruiseVoyageById: (id: string) => Promise<z.infer<typeof cruise_voyage_mutate_schema>>;
+  deleteCruiseVoyage: (id: string) => Promise<void>;
+
+
+  fetchAllRoomTypes: () => Promise<{ id: string; name: string }[]>;
+  insertRoomType: (data: { name: string }) => Promise<void>;
+  updateRoomType: (id: string, data: { name: string }) => Promise<void>;
+  deleteRoomType: (id: string) => Promise<void>;
+
+  // Airport endpoints
+  fetchAllAirports: (search?: string, page?: number, limit?: number) => Promise<{
+    data: z.infer<typeof airportQuerySchema>[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>;
+  insertAirport: (data: z.infer<typeof airportMutationSchema>) => Promise<void>;
+  updateAirport: (id: string, data: z.infer<typeof airportMutationSchema>) => Promise<void>;
+  fetchAirportById: (id: string) => Promise<z.infer<typeof airportQuerySchema>>;
+  deleteAirport: (id: string) => Promise<void>;
+
+
+  fetchCountryById: (id: string) => Promise<z.infer<typeof countryQuerySchema>>;
+
+  updateCountry: (id: string, data: z.infer<typeof countryMutateSchema>) => Promise<void>;
+  deleteCountry: (id: string) => Promise<void>;
+
+  // Lodge endpoints
+  fetchAllLodges: () => Promise<z.infer<typeof lodgeQuerySchema>[]>;
+  fetchLodgeById: (id: string) => Promise<z.infer<typeof lodgeMutateSchema>>;
+
+  // Parks endpoints
+  fetchAllParks: () => Promise<{ id: string; name: string }[]>;
+
+  // Deletion Codes endpoints
+  generateDeletionCodes: (data: { numberOfCodes: number }) => Promise<void>;
+  insertDeletionCode: (data: { code: string }) => Promise<void>;
+  updateDeletionCode: (id: string, data: { code: string; isUsed: boolean }) => Promise<void>;
+  deleteDeletionCode: (id: string) => Promise<void>;
+  fetchAllDeletionCodes: () => Promise<{
+    id: string;
+    code: string;
+    isUsed: boolean;
+    createdAt: string;
+  }[]>;
+  fetchDeletionCodeById: (id: string) => Promise<{
+    id: string;
+    code: string;
+    isUsed: boolean;
+    createdAt: string;
+  }>;
+
+  // Cruise Line endpoints
+  insertCruiseLine: (data: z.infer<typeof cruise_line_mutate_schema>) => Promise<void>;
+  updateCruiseLine: (id: string, data: z.infer<typeof cruise_line_mutate_schema>) => Promise<void>;
+  fetchAllCruiseLines: (search?: string, page?: number, limit?: number) => Promise<{
+    data: z.infer<typeof cruise_line_query_schema>[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>;
+  fetchCruiseLineById: (id: string) => Promise<z.infer<typeof cruise_line_mutate_schema>>;
+  deleteCruiseLine: (id: string) => Promise<void>;
+
+  // Cruise Ship endpoints
+  insertCruiseShip: (data: z.infer<typeof cruise_ship_mutate_schema>) => Promise<void>;
+  updateCruiseShip: (id: string, data: z.infer<typeof cruise_ship_mutate_schema>) => Promise<void>;
+  fetchAllCruiseShips: (search?: string, cruise_line_id?: string, page?: number, limit?: number) => Promise<{
+    data: z.infer<typeof cruise_ship_query_schema>[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>;
+  fetchCruiseShipById: (id: string) => Promise<z.infer<typeof cruise_ship_mutate_schema>>;
+  deleteCruiseShip: (id: string) => Promise<void>;
+
+  // Cruise Destination endpoints
+  insertCruiseDestination: (data: z.infer<typeof cruise_destination_mutate_schema>) => Promise<void>;
+  updateCruiseDestination: (id: string, data: z.infer<typeof cruise_destination_mutate_schema>) => Promise<void>;
+  fetchAllCruiseDestinations: (search?: string, page?: number, limit?: number) => Promise<{
+    data: z.infer<typeof cruise_destination_query_schema>[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>;
+  fetchCruiseDestinationById: (id: string) => Promise<z.infer<typeof cruise_destination_mutate_schema>>;
+  deleteCruiseDestination: (id: string) => Promise<void>;
+
+  // Port endpoints
+  insertPort: (data: z.infer<typeof port_mutate_schema>) => Promise<void>;
+  updatePort: (id: string, data: z.infer<typeof port_mutate_schema>) => Promise<void>;
+  fetchAllPorts: (search?: string, cruise_destination_id?: string, page?: number, limit?: number) => Promise<{
+    data: z.infer<typeof port_query_schema>[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }>;
+  fetchPortById: (id: string) => Promise<z.infer<typeof port_mutate_schema>>;
+  deletePort: (id: string) => Promise<void>;
+
+  // Accomodation endpoints
+  updateAccomodation: (id: string, data: z.infer<typeof accomodation_mutate_schema>) => Promise<void>;
+
+  // Destination endpoints
+  updateDestination: (id: string, data: z.infer<typeof destinationMutateSchema>) => Promise<void>;
+  fetchDestinationById: (id: string) => Promise<z.infer<typeof destinationMutateSchema>>;
+
+  // Resort endpoints
+  updateResort: (id: string, data: z.infer<typeof resortMutateSchema>) => Promise<void>;
+  fetchResortById: (id: string) => Promise<z.infer<typeof resortMutateSchema>>;
+
+
+
+  // Headlines endpoints
+  insertHeadline: (data: z.infer<typeof headlinesMutationSchema>) => Promise<void>;
+  updateHeadline: (id: string, data: z.infer<typeof headlinesMutationSchema>) => Promise<void>;
+  fetchAllHeadlines: () => Promise<z.infer<typeof headlinesSchema>[]>;
+  fetchHeadlineById: (id: string) => Promise<z.infer<typeof headlinesSchema>>;
+  deleteHeadline: (id: string) => Promise<void>;
 
 };
 
 export const transactionRepo: TransactionRepo = {
- 
-  insertCountry: async (name, code) => {
-    await db.insert(country).values({
-      country_name: name,
-      country_code: code
-    })
+  fetchDestinationById: async (id) => {
+    const response = await db.query.destination.findFirst({
+      where: eq(destination.id, id),
+    });
+    if (!response) {
+      throw new AppError('Destination not found', true, 404);
+    }
+    return {
+      id: response.id ?? '',
+      name: response.name ?? '',
+      country_id: response.country_id ?? '',
+    };
+  },
+  generateDeletionCodes: async (data) => {
+    const numberOfCodes = data.numberOfCodes || 1;
+    const codes = [];
+    for (let i = 0; i < numberOfCodes; i++) {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      const numbers = '0123456789';
+
+      const part1 = Array.from({ length: 3 }, () => letters[Math.floor(Math.random() * letters.length)]).join('');
+      const part2 = Array.from({ length: 4 }, () => numbers[Math.floor(Math.random() * numbers.length)]).join('');
+      const part3 = Array.from({ length: 2 }, () => numbers[Math.floor(Math.random() * numbers.length)]).join('');
+
+      const code = `${part1}-${part2}-${part3}`;
+      codes.push(code);
+    }
+
+    await db.insert(deletion_codes).values(
+      codes.map(code => ({
+        code: code,
+      }))
+    );
+
+  },
+  updateDestination: async (id, data) => {
+    await db.update(destination).set(data).where(eq(destination.id, id));
+  },
+  fetchCruiseItineraryById: async (id) => {
+    const response = await db.query.cruise_itenary.findFirst({
+      where: eq(cruise_itenary.id, id),
+    });
+
+    if (!response) {
+      throw new AppError('Cruise itinerary not found', true, 404);
+    }
+
+    return {
+      id: response.id ?? '',
+      ship_id: response.ship_id ?? '',
+      itinerary: response.itenary ?? '',
+      departure_port: response.departure_port ?? '',
+      date: response.date ?? '',
+    };
+  },
+  fetchAllCruiseItineraries: async (search, ship_id, page = 1, limit = 10) => {
+    const conditions = [
+      search ? ilike(cruise_itenary.itenary, `%${search}%`) : undefined,
+      ship_id ? eq(cruise_itenary.ship_id, ship_id) : undefined,
+    ].filter(Boolean);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(cruise_itenary)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .then(result => result[0]?.count || 0);
+
+    const response = await db.query.cruise_itenary.findMany({
+      columns: {
+        id: true,
+        ship_id: true,
+        itenary: true,
+        departure_port: true,
+        date: true,
+      },
+      with: {
+        cruise_ship: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+      ...(conditions.length > 0 ? { where: and(...conditions) } : {}),
+      limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return {
+      data: response.map(itinerary => ({
+        id: itinerary.id,
+        ship_id: itinerary.ship_id ?? '',
+        ship_name: itinerary.cruise_ship?.name ?? '',
+        itinerary: itinerary.itenary ?? '',
+        departure_port: itinerary.departure_port ?? '',
+        date: itinerary.date ?? '',
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+      },
+    };
+  },
+  updateCruiseItinerary: async (id, data) => {
+    await db.update(cruise_itenary).set(data).where(eq(cruise_itenary.id, id));
+  },
+
+  fetchTourOperators: async (search) => {
+    const conditions = [search ? ilike(tour_operator.name, `%${search}%`) : undefined].filter(Boolean);
+
+    const response = await db.query.tour_operator.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+      with: {
+        tour_package_commission: {
+          with: {
+            package_type: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      ...(conditions.length > 0 ? { where: conditions[0] } : {}),
+    });
+
+    // Flatten the data structure for table display
+    const flattenedPayload = response.flatMap((tourOperator) => {
+      // If no commissions exist, return one row with empty commission data
+      if (tourOperator.tour_package_commission.length === 0) {
+        return [
+          {
+            tour_operator_id: tourOperator.id ?? '',
+            tour_operator_name: tourOperator.name ?? '',
+            package_type_id: "",
+            package_type_name: "",
+            percentage_commission: 0,
+          },
+        ];
+      }
+
+      // Return one row for each commission
+      return tourOperator.tour_package_commission.map((commission) => ({
+        tour_operator_id: tourOperator.id ?? '',
+        tour_operator_name: tourOperator.name ?? '',
+        package_type_id: commission.package_type_id ?? '',
+        package_type_name: commission.package_type?.name ?? '',
+        percentage_commission: Math.round(parseFloat(commission.percentage_commission ?? '0') * 100) / 100,
+      }));
+    });
+    return flattenedPayload;
+  },
+  fetchTourOperatorById: async (id) => {
+    const response = await db.query.tour_operator.findFirst({
+      where: eq(tour_operator.id, id),
+      with: {
+        tour_package_commission: {
+          with: {
+            package_type: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!response) {
+      throw new AppError('Tour operator not found', true, 404);
+    }
+
+    // Transform the data to match tour_operator_mutate_schema structure
+    const transformedData = {
+      id: response.id ?? '',
+      name: response.name ?? '',
+      percentage_commission: response.tour_package_commission.map((commission) => ({
+        package_id: commission.package_type_id ?? '',
+        percentage: parseFloat(commission.percentage_commission ?? '0'),
+      })),
+    };
+
+    return transformedData;
+  },
+  fetchAccomodationById: async (id) => {
+    const response = await db.query.accomodation_list.findFirst({
+      where: eq(accomodation_list.id, id),
+      with: {
+        type: true,
+        resorts: {
+          with: {
+            destination: {
+              with: {
+                country: true
+              }
+            }
+          }
+        }
+      }
+    });
+    if (!response) {
+      throw new AppError('Accomodation not found', true, 404);
+    }
+    return {
+      id: response.id ?? '',
+      name: response.name ?? '',
+      type_id: response.type_id ?? '',
+      resorts_id: response.resorts_id ?? '',
+      country: response.resorts?.destination?.country?.country_name ?? '',
+      destination: response.resorts?.destination?.name ?? '',
+      resort_id: response.resorts?.id ?? '',
+    };
   },
   insertDestination: async (data) => {
     await db.insert(destination).values(data);
@@ -194,6 +584,703 @@ export const transactionRepo: TransactionRepo = {
   insertResort: async (data) => {
     await db.insert(resorts).values(data);
   },
+  insertCountry: async (name, code) => {
+    await db.insert(country).values({
+      country_name: name,
+      country_code: code,
+    });
+  },
+
+  insertLodge: async (data) => {
+    await db.insert(lodges).values(data);
+  },
+
+  insertTourOperator: async (data) => {
+    await db.insert(tour_operator).values(data);
+  },
+  updateTourOperator: async (id, data) => {
+    await db.update(tour_operator).set(data).where(eq(tour_operator.id, id));
+  },
+
+  insertCruiseItinerary: async (data) => {
+    await db.insert(cruise_itenary).values(data);
+  },
+
+  deleteCruiseItinerary: async (id) => {
+    await db.delete(cruise_itenary).where(eq(cruise_itenary.id, id));
+  },
+
+  insertCruiseVoyage: async (data) => {
+    await db.insert(cruise_voyage).values({
+      itinerary_id: data.itinerary_id,
+      day_number: data.day_number.toString(),
+      description: data.description,
+    });
+  },
+  updateCruiseVoyage: async (id, data) => {
+    await db.update(cruise_voyage).set({
+      itinerary_id: data.itinerary_id,
+      day_number: data.day_number.toString(),
+      description: data.description,
+    }).where(eq(cruise_voyage.id, id));
+  },
+  fetchAllCruiseVoyages: async (search, itinerary_id, page = 1, limit = 10) => {
+    const conditions = [
+      search ? ilike(cruise_voyage.description, `%${search}%`) : undefined,
+      itinerary_id ? eq(cruise_voyage.itinerary_id, itinerary_id) : undefined,
+    ].filter(Boolean);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(cruise_voyage)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .then(result => result[0]?.count || 0);
+
+    const response = await db.query.cruise_voyage.findMany({
+      columns: {
+        id: true,
+        itinerary_id: true,
+        day_number: true,
+        description: true,
+      },
+      with: {
+        cruise_itenary: {
+          columns: {
+            itenary: true,
+            departure_port: true,
+            date: true,
+          },
+          with: {
+            cruise_ship: {
+              columns: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+      ...(conditions.length > 0 ? { where: and(...conditions) } : {}),
+      limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return {
+      data: response.map(voyage => ({
+        id: voyage.id,
+        itinerary_id: voyage.itinerary_id ?? '',
+        day_number: parseInt(voyage.day_number ?? '0'),
+        description: voyage.description ?? '',
+        itinerary_description: voyage.cruise_itenary?.itenary ?? '',
+        departure_port: voyage.cruise_itenary?.departure_port ?? '',
+        date: voyage.cruise_itenary?.date ?? '',
+        ship_name: voyage.cruise_itenary?.cruise_ship?.name ?? '',
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+      },
+    };
+  },
+  fetchCruiseVoyageById: async (id) => {
+    const response = await db.query.cruise_voyage.findFirst({
+      where: eq(cruise_voyage.id, id),
+    });
+    if (!response) {
+      throw new AppError('Cruise voyage not found', true, 404);
+    }
+    return {
+      id: response.id ?? '',
+      itinerary_id: response.itinerary_id ?? '',
+      day_number: parseInt(response.day_number ?? '0'),
+      description: response.description ?? '',
+    };
+  },
+  deleteCruiseVoyage: async (id) => {
+    await db.delete(cruise_voyage).where(eq(cruise_voyage.id, id));
+  },
+  fetchAllRoomTypes: async () => {
+    const response = await db.query.room_type.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+    });
+    return response.map((data) => ({
+      id: data.id ?? '',
+      name: data.name ?? '',
+    }));
+  },
+  insertRoomType: async (data) => {
+    await db.insert(room_type).values(data);
+  },
+  updateRoomType: async (id, data) => {
+    await db.update(room_type).set(data).where(eq(room_type.id, id));
+  },
+  deleteRoomType: async (id) => {
+    await db.delete(room_type).where(eq(room_type.id, id));
+  },
+  fetchAllAirports: async (search, page = 1, limit = 10) => {
+    const offset = (page - 1) * limit;
+    const conditions = [search ? or(ilike(airport.airport_name, `%${search}%`), ilike(airport.airport_code, `%${search}%`)) : undefined].filter(Boolean);
+
+    const query = db.select().from(airport);
+    if (conditions.length > 0) {
+      query.where(and(...conditions));
+    }
+
+    const [totalCount] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(airport)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    const airports = await query.limit(limit).offset(offset);
+
+    return {
+      data: airports.map((data) => ({
+        id: data.id ?? '',
+        airport_name: data.airport_name ?? '',
+        airport_code: data.airport_code ?? '',
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalCount.count,
+        totalPages: Math.ceil(totalCount.count / limit),
+      },
+    };
+  },
+  insertAirport: async (data) => {
+    await db.insert(airport).values(data);
+  },
+  updateAirport: async (id, data) => {
+    await db.update(airport).set(data).where(eq(airport.id, id));
+  },
+  fetchAirportById: async (id) => {
+    const response = await db.query.airport.findFirst({
+      where: eq(airport.id, id),
+    });
+    if (!response) {
+      throw new AppError('Airport not found', true, 404);
+    }
+    return {
+      id: response.id ?? '',
+      airport_name: response.airport_name ?? '',
+      airport_code: response.airport_code ?? '',
+    };
+  },
+  deleteAirport: async (id) => {
+    await db.delete(airport).where(eq(airport.id, id));
+  },
+  fetchCountryById: async (id) => {
+    const response = await db.query.country.findFirst({
+      where: eq(country.id, id),
+    });
+    if (!response) {
+      throw new AppError('Country not found', true, 404);
+    }
+    return {
+      id: response.id ?? '',
+      country_name: response.country_name ?? '',
+      country_code: response.country_code ?? '',
+    };
+  },
+  updateCountry: async (id, data) => {
+    await db.update(country).set(data).where(eq(country.id, id));
+  },
+  deleteCountry: async (id) => {
+    await db.delete(country).where(eq(country.id, id));
+  },
+  fetchAllLodges: async () => {
+    const lodgesList = await db.query.lodges.findMany({
+      columns: {
+        id: true,
+        lodge_name: true,
+        lodge_code: true,
+        image: true,
+        adults: true,
+        children: true,
+        bedrooms: true,
+        bathrooms: true,
+        pets: true,
+        sleeps: true,
+        infants: true,
+      },
+      with: {
+        park: {
+          columns: {
+            id: true,
+            name: true,
+            location: true,
+            city: true,
+            county: true,
+            code: true,
+            description: true,
+          },
+        },
+      },
+    });
+    console.log(lodgesList)
+    return lodgesList.map((data) => ({
+      id: data.id ?? '',
+      lodge_name: data.lodge_name ?? '',
+      lodge_code: data.lodge_code ?? '',
+      image: data.image ?? '',
+      adults: data.adults ?? 0,
+      children: data.children ?? 0,
+      bedrooms: data.bedrooms ?? 0,
+      bathrooms: data.bathrooms ?? 0,
+      pets: data.pets ?? 0,
+      sleeps: data.sleeps ?? 0,
+      infants: data.infants ?? 0,
+      park: data.park ? {
+        id: data.park.id ?? '',
+        name: data.park.name ?? '',
+        location: data.park.location ?? '',
+        city: data.park.city ?? '',
+        county: data.park.county ?? '',
+        code: data.park.code ?? '',
+        description: data.park.description ?? '',
+      } : null,
+      park_name: data.park?.name ?? '',
+      park_id: data.park?.id ?? '',
+      location: data.park?.location ?? '',
+      city: data.park?.city ?? '',
+      county: data.park?.county ?? '',
+      code: data.park?.code ?? '',
+      description: data.park?.description ?? '',
+    }));
+  },
+  fetchLodgeById: async (id) => {
+    const lodge = await db.query.lodges.findFirst({
+      where: eq(lodges.id, id),
+      columns: {
+        id: true,
+        park_id: true,
+        lodge_name: true,
+        lodge_code: true,
+        image: true,
+        adults: true,
+        children: true,
+        bedrooms: true,
+        bathrooms: true,
+        pets: true,
+        sleeps: true,
+        infants: true,
+      },
+      with: {
+        park: {
+          columns: {
+            id: true,
+            name: true,
+            location: true,
+            city: true,
+            county: true,
+            code: true,
+            description: true,
+          },
+        },
+      },
+    });
+    if (!lodge) throw new AppError('Lodge not found', true, 404);
+    return {
+      id: lodge.id ?? '',
+      lodge_name: lodge.lodge_name ?? '',
+      lodge_code: lodge.lodge_code ?? '',
+      image: lodge.image ?? '',
+      adults: lodge.adults ?? 0,
+      children: lodge.children ?? 0,
+      bedrooms: lodge.bedrooms ?? 0,
+      bathrooms: lodge.bathrooms ?? 0,
+      pets: lodge.pets ?? 0,
+      sleeps: lodge.sleeps ?? 0,
+      infants: lodge.infants ?? 0,
+      park_id: lodge.park_id ?? '',
+      park_name: lodge?.park?.name ?? '',
+      location: lodge?.park?.location ?? '',
+      city: lodge?.park?.city ?? '',
+      county: lodge?.park?.county ?? '',
+      code: lodge?.park?.code ?? '',
+      description: lodge?.park?.description ?? '',
+    };
+  },
+  fetchAllParks: async () => {
+    const parks = await db.query.park.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+    });
+    return parks.map(park => ({
+      id: park.id ?? '',
+      name: park.name ?? '',
+    }));
+  },
+  deleteDeletionCode: async (id) => {
+    await db.delete(deletion_codes).where(eq(deletion_codes.id, id));
+  },
+  insertDeletionCode: async (data) => {
+    await db.insert(deletion_codes).values(data);
+  },
+  updateDeletionCode: async (id, data) => {
+    await db.update(deletion_codes).set(data).where(eq(deletion_codes.id, id));
+  },
+  fetchAllDeletionCodes: async () => {
+    const response = await db.query.deletion_codes.findMany({
+      orderBy: [desc(deletion_codes.created_at)],
+    });
+
+    return response.map(code => ({
+      id: code.id,
+      code: code.code ?? '',
+      isUsed: code.is_used ?? false,
+      createdAt: code.created_at ?? '',
+    }));
+  },
+  fetchDeletionCodeById: async (id) => {
+    const response = await db.query.deletion_codes.findFirst({
+      where: eq(deletion_codes.id, id),
+    });
+    if (!response) {
+      throw new AppError('Deletion code not found', true, 404);
+    }
+    return {
+      id: response?.id ?? '',
+      code: response?.code ?? '',
+      isUsed: response?.is_used ?? false,
+      createdAt: response?.created_at ?? '',
+    };
+  },
+  insertCruiseLine: async (data) => {
+    await db.insert(cruise_line).values(data);
+  },
+  updateCruiseLine: async (id, data) => {
+    await db.update(cruise_line).set(data).where(eq(cruise_line.id, id));
+  },
+  fetchAllCruiseLines: async (search, page = 1, limit = 10) => {
+    const conditions = [search ? ilike(cruise_line.name, `%${search}%`) : undefined].filter(Boolean);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(cruise_line)
+      .where(conditions.length > 0 ? conditions[0] : undefined)
+      .then(result => result[0]?.count || 0);
+
+    const response = await db.query.cruise_line.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+      ...(conditions.length > 0 ? { where: conditions[0] } : {}),
+      limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return {
+      data: response.map(cruise_line => ({
+        id: cruise_line.id ?? '',
+        name: cruise_line.name ?? '',
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+      },
+    };
+  },
+  fetchCruiseLineById: async (id) => {
+    const response = await db.query.cruise_line.findFirst({
+      where: eq(cruise_line.id, id),
+    });
+
+    return {
+      id: response?.id ?? '',
+      name: response?.name ?? '',
+    }
+  },
+  deleteCruiseLine: async (id) => {
+    await db.delete(cruise_line).where(eq(cruise_line.id, id));
+  },
+  insertCruiseShip: async (data) => {
+    await db.insert(cruise_ship).values(data);
+  },
+  updateCruiseShip: async (id, data) => {
+    await db.update(cruise_ship).set(data).where(eq(cruise_ship.id, id));
+  },
+  fetchAllCruiseShips: async (search, cruise_line_id, page = 1, limit = 10) => {
+    const conditions = [
+      search ? ilike(cruise_ship.name, `%${search}%`) : undefined,
+      cruise_line_id ? eq(cruise_ship.cruise_line_id, cruise_line_id) : undefined,
+    ].filter(Boolean);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(cruise_ship)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .then(result => result[0]?.count || 0);
+
+    const response = await db.query.cruise_ship.findMany({
+      columns: {
+        id: true,
+        name: true,
+        cruise_line_id: true,
+      },
+      with: {
+        cruise_line: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+      ...(conditions.length > 0 ? { where: and(...conditions) } : {}),
+      limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return {
+      data: response.map(ship => ({
+        id: ship.id,
+        name: ship.name ?? '',
+        cruise_line_id: ship.cruise_line_id ?? '',
+        cruise_line_name: ship.cruise_line?.name ?? '',
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+      },
+    };
+  },
+  fetchCruiseShipById: async (id) => {
+    const response = await db.query.cruise_ship.findFirst({
+      where: eq(cruise_ship.id, id),
+    });
+
+    if (!response) {
+      throw new AppError('Cruise ship not found', true, 404);
+    }
+
+    return {
+      id: response.id ?? '',
+      name: response.name ?? '',
+      cruise_line_id: response.cruise_line_id ?? '',
+    };
+  },
+  deleteCruiseShip: async (id) => {
+    await db.delete(cruise_ship).where(eq(cruise_ship.id, id));
+  },
+  insertCruiseDestination: async (data) => {
+    await db.insert(cruise_destination).values(data);
+  },
+  updateCruiseDestination: async (id, data) => {
+    await db.update(cruise_destination).set(data).where(eq(cruise_destination.id, id));
+  },
+  fetchAllCruiseDestinations: async (search, page = 1, limit = 10) => {
+    const conditions = [search ? ilike(cruise_destination.name, `%${search}%`) : undefined].filter(Boolean);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(cruise_destination)
+      .where(conditions.length > 0 ? conditions[0] : undefined)
+      .then(result => result[0]?.count || 0);
+
+    const response = await db.query.cruise_destination.findMany({
+      columns: {
+        id: true,
+        name: true,
+      },
+      ...(conditions.length > 0 ? { where: conditions[0] } : {}),
+      limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return {
+      data: response.map(data => ({
+        id: data.id ?? '',
+        name: data.name ?? '',
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+      },
+    };
+  },
+  fetchCruiseDestinationById: async (id) => {
+    const response = await db.query.cruise_destination.findFirst({
+      where: eq(cruise_destination.id, id),
+    });
+
+    if (!response) {
+      throw new AppError('Cruise destination not found', true, 404);
+    }
+
+    return {
+      id: response.id ?? '',
+      name: response.name ?? '',
+    };
+  },
+  deleteCruiseDestination: async (id) => {
+    await db.delete(cruise_destination).where(eq(cruise_destination.id, id));
+  },
+  insertPort: async (data) => {
+    await db.insert(port).values(data);
+  },
+  updatePort: async (id, data) => {
+    await db.update(port).set(data).where(eq(port.id, id));
+  },
+
+  fetchAllPorts: async (search, cruise_destination_id, page = 1, limit = 10) => {
+    const conditions = [
+      search ? ilike(port.name, `%${search}%`) : undefined,
+      cruise_destination_id ? eq(port.cruise_destination_id, cruise_destination_id) : undefined,
+    ].filter(Boolean);
+    const offset = (page - 1) * limit;
+
+    // Get total count for pagination
+    const totalCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(port)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .then(result => result[0]?.count || 0);
+
+    const response = await db.query.port.findMany({
+      columns: {
+        id: true,
+        name: true,
+        cruise_destination_id: true,
+      },
+      with: {
+        cruise_destination: {
+          columns: {
+            name: true,
+          },
+        },
+      },
+      ...(conditions.length > 0 ? { where: and(...conditions) } : {}),
+      limit: limit,
+      offset,
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+
+    return {
+      data: response.map(port => ({
+        id: port.id,
+        name: port.name ?? '',
+        cruise_destination_id: port.cruise_destination_id ?? '',
+        cruise_destination_name: port.cruise_destination?.name ?? '',
+      })),
+      pagination: {
+        page,
+        limit,
+        total: totalCount,
+        totalPages,
+      },
+    };
+  },
+  fetchPortById: async (id) => {
+    const response = await db.query.port.findFirst({
+      where: eq(port.id, id),
+    });
+
+    if (!response) {
+      throw new AppError('Port not found', true, 404);
+    }
+
+    return {
+      id: response.id ?? '',
+      name: response.name ?? '',
+      cruise_destination_id: response.cruise_destination_id ?? '',
+    };
+  },
+  deletePort: async (id) => {
+    await db.delete(port).where(eq(port.id, id));
+  },
+  updateAccomodation: async (id, data) => {
+    await db.update(accomodation_list).set(data).where(eq(accomodation_list.id, id));
+  },
+  updateResort: async (id, data) => {
+    await db.update(resorts).set(data).where(eq(resorts.id, id));
+  },
+  fetchResortById: async (id) => {
+    const resort = await db.query.resorts.findFirst({
+      where: eq(resorts.id, id),
+      with: {
+        destination: true
+      }
+    });
+    if (!resort) {
+      throw new AppError('Resort not found', true, 404);
+    }
+    return {
+      id: resort.id ?? '',
+      name: resort.name ?? '',
+      destination_id: resort.destination_id ?? '',
+      country_id: resort.destination?.country_id ?? '',
+    };
+  },
+  insertHeadline: async (data) => {
+    await db.insert(headlinesTable).values(data);
+  },
+  updateHeadline: async (id, data) => {
+    await db.update(headlinesTable).set(data).where(eq(headlinesTable.id, id));
+  },
+  fetchAllHeadlines: async () => {
+    const headlines = await db.select().from(headlinesTable);
+    return headlines.map((headline) => ({
+      id: headline.id ?? '',
+      title: headline.title ?? '',
+      message: headline.message ?? '',
+      link: headline.link ?? '',
+      expiry_date: headline.expiry_date ?? '',
+      created_at: headline.created_at ?? '',
+      updated_at: headline.updated_at ?? '',
+      post_type: headline.post_type as 'Flash Sale' | 'Hot Deal' | 'Admin' | 'Urgent',
+    }));
+  },
+  fetchHeadlineById: async (id) => {
+    const [headline] = await db.select().from(headlinesTable).where(eq(headlinesTable.id, id));
+    if (!headline) {
+      throw new AppError('Headline not found', true, 404);
+    }
+    return {
+      title: headline.title ?? '',
+      message: headline.message ?? '',
+      link: headline.link ?? '',
+      expiry_date: headline.expiry_date ?? '',
+      created_at: headline.created_at ?? '',
+      updated_at: headline.updated_at ?? '',
+      post_type: headline.post_type as 'Flash Sale' | 'Hot Deal' | 'Admin' | 'Urgent',
+    };
+  },
+  deleteHeadline: async (id) => {
+    await db.delete(headlinesTable).where(eq(headlinesTable.id, id));
+  },
+
+  //Starts here
+
+
   insertAccomodation: async (data) => {
     await db.insert(accomodation_list).values(data);
   },
@@ -2333,9 +3420,7 @@ export const transactionRepo: TransactionRepo = {
     });
     return result;
   },
-  insertLodge: async (data) => {
-    await db.insert(lodges).values(data);
-  },
+ 
   updateLodge: async (lodge_id, data) => {
     await db.update(lodges).set(data).where(eq(lodges.id, lodge_id));
   },
