@@ -42,11 +42,13 @@ import {
   accomodationQuerySchema,
   bookingPipelineSchema,
   cruiseDateQuerySchema,
+  destinationMutateSchema,
   enquiryPipelineSchema,
   noteMutateSchema,
   notesQuerySchema,
   quoteChild,
   quotePipelineSchema,
+  resortMutateSchema,
   resortQuerySchema,
   salesSummarySchema,
   tourOperatorQuerySchema,
@@ -167,16 +169,37 @@ export type TransactionRepo = {
   }>;
   updateLodge: (lodge_id: string, data: z.infer<typeof lodgeMutateSchema>) => Promise<void>;
   deleteLodge: (lodge_id: string) => Promise<void>;
-  insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>;
   fetchRoomTypes: () => Promise<{ id: string; name: string }[]>;
   updateLeadSource: (transaction_id: string, lead_source: "SHOP" | "FACEBOOK" | "WHATSAPP" | "INSTAGRAM" | "PHONE_ENQUIRY") => Promise<void>;
+
+  insertDestination: (data: z.infer<typeof destinationMutateSchema>) => Promise<void>
+  insertResort: (data: z.infer<typeof resortMutateSchema>) => Promise<void>
+  insertAccomodation: (data: { resort_id: string, name: string, type_id: string }) => Promise<void>
+  insertCountry: (name: string, code: string) => Promise<void>
+  insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>
+
 };
 
 export const transactionRepo: TransactionRepo = {
-  
+ 
+  insertCountry: async (name, code) => {
+    await db.insert(country).values({
+      country_name: name,
+      country_code: code
+    })
+  },
+  insertDestination: async (data) => {
+    await db.insert(destination).values(data);
+  },
+  insertResort: async (data) => {
+    await db.insert(resorts).values(data);
+  },
+  insertAccomodation: async (data) => {
+    await db.insert(accomodation_list).values(data);
+  },
   updateLeadSource: async (transaction_id, lead_source) => {
 
-    console.log(transaction_id, lead_source,"asdsadsaddsa");
+    console.log(transaction_id, lead_source, "asdsadsaddsa");
     await db
       .update(transaction)
       .set({
@@ -878,6 +901,7 @@ export const transactionRepo: TransactionRepo = {
       parent_id: parent_id || null,
     });
   },
+
   updateNote: async (content, note_id) => {
     await db
       .update(notes)

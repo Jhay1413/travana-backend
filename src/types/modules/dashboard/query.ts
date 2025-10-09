@@ -74,9 +74,9 @@ export const adminDashboardStatsQuerySchema = z.object({
 });
 // Zod schemas for analytics response
 export const AnalyticsMetricSchema = z.object({
-  value: z.number(),
+  value: z.number().optional(),
   change: z.number(),
-  description: z.string(),
+  description: z.string().optional(),
 });
 
 export const BookingStatusSchema = z.object({

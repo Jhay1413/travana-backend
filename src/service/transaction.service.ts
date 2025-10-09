@@ -4,9 +4,11 @@ import { TransactionRepo } from '../repository/transaction.repo';
 import { UserRepo } from '../repository/user.repo';
 import { NotificationProvider } from '../provider/notification.provider';
 import { lodgeMutateSchema } from '../types/modules/data-management';
+import { destinationMutateSchema } from '../types/modules/transaction/mutation';
+import { resortMutateSchema } from '../types/modules/transaction/mutation';
 import z from 'zod';
 
-export const transactionService = (repo: TransactionRepo,userRepo:UserRepo,clientRepo:ClientRepo,notificationRepo:NotificationRepo,notificationProvider:NotificationProvider) => {
+export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, clientRepo: ClientRepo, notificationRepo: NotificationRepo, notificationProvider: NotificationProvider) => {
   return {
     fetchRoomTypes: async () => {
       return await repo.fetchRoomTypes();
@@ -24,10 +26,10 @@ export const transactionService = (repo: TransactionRepo,userRepo:UserRepo,clien
     insertNote: async (content: string, transaction_id: string, agent_id: string, parent_id?: string) => {
       return await repo.insertNote(content, transaction_id, agent_id, parent_id);
     },
-    reassignTransaction: async (agent_id: string, transactionId: string,type: string,client_id: string,current_user_id: string,ref_id: string) => {
+    reassignTransaction: async (agent_id: string, transactionId: string, type: string, client_id: string, current_user_id: string, ref_id: string) => {
       await repo.reassignTransaction(transactionId, agent_id);
 
-      if(current_user_id === agent_id) return
+      if (current_user_id === agent_id) return
 
       const [user, client] = await Promise.all([userRepo.fetchUserById(current_user_id), clientRepo.fetchClientById(client_id)]);
       const notif_type = type === 'lead' ? 'enquiry' : 'quote';
@@ -48,7 +50,7 @@ export const transactionService = (repo: TransactionRepo,userRepo:UserRepo,clien
           unread_notif
         );
       }
-      
+
     },
     fetchDestination: async (country_ids?: string[], selectedIds?: string[], search?: string) => {
       return await repo.fetchDestination(country_ids, selectedIds, search);
@@ -143,5 +145,17 @@ export const transactionService = (repo: TransactionRepo,userRepo:UserRepo,clien
     updateLeadSource: async (transaction_id: string, lead_source: "SHOP" | "FACEBOOK" | "WHATSAPP" | "INSTAGRAM" | "PHONE_ENQUIRY") => {
       return await repo.updateLeadSource(transaction_id, lead_source);
     },
+    insertDestination: async (data: z.infer<typeof destinationMutateSchema>) => {
+      return await repo.insertDestination(data);
+    },
+    insertResort: async (data: z.infer<typeof resortMutateSchema>) => {
+      return await repo.insertResort(data);
+    },
+    insertAccomodation: async (data: { resort_id: string, name: string, type_id: string }) => {
+      return await repo.insertAccomodation(data);
+    },
+    insertCountry: async (name: string, code: string) => {
+      return await repo.insertCountry(name, code)
+    }
   };
 };

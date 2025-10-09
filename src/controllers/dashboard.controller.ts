@@ -61,4 +61,22 @@ export const dashboardController = {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },
+    fetchAdminDashboardStats: async (req: Request, res: Response) => {
+        try {
+            const { agentId } = req.query;
+            const dashboardStats = await service.fetchAdminDashboardStats(agentId as string);
+            res.status(200).json(dashboardStats);
+        } catch (error) {
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
+    fetchAdminAnalytics: async (req: Request, res: Response) => {
+        try {
+            const { agentId } = req.query;
+            const analytics = await service.fetchAdminAnalytics(agentId as string);
+            res.status(200).json(analytics);
+        } catch (error) {
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
 }

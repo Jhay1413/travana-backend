@@ -44,7 +44,7 @@ router.get('/cruises', transactionController.fetchCruises);
 router.get('/ships', transactionController.fetchShips);
 router.get('/cruise-extras', transactionController.fetchCruiseExtras);
 
-// Kanban and dashboard endpoints
+// Kanban and dashboard endpointsp
 router.get('/kanban/inquiries', transactionController.fetchKanbanInquries);
 router.get('/bookings', transactionController.fetchBookings);
 router.get('/summary/agent/:agent_id', transactionController.fetchTransactionSummaryByAgent);
@@ -52,5 +52,10 @@ router.get('/future-deals/kanban', transactionController.fetchFutureDealsKanban)
 router.get('/future-deals/:client_id', transactionController.fetchFutureDeal);
 router.get('/all-deals/:client_id', transactionController.fetchAllDeals);
 router.get('/dashboard/summary', transactionController.fetchDashboardSummary);
+router.post('/destinations', transactionController.insertDestination);
+router.post('/resorts', transactionController.insertResort);
+router.post('/accomodations', transactionController.insertAccomodation);
+router.post('/countries', transactionController.insertCountry);
+
 
 export default router;

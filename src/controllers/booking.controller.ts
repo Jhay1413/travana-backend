@@ -193,6 +193,7 @@ export const bookingController = {
       const booking = await service.fetchForwardCommission();
       res.status(200).json(booking);
     } catch (error) {
+      console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },

@@ -21,5 +21,11 @@ export const dashboardService = (repo: DashboardRepo) => {
         deleteTodo: async (id: string) => {
             return await repo.deleteTodo(id);
         },
+        fetchAdminDashboardStats: async (agentId?: string) => {
+            return await repo.fetchAdminDashboardStats(agentId);
+        },
+        fetchAdminAnalytics: async (agentId?: string) => {
+            return await repo.fetchAdminAnalytics(agentId);
+        },
     }
 }

@@ -10,6 +10,8 @@ router.use(authMiddleware);
 // Dashboard stats routes
 router.get('/client/:clientId', dashboardController.fetchClientStats);
 router.get('/agent/:agentId', dashboardController.fetchAgentStats);
+router.get('/admin/summary', dashboardController.fetchAdminDashboardStats);
+router.get('/admin/analytics', dashboardController.fetchAdminAnalytics);
 
 // Todo routes
 router.post('/todo/:agentId', dashboardController.insertTodo);

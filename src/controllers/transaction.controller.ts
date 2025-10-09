@@ -399,4 +399,41 @@ export const transactionController = {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
+  insertDestination: async (req: Request, res: Response) => {
+    try {
+      const { data } = req.body;
+      await service.insertDestination(data);
+      res.status(200).json({ message: 'Destination inserted' });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  insertResort: async (req: Request, res: Response) => {
+    try {
+      const { data } = req.body;
+      await service.insertResort(data);
+      res.status(200).json({ message: 'Resort inserted' });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  insertAccomodation: async (req: Request, res: Response) => {
+    try {
+      const { data } = req.body;
+      await service.insertAccomodation(data);
+      res.status(200).json({ message: 'Accomodation inserted' });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  insertCountry: async (req: Request, res: Response) => {
+    try {
+      const { name, code } = req.body
+      await service.insertCountry(name, code);
+      res.status(201).json({ message: 'Country inserted' })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  }
 };
