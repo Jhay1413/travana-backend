@@ -15,7 +15,6 @@ export const preProcessUpdate = async (quote_id: string, data: z.infer<typeof sh
     const lounge_pass = data.lounge_pass ?? [];
     const passenger = data.passengers ?? [];
   
-    console.log(data);
   
   
     let oldPassengers, oldHotels, oldFlights, oldTransfers, oldAttractionTickets, oldCarHire, oldAirportParking, oldLoungePass;

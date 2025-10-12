@@ -30,7 +30,6 @@ export const userRepo: UserRepo = {
     if (user_id) {
       conditions.push(eq(user.id, user_id));
     }
-    console.log(search, "from user repo")
     try {
       const response = await db.query.user.findMany({
         where: conditions.length > 0 ? or(...conditions) : undefined,
@@ -88,7 +87,6 @@ export const userRepo: UserRepo = {
       const response = await db.query.user.findFirst({
         where: eq(user.id, user_id),
       });
-      console.log(response)
       if (!response) {
         throw new AppError('User not found', true, 404);
       }

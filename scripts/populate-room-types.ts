@@ -22,7 +22,6 @@ const roomTypes = [
 
 async function populateRoomTypes() {
   try {
-    console.log('Starting to populate room types...');
     
     for (const roomTypeName of roomTypes) {
       // Check if room type already exists
@@ -34,13 +33,10 @@ async function populateRoomTypes() {
         await db.insert(room_type).values({
           name: roomTypeName
         });
-        console.log(`✅ Added room type: ${roomTypeName}`);
       } else {
-        console.log(`⏭️  Room type already exists: ${roomTypeName}`);
       }
     }
     
-    console.log('✅ Room types population completed successfully!');
   } catch (error) {
     console.error('❌ Error populating room types:', error);
     throw error;
@@ -50,7 +46,6 @@ async function populateRoomTypes() {
 // Run the script
 populateRoomTypes()
   .then(() => {
-    console.log('Script completed successfully');
     process.exit(0);
   })
   .catch((error) => {

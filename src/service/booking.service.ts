@@ -62,7 +62,6 @@ export const bookingService = (
       let id: string | undefined;
       let transaction_id: string | undefined;
       if (holiday_type.name === 'Cruise Package') {
-        console.log('Cruise Package');
         const result = await repo.insertCruise(data);
         id = result.id;
       } else {

@@ -19,7 +19,6 @@ export const bookingController = {
       const { user_id } = req.query;
       const booking = await service.convert(transaction_id, data, user_id as string);
 
-      console.log("isSuccess")
       res.status(200).json(booking);
     } catch (error) {
       console.log(error)
@@ -48,7 +47,6 @@ export const bookingController = {
   fetchBookingToUpdate: async (req: Request, res: Response) => {
     try {
 
-      console.log("fetchBookingToUpdate")
       const { id } = req.params;
       const { holiday_type_id } = req.query;
       const booking = await service.fetchBookingToUpdate(id);

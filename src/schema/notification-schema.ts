@@ -10,7 +10,7 @@ export const notification_token = pgTable('notification_token', {
   user_id: uuid()
     .references(() => usersTable.id, { onDelete: 'cascade' })
     ,
-  user_id_v2: text().references(() => user.id),
+  user_id_v2: text().references(() => user.id , {onDelete:'cascade'}),
   created_at: timestamp().defaultNow(),
   updated_at: timestamp().defaultNow(),
 });
@@ -29,8 +29,8 @@ export const notification = pgTable('notification', {
   id: uuid().defaultRandom().primaryKey(),
   type: varchar(),
   user_id: uuid().references(() => usersTable.id, { onDelete: 'cascade' }),
-  user_id_v2: text().references(() => user.id),
-  client_id: uuid().references(() => clientTable.id),
+  user_id_v2: text().references(() => user.id, { onDelete: 'cascade' }),
+  client_id: uuid().references(() => clientTable.id, { onDelete: 'cascade' }),
   message: varchar(),
   date_created: timestamp().defaultNow(),
   is_read: boolean().default(false),

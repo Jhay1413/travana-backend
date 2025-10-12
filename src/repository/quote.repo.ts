@@ -2144,7 +2144,6 @@ export const quoteRepo: QuoteRepo = {
         ),
       };
 
-      console.log(result);
       if (result.length > 0 && result[0].name === 'Hot Tub Break') {
         return dataValidator(quoteHotTubQuerySchema, payload);
       } else if (result.length > 0 && result[0].name === 'Package Holiday') {
@@ -3144,7 +3143,6 @@ export const quoteRepo: QuoteRepo = {
           await tx.insert(passengers).values(data.passengers.map((item) => ({ ...item, quote_id })));
         }
         if (data.accomodation_id) {
-          console.log('im inside accomodation_id');
           await tx
             .update(quote_accomodation)
             .set({
@@ -3191,7 +3189,6 @@ export const quoteRepo: QuoteRepo = {
           .where(eq(quote.id, quote_id));
 
         if (data.referrerId && !data.referralId) {
-          console.log('im inside insert');
           await tx.insert(referral).values({
             transactionId: data.transaction_id,
             referrerId: data.referrerId,
@@ -3771,7 +3768,6 @@ export const quoteRepo: QuoteRepo = {
 
       const now = new Date();
       const isExpired = expiryDate < now;
-      console.log(date_expiry);
       const [updatedQuote] = await db
         .update(quote)
         .set({

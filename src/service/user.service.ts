@@ -39,7 +39,6 @@ export const userService = (repo: UserRepo) => {
 
       const account_request = await repo.fetchAccountRequestById(id);
 
-      console.log(account_request, "from user service")
       if (!account_request) {
         throw new AppError('Account request not found', true, 404);
       }

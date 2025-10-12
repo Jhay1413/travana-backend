@@ -32,12 +32,12 @@ export const chatRoomQuerySchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.enum(['direct', 'group']),
-  participants: z.array(chatParticipantQuerySchema),
+  participants: z.array(chatParticipantQuerySchema).optional(),
   lastMessage: chatMessageQuerySchema.optional(),
-  unreadCount: z.number(),
+  unreadCount: z.number().optional(),
   isActive: z.boolean(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 
 export const chatFiltersQuerySchema = z.object({

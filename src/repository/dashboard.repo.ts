@@ -955,7 +955,6 @@ export const dashboardRepo: DashboardRepo = {
         };
     },
     fetchAdminDashboardStats: async (agent_id) => {
-        console.log(agent_id);
         const now = new Date();
         const todayStart = new Date(now);
         todayStart.setHours(0, 0, 0, 0);

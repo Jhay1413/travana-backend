@@ -7,6 +7,8 @@ import { toNodeHandler } from 'better-auth/node';
 import { auth } from './lib/auth';
 import { authMiddleware } from './middleware/authChecker';
 import routes from './routes';
+import { createServer } from 'http';
+import { initializeSocketServer } from './lib/socket-handler';
 dotenv.config();
 
 const app = express();
@@ -25,8 +27,8 @@ const corsOptions = {
     'https://www.dev-travana-client.travana.app' // Add this line
   ], // This is the origin of the client
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS','PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With','Cookie'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie'],
 };
 
 app.use(cors(corsOptions));
@@ -38,15 +40,19 @@ app.use('/api', routes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'OK', 
+  res.status(200).json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
 });
 
+const server = createServer(app);
+
+// Initialize Socket.IO
+initializeSocketServer(server);
 // Start server
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);

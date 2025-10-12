@@ -647,7 +647,6 @@ export const bookingRepo: BookingRepo = {
   insertCruise: async (data) => {
 
 
-    console.log('Cruise Package Im inside');
     return await db.transaction(async (tx) => {
       const [transaction_data] = await tx
         .insert(transaction)
@@ -980,7 +979,6 @@ export const bookingRepo: BookingRepo = {
     const holiday = await db.query.package_type.findFirst({
       where: eq(package_type.id, response?.holiday_type_id!),
     });
-    console.log(holiday);
     if (holiday?.name === 'Package Holiday') {
       const primary_accomodation = response?.accomodation.find((accomodation) => accomodation.is_primary === true);
       const payload_to_validate = {
@@ -2509,8 +2507,7 @@ export const bookingRepo: BookingRepo = {
 
     const referrals = Array.from(new Map((data?.referrals ?? []).filter((r: any) => r?.id).map((r: any) => [r.id, { ...r, id: r.id }])).values()) || [];
     const percentageComission = referrals.reduce((acc: number, curr: any) => acc + parseFloat(curr.commission), 0);
-    console.log(data.referrals, "referrers")
-    console.log(booking_id);
+   
     const payload = {
       ...data,
       no_of_nights: data?.num_of_nights.toString() ?? "0",

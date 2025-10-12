@@ -11,6 +11,7 @@ import referralRoutes from './referral.routes';
 import ticketRoutes from './ticket.routes';
 import taskRoutes from './task.routes';
 import dashboardRoutes from './dashboard.routes';
+import chatRoutes from './chat.routes';
 import { fromNodeHeaders } from 'better-auth/node';
 import { auth } from '../lib/auth';
 import authRoutes from './authRoutes';
@@ -31,6 +32,7 @@ router.use('/referrals', referralRoutes);
 router.use('/tickets', ticketRoutes);
 router.use('/tasks', taskRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/chat', chatRoutes);
 router.use('/auth-options', authRoutes);
 
 
@@ -38,7 +40,6 @@ router.get('/org/list',async (req,res)=>{
   const session = await auth.api.getSession({
     headers: await fromNodeHeaders(req.headers),
   });
-  console.log(session,"from org list")
   const data = await auth.api.listOrganizations({
     // This endpoint requires session cookies.
     headers: await fromNodeHeaders(req.headers),
@@ -59,7 +60,6 @@ router.get('/org/list/all/:id',async (req,res)=>{
     });
     res.json(data);
   } catch (error) {
-    console.log(error,"from org list all")
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : 'Something went wrong',

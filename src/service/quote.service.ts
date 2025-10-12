@@ -24,7 +24,6 @@ export const quoteService = (
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
       // const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
 
-      // console.log(holiday_type)
       // if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
       let id: string | undefined;
@@ -68,7 +67,6 @@ export const quoteService = (
       let id: string | undefined;
       let transaction_id: string | undefined;
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
-      console.log(holiday_type)
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
       if (holiday_type.name === 'Cruise Package'){
@@ -131,7 +129,6 @@ export const quoteService = (
       if (!holiday_type) throw new AppError('No holiday type found', true, 400);
 
       if (holiday_type === 'Cruise Package'){
-        console.log('Cruise Package');
         return await repo.fetchCruiseToUpdate(quote_id)};
 
       return await repo.fetchPackageToUpdate(quote_id);
@@ -151,7 +148,6 @@ export const quoteService = (
         return await repo.convertQuoteStatus(id, status);
       }
       await repo.convertQuoteStatus(id, status);
-      console.log(user_id)
       const [user, client] = await Promise.all([userRepo.fetchUserById(user_id), clientRepo.fetchClientById(client_id)]);
 
       const type = 'quote';

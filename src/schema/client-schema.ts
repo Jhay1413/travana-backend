@@ -34,7 +34,7 @@ export const clientTable = pgTable('client_table', {
   avatarUrl: varchar(),
   badge: varchar(),
   createdAt: timestamp().notNull().defaultNow(),
-  referrerId: text().references(() => user.id),
+  referrerId: text().references(() => user.id, { onDelete: 'set null' }),
 });
 
 export const client_relations = relations(clientTable, ({ one, many }) => ({

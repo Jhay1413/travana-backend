@@ -85,7 +85,6 @@ export const transactionController = {
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const countryIds = (country_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
 
-      console.log(countryIds, selectedIds, search)
       const destination = await service.fetchDestination(countryIds ?? [], selectedIds ?? [], search ?? undefined);
       res.status(200).json(destination);
     } catch (error) {

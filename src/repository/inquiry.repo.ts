@@ -247,7 +247,6 @@ export const inquiryRepo: InquiryRepo = {
       plus2.setDate(now.getDate() + 1);
       const date_expiry = data.is_future_deal ? null : data.date_expiry ? new Date(data.date_expiry) : plus2;
 
-      console.log(data, 'data');
       return await db.transaction(async (tx) => {
         // Insert main enquiry record
         const [transaction_id] = await tx
@@ -727,7 +726,6 @@ export const inquiryRepo: InquiryRepo = {
       }, {} as Record<string, z.infer<typeof enquiryQuerySchema>>);
 
       const structuredResults = Object.values(groupedResults);
-      console.log(structuredResults);
       return structuredResults[0];
     } catch (error) {
       console.log(error);

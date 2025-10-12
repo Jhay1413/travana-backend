@@ -5,12 +5,13 @@ export const sendMessageMutationSchema = z.object({
   content: z.string(),
   messageType: z.enum(['text', 'image', 'file']).optional(),
   attachments: z.array(z.object({
+    id: z.string().optional(),
     name: z.string(),
     url: z.string(),
     type: z.enum(['image', 'document', 'video', 'audio']),
     size: z.number().optional(),
   })).optional(),
-  senderId: z.string().optional(), // Will be set by frontend
+  senderId: z.string()
 });
 
 export const createRoomMutationSchema = z.object({

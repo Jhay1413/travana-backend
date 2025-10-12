@@ -12,7 +12,6 @@ export const AuthService = (repo: AuthRepo) => {
 
     return {
         verifyInvitation: async (invitationId: string, headers: IncomingHttpHeaders) => {
-            console.log(invitationId)
             await auth.api.acceptInvitation({
                 body: {
                     invitationId: invitationId,
@@ -23,7 +22,6 @@ export const AuthService = (repo: AuthRepo) => {
         },
         createInvitation: async (email: string, role: string, organizationId: string, headers: IncomingHttpHeaders, firstName: string, lastName: string, contactNumber: string) => {
 
-            console.log(email, role, organizationId, firstName, lastName, contactNumber)
             const user = await repo.fetchUserByEmail(email)
 
             if (user) {
@@ -77,6 +75,7 @@ export const AuthService = (repo: AuthRepo) => {
         fetchOwnerOrganizationByOrgId: async (orgId: string) => {
             return await repo.fetchOwnerOrganizationByOrgId(orgId)
         }
+        
 
     }
 }

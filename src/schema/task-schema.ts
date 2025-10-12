@@ -11,12 +11,12 @@ export const task = pgTable('task_table', {
   id: uuid()
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
-  agent_id: uuid().references(() => usersTable.id),
-  user_id: text().references(() => user.id),
-  client_id: uuid().references(() => clientTable.id),
-  assigned_by_id: uuid().references(() => usersTable.id),
-  assigned_by_id_v2: text().references(() => user.id),
-  transaction_id: uuid().references(() => transaction.id,{onDelete:'cascade'}),
+  agent_id: uuid().references(() => usersTable.id, { onDelete: 'set null' }),
+  user_id: text().references(() => user.id, { onDelete: 'set null' }),
+  client_id: uuid().references(() => clientTable.id, { onDelete: 'set null' }),
+  assigned_by_id: uuid().references(() => usersTable.id, { onDelete: 'set null' }),
+  assigned_by_id_v2: text().references(() => user.id, { onDelete: 'set null' }),
+  transaction_id: uuid().references(() => transaction.id, { onDelete: 'cascade' }),
   deal_id: varchar(),
   transaction_type: varchar(),
   title: varchar(),
@@ -24,18 +24,18 @@ export const task = pgTable('task_table', {
   task: varchar(),
   due_date: timestamp(),
   number: varchar(),
- 
+
   priority: varchar(),
   status: varchar(),
   created_at: timestamp({ mode: 'string' }).notNull().defaultNow(),
 });
 export const taskRelation = relations(task, ({ one, many }) => ({
-  assigned_by_user:one(user,{
+  assigned_by_user: one(user, {
     fields: [task.assigned_by_id_v2],
     references: [user.id],
     relationName: 'assigned_by_user',
   }),
-  user:one(user,{
+  user: one(user, {
     fields: [task.user_id],
     references: [user.id],
     relationName: 'user_assigned',

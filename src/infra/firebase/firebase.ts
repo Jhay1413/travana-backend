@@ -35,6 +35,5 @@ export class FirebaseService {
 
     const messages = await admin.messaging().sendEachForMulticast(message);
 
-    console.log('Successfully sent message:', messages);
   }
 }

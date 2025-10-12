@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { organization } from "../schema/auth-schema";
 import { userQuerySchema } from "../types/modules/user";
 import z from "zod";
+import { auth } from "@/lib/auth";
 
 
 export type AuthRepo = {
@@ -35,7 +36,8 @@ export const authRepo: AuthRepo = {
 
             ),
         });
-        if(!response) return null
+        if (!response) return null
         return response
     },
+
 }

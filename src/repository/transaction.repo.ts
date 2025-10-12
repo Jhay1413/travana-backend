@@ -825,7 +825,6 @@ export const transactionRepo: TransactionRepo = {
         },
       },
     });
-    console.log(lodgesList)
     return lodgesList.map((data) => ({
       id: data.id ?? '',
       lodge_name: data.lodge_name ?? '',
@@ -1286,7 +1285,6 @@ export const transactionRepo: TransactionRepo = {
   },
   updateLeadSource: async (transaction_id, lead_source) => {
 
-    console.log(transaction_id, lead_source, "asdsadsaddsa");
     await db
       .update(transaction)
       .set({
@@ -1590,7 +1588,6 @@ export const transactionRepo: TransactionRepo = {
   },
   fetchResorts: async (search, destinationIds, selectedIds) => {
 
-    console.log(search, destinationIds, selectedIds)
 
 
     const conditions = [
@@ -3885,7 +3882,6 @@ export const transactionRepo: TransactionRepo = {
     }
 
     const [{ count: totalCount }] = await totalCountQuery;
-    console.log(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
     // Apply pagination
     const offset = (page! - 1) * limit!;
     quoteQuery.limit(limit!).offset(offset);

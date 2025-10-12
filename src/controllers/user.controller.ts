@@ -102,7 +102,6 @@ export const userController = {
       const accountRequests = await service.fetchAllAccountRequests();
       res.status(200).json(accountRequests);
     } catch (error) {
-      console.log(error, "from user controller")
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Something went wrong',
