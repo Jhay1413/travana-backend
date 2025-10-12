@@ -38,7 +38,7 @@ const authConfig = {
     'https://dev-travana-client.travana.app',
     'https://www.dev-travana-client.travana.app' // Add this line
   ],
-  
+
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
@@ -64,7 +64,7 @@ const authConfig = {
       orgName: {
         type: "string",
         required: false,
-      },                                                                                                                                                                              
+      },
       percentageCommission: {
         type: "number",
         required: false,

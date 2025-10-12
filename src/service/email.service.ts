@@ -1,16 +1,16 @@
 
 
-import {Resend} from 'resend';
+import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-export const send_registration_email_service = async (url:string,name:string,email:string) => {
-    const new_url = 
-    await resend.emails.send({
-        from: 'noreply@confirm.travana.app',
-        to: email,
-        subject: 'Registration Confirmation',
-        html: createRegistrationEmailTemplate(name, url),
-    });
+export const send_registration_email_service = async (url: string, name: string, email: string) => {
+    const new_url =
+        await resend.emails.send({
+            from: 'noreply@confirm.travana.app',
+            to: email,
+            subject: 'Registration Confirmation',
+            html: createRegistrationEmailTemplate(name, url),
+        });
 
 }
 
@@ -173,7 +173,7 @@ const createRegistrationEmailTemplate = (userName: string, verificationUrl: stri
       </body>
       </html>
     `;
-  };
+};
 
 const createReferrerInvitationEmailTemplate = (inviteeName: string, inviterName: string, organizationName: string, invitationUrl: string) => {
     return `
@@ -337,7 +337,7 @@ const createReferrerInvitationEmailTemplate = (inviteeName: string, inviterName:
                   <h2 class="invitation-title">You're Invited to Join as a Referrer!</h2>
                   
                   <p class="message">
-                      Hello <strong>${inviteeName}</strong>,
+                       <strong>Hello there</strong>,
                       <br><br>
                       <strong>${inviterName}</strong> has invited you to join <strong>${organizationName}</strong> as a referrer. This is an exciting opportunity to be part of our referral network and earn rewards for bringing in new clients.
                   </p>
@@ -388,4 +388,4 @@ const createReferrerInvitationEmailTemplate = (inviteeName: string, inviterName:
       </body>
       </html>
     `;
-  };
+};
