@@ -168,6 +168,8 @@ export const transactionController = {
   fetchResorts: async (req: Request, res: Response) => {
     try {
       const { search, destination_ids, selected_ids } = req.query as { search: string; destination_ids: string; selected_ids: string };
+
+      console.log(search,"asdasdasdassad")
       const destinationIds = (destination_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const resorts = await service.fetchResorts(search ?? undefined, destinationIds ?? [], selectedIds ?? []);
@@ -362,7 +364,7 @@ export const transactionController = {
   updateLodge: async (req: Request, res: Response) => {
     try {
       const { lodge_id } = req.params;
-      const { data } = req.body;
+      const data = req.body;
       await service.updateLodge(lodge_id, data);
       res.status(200).json({ message: 'Lodge updated' });
     } catch (error) {
@@ -380,7 +382,7 @@ export const transactionController = {
   },
   insertLodge: async (req: Request, res: Response) => {
     try {
-      const { data } = req.body;
+      const data = req.body;
       await service.insertLodge(data);
       res.status(200).json({ message: 'Lodge inserted' });
     } catch (error) {
@@ -400,7 +402,7 @@ export const transactionController = {
   },
   insertDestination: async (req: Request, res: Response) => {
     try {
-      const { data } = req.body;
+      const data = req.body;
       await service.insertDestination(data);
       res.status(200).json({ message: 'Destination inserted' });
     } catch (error) {
@@ -409,7 +411,7 @@ export const transactionController = {
   },
   insertResort: async (req: Request, res: Response) => {
     try {
-      const { data } = req.body;
+      const data = req.body;
       await service.insertResort(data);
       res.status(200).json({ message: 'Resort inserted' });
     } catch (error) {
@@ -418,10 +420,12 @@ export const transactionController = {
   },
   insertAccomodation: async (req: Request, res: Response) => {
     try {
-      const { data } = req.body;
+      const data = req.body;
+      console.log(data)
       await service.insertAccomodation(data);
       res.status(200).json({ message: 'Accomodation inserted' });
     } catch (error) {
+      console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },

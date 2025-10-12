@@ -1,3 +1,4 @@
+import { auth } from '../lib/auth';
 import { db } from '../db/db';
 import { AppError } from '../middleware/errorHandler';
 import { user } from '../schema/auth-schema';
@@ -43,7 +44,19 @@ export const userRepo: UserRepo = {
   },
   async createUser(data: z.infer<typeof userMutationSchema>) {
     try {
-      await db.insert(usersTable).values(data);
+      await auth.api.signUpEmail({
+        body: {
+          email: data.email,
+          password: data.password!,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          name: `${data.firstName} ${data.lastName}`,
+          role: "member",
+          phoneNumber: data.phoneNumber,
+          percentageCommission: 25,
+
+        },
+      });
     } catch (error) {
       console.log(error);
       throw new AppError('Something went wrong', true, 500);

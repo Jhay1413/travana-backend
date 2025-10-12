@@ -1281,7 +1281,11 @@ export const transactionRepo: TransactionRepo = {
 
 
   insertAccomodation: async (data) => {
-    await db.insert(accomodation_list).values(data);
+    await db.insert(accomodation_list).values({
+      name: data.name,
+      type_id: data.type_id,
+      resorts_id: data.resort_id,
+    });
   },
   updateLeadSource: async (transaction_id, lead_source) => {
 
@@ -1587,7 +1591,6 @@ export const transactionRepo: TransactionRepo = {
     }));
   },
   fetchResorts: async (search, destinationIds, selectedIds) => {
-
 
 
     const conditions = [
@@ -3417,7 +3420,7 @@ export const transactionRepo: TransactionRepo = {
     });
     return result;
   },
- 
+
   updateLodge: async (lodge_id, data) => {
     await db.update(lodges).set(data).where(eq(lodges.id, lodge_id));
   },

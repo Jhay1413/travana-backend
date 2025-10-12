@@ -54,7 +54,7 @@ router.get('/all-deals/:client_id', transactionController.fetchAllDeals);
 router.get('/dashboard/summary', transactionController.fetchDashboardSummary);
 router.post('/destinations', transactionController.insertDestination);
 router.post('/resorts', transactionController.insertResort);
-router.post('/accomodations', transactionController.insertAccomodation);
+router.post('/accommodations', transactionController.insertAccomodation);
 router.post('/countries', transactionController.insertCountry);
 
 // Data Management endpoints
