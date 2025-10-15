@@ -15,7 +15,14 @@ import chatRoutes from './chat.routes';
 import { fromNodeHeaders } from 'better-auth/node';
 import { auth } from '../lib/auth';
 import authRoutes from './authRoutes';
+import { db } from '../db/db';
+import { count, eq, desc } from 'drizzle-orm';
+import { referral } from '../schema/referral-schema';
+import { ReferralService } from '../service/referrals.service';
+import { referralRepo } from '../repository/referrals.repo';
 
+
+const service = ReferralService(referralRepo);
 const router = Router();
 
 // API routes
@@ -36,7 +43,7 @@ router.use('/chat', chatRoutes);
 router.use('/auth-options', authRoutes);
 
 
-router.get('/org/list',async (req,res)=>{
+router.get('/org/list', async (req, res) => {
   const session = await auth.api.getSession({
     headers: await fromNodeHeaders(req.headers),
   });
@@ -47,7 +54,9 @@ router.get('/org/list',async (req,res)=>{
 
   res.json(data);
 })
-router.get('/org/list/all/:id',async (req,res)=>{
+
+//Transfer 
+router.get('/org/list/all/:id', async (req, res) => {
   try {
     const data = await auth.api.listMembers({
       headers: await fromNodeHeaders(req.headers),
@@ -55,10 +64,42 @@ router.get('/org/list/all/:id',async (req,res)=>{
         organizationId: req.params.id,
         limit: 100,
         offset: 0,
-       
-    },
+
+      },
     });
-    res.json(data);
+
+    const userTempData = data.members.map(data => ({
+      id: data.user.id,
+      role: data.role,
+      organizationId: data.organizationId,
+      name: data.user.name,
+      email: data.user.email,
+
+    }))
+
+    const payload = await Promise.all(
+      userTempData.map(async (user) => {
+        const referrals = await db
+          .select({ count: count() })
+          .from(referral)
+          .where(eq(referral.referrerId, user.id));
+
+        const lastReferred = await db
+          .select()
+          .from(referral)
+          .where(eq(referral.referrerId, user.id))
+          .orderBy(desc(referral.createdAt))
+          .limit(1);
+
+        return {
+          ...user,
+          totalReferred: referrals[0]?.count ?? 0,
+          lastReferred: lastReferred[0]?.createdAt ?? null,
+        };
+      })
+    );
+    console.log(payload)
+    res.json(payload);
   } catch (error) {
     res.status(500).json({
       success: false,

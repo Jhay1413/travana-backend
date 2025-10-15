@@ -72,4 +72,14 @@ export const referralController = {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },
-}
+    userMonthlyStats: async (req: Request, res: Response) => {
+        try {
+            const { userId } = req.params;
+            const data = await service.userMonthlyStats(userId);
+            res.status(200).json(data);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    }
+};

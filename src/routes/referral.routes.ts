@@ -24,4 +24,6 @@ router.get('/user/:id/stats', referralController.fetchReferrerStatsByUserId);
 // GET /api/referrals/user/:id/commission - Fetch referral commission by user ID
 router.get('/user/:id/commission', referralController.fetchReferralCommissionByUserId);
 
+router.get('/user/:id/monthly-stats', referralController.userMonthlyStats);
+
 export default router;

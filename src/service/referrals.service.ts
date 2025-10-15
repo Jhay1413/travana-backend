@@ -24,11 +24,14 @@ export const ReferralService = (repo: ReferralRepo) => {
         },
         fetchReferralCommissionByUserId: async (id: string) => {
 
-            
+
             return await repo.fetchReferralCommissionByUserId(id);
         },
-        insertReferral: async (transaction_id:string,referrerId:string,commission:string) => {
-            return await repo.insertReferral(transaction_id,referrerId,commission);
+        insertReferral: async (transaction_id: string, referrerId: string, commission: string) => {
+            return await repo.insertReferral(transaction_id, referrerId, commission);
         },
+        userMonthlyStats: async (clientId: string) => {
+            return await repo.userMonthlyStats(clientId);
+        }
     }
 }

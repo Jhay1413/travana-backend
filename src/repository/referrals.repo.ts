@@ -19,10 +19,30 @@ export type ReferralRepo = {
     fetchReferralCommissionByUserId: (id: string) => Promise<FetchReferral[]>,
     insertReferral: (transaction_id: string, referrerId: string, commission: string) => Promise<void>,
     fetchReferrerByClientId: (clientId: string) => Promise<{ referrerId: string | null, percentageCommission: number | null }>,
+    userMonthlyStats: (userId: string) => Promise<{
+        successRate: number,
+        conversionRate: number,
+    }>
 }
 
 export const referralRepo: ReferralRepo = {
 
+    userMonthlyStats: async (userId: string) => {
+        const totalReferrals = await db.select({ count: count() }).from(referral).where(and(eq(referral.referrerId, userId)));
+
+        const bookedReferrals = await db.select({ count: count() }).from(referral).innerJoin(transaction, eq(referral.transactionId, transaction.id)).where(and(eq(referral.referrerId, userId), eq(transaction.status, 'on_booking')));
+        const numOfReferrals = totalReferrals[0]?.count || 0;
+        const numOfBookedReferrals = bookedReferrals[0]?.count || 0;
+
+        const successRate = numOfReferrals === 0 ? 0 : (numOfBookedReferrals / numOfReferrals) * 100;
+        const conversionRate = numOfReferrals === 0 ? 0 : (numOfBookedReferrals / numOfReferrals) * 100;
+
+        return {
+            successRate: parseFloat(successRate.toFixed(2)),
+            conversionRate: parseFloat(conversionRate.toFixed(2)),
+        };
+
+    },
     insertReferral: async (transaction_id: string, referrerId: string, commission: string) => {
         await db.insert(referral).values({
             transactionId: transaction_id,
@@ -255,8 +275,8 @@ export const referralRepo: ReferralRepo = {
     },
     fetchReferrerByClientId: async (clientId: string) => {
         const respo = await db.select({
-            referrerId:clientTable.referrerId,
-            percentageCommission:user.percentageCommission,
+            referrerId: clientTable.referrerId,
+            percentageCommission: user.percentageCommission,
         }).from(clientTable).innerJoin(user, eq(clientTable.referrerId, user.id)).where(eq(clientTable.id, clientId));
 
 
@@ -264,6 +284,6 @@ export const referralRepo: ReferralRepo = {
             referrerId: respo[0].referrerId,
             percentageCommission: respo[0].percentageCommission,
         };
-    }
+    },
 
 }
