@@ -14,7 +14,7 @@ export const notes = pgTable('notes_table', {
   description: varchar(),
   content: text('content'),
   agent_id: uuid().references(() => usersTable.id),
-  user_id: text().references(() => user.id).notNull(),
+  user_id: text().references(() => user.id),
   createdAt: timestamp('timestamp2', { mode: 'string' })
     .notNull()
     .default(sql`now()`),

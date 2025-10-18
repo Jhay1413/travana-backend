@@ -15,13 +15,14 @@ export const enquiryStatusEnum = pgEnum('enquiry_status', [
   'EXPIRED',
   'NEW_LEAD',
 ]);
+export const budgetTypeEnum = pgEnum('budget_type', ['PER_PERSON', 'PACKAGE']);
 export const enquiry_table = pgTable('enquiry_table', {
   id: uuid()
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
   holiday_type_id: uuid().references(() => package_type.id).notNull(),
   transaction_id: uuid()
-    .references(() => transaction.id,{onDelete: 'cascade'})
+    .references(() => transaction.id, { onDelete: 'cascade' })
     .unique()
     .notNull(),
   accomodation_type_id: uuid().references(() => accomodation_type.id),
@@ -32,21 +33,22 @@ export const enquiry_table = pgTable('enquiry_table', {
   email: varchar(),
   infants: integer(),
   cabin_type: varchar(),
-  title:varchar(),
+  title: varchar(),
   flexible_date: varchar(),
   weekend_lodge: varchar(),
   accom_min_star_rating: varchar(),
   no_of_nights: integer(),
   budget: numeric(),
+  budget_type: budgetTypeEnum().default('PACKAGE'),
   no_of_guests: integer(),
   no_of_pets: integer(),
   pre_cruise_stay: integer(),
   post_cruise_stay: integer(),
-  status:enquiryStatusEnum().default('NEW_LEAD'),
+  status: enquiryStatusEnum().default('NEW_LEAD'),
   date_created: timestamp({ precision: 0, withTimezone: true }).defaultNow(),
   date_expiry: timestamp({ precision: 0, withTimezone: true }),
-  is_future_deal:boolean().default(false),
-  future_deal_date:date({ mode: 'string' }),
+  is_future_deal: boolean().default(false),
+  future_deal_date: date({ mode: 'string' }),
   is_expired: boolean().default(false),
   // Deletion tracking fields
   is_active: boolean().default(true),

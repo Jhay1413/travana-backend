@@ -4,14 +4,14 @@ import { clientMutationSchema } from '../client';
 export const enquiry_mutate_schema = z.object({
   id: z.nullable(z.string()).optional(),
   email: z.nullable(z.string()).optional(),
-  lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM','PHONE_ENQUIRY']).optional(),
+  lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
   holiday_type_id: z.string(),
   title: z.nullable(z.string()).optional(),
   holiday_type_name: z.string().optional(),
   transaction_id: z.string().optional(),
   accomodation_type_id: z.nullable(z.string()).optional(),
   client_id: z.string(),
-  agent_id:z.string(),
+  agent_id: z.string(),
   travel_date: z.string(),
   flexibility_date: z.nullable(z.string()).optional(),
   adults: z.number().optional(),
@@ -22,6 +22,7 @@ export const enquiry_mutate_schema = z.object({
   weekend_lodge: z.nullable(z.string()).optional(),
   no_of_nights: z.nullable(z.string()),
   budget: z.number(),
+  budget_type: z.nullable(z.enum(['PER_PERSON', 'PACKAGE'])).optional(),
   no_of_guests: z.number().optional(),
   no_of_pets: z.number().optional(),
   pre_cruise_stay: z.nullable(z.number()).optional(),
@@ -75,7 +76,7 @@ export const accomodationMutateSchema = z.object({
 
 export const quote_mutate_schema = z.object({
   quote_id: z.string().optional(),
-  lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM','PHONE_ENQUIRY']).optional(),
+  lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
   title: z.nullable(z.string()).optional(),
   quote_ref: z.nullable(z.string()).optional(),
   holiday_type_name: z.string().optional(),

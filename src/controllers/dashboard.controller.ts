@@ -73,9 +73,12 @@ export const dashboardController = {
     fetchAdminAnalytics: async (req: Request, res: Response) => {
         try {
             const { agentId } = req.query;
+
+            console.log(agentId)
             const analytics = await service.fetchAdminAnalytics(agentId as string);
             res.status(200).json(analytics);
         } catch (error) {
+            console.log(error)
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },

@@ -11,7 +11,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:studio-dev": "npx drizzle-kit studio --config=drizzle-dev.config.ts",
     "db:generate-dev": "npx drizzle-kit generate --config=drizzle-dev.config.ts",
-    "db:migrate-dev": "npx drizzle-kit migrate --config=drizzle-dev.config.ts"
+    "db:migrate-dev": "npx drizzle-kit migrate --config=drizzle-dev.config.ts",
+    "migrate:users": "npx tsx scripts/migrate-user.ts"
   },
   "author": "",
   "license": "ISC",

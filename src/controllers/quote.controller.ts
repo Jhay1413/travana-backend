@@ -31,6 +31,7 @@ export const quoteController = {
       const quote = await service.insertQuote(data);
       res.status(201).json(quote);
     } catch (error) {
+      console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },

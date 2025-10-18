@@ -51,4 +51,4 @@ ALTER TABLE "quote_car_hire" ALTER COLUMN "driver_age" SET NOT NULL;--> statemen
 ALTER TABLE "quote_cruise_itinerary" ALTER COLUMN "day_number" SET DATA TYPE integer USING day_number::integer;;--> statement-breakpoint
 ALTER TABLE "package_type_table" ALTER COLUMN "name" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "transaction" ALTER COLUMN "client_id" SET NOT NULL;--> statement-breakpoint
-ALTER TABLE "transaction" ALTER COLUMN "user_id" SET NOT NULL;
+ALTER TABLE "transaction" ALTER COLUMN "user_id" DROP NOT NULL;
