@@ -1212,6 +1212,55 @@
       "when": 1760759750039,
       "tag": "0172_smart_monster_badoon",
       "breakpoints": true
+    },
+    {
+      "idx": 173,
+      "version": "7",
+      "when": 1760785722419,
+      "tag": "0173_magical_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 174,
+      "version": "7",
+      "when": 1760785812944,
+      "tag": "0174_hesitant_phalanx",
+      "breakpoints": true
+    },
+    {
+      "idx": 175,
+      "version": "7",
+      "when": 1760785862636,
+      "tag": "0175_dashing_firestar",
+      "breakpoints": true
+    },
+    {
+      "idx": 176,
+      "version": "7",
+      "when": 1760785894051,
+      "tag": "0176_true_jigsaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 177,
+      "version": "7",
+      "when": 1760788842958,
+      "tag": "0177_silky_spiral",
+      "breakpoints": true
+    },
+    {
+      "idx": 178,
+      "version": "7",
+      "when": 1760788955456,
+      "tag": "0178_tranquil_lizard",
+      "breakpoints": true
+    },
+    {
+      "idx": 179,
+      "version": "7",
+      "when": 1760835551916,
+      "tag": "0179_cold_slipstream",
+      "breakpoints": true
     }
   ]
 }

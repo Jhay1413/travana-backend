@@ -1,0 +1,1 @@
+ALTER TABLE "board_basis" ALTER COLUMN "type" SET NOT NULL;

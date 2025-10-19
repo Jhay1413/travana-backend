@@ -1,0 +1,1 @@
+ALTER TABLE "airport_table" ALTER COLUMN "airport_name" SET NOT NULL;

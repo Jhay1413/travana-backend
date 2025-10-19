@@ -10,8 +10,8 @@ export const airport = pgTable('airport_table', {
   id: uuid()
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
-  airport_code: varchar(),
-  airport_name: varchar(),
+  airport_code: varchar().notNull(),
+  airport_name: varchar().notNull(),
   country_id: uuid().references(() => country.id),
 });
 export const airport_relations = relations(airport, ({ one, many }) => ({

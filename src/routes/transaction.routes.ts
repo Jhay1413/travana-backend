@@ -158,4 +158,8 @@ router.get('/data-management/destinations/:id', transactionController.fetchDesti
 router.put('/data-management/resorts/:id', transactionController.updateResort);
 router.get('/data-management/resorts/:id', transactionController.fetchResortById);
 
+//ScrapeData
+
+router.post('/scrape-data/structure', transactionController.structuredScrapeData);
+
 export default router;

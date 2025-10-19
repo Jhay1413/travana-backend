@@ -2,11 +2,11 @@ import { z } from "zod";
 
 
 export const destinationQuerySchema = z.object({
-    id:z.string(),
+    id: z.string(),
     name: z.string(),
-    type : z.string().optional(),
-    country_id : z.string().optional(),
-    country_name : z.string().optional(),
+    type: z.nullable(z.string().optional()),
+    country_id: z.nullable(z.string().optional()),
+    country_name: z.string().optional(),
     country: z.nullable(z.object({
         id: z.string(),
         country_name: z.string(),

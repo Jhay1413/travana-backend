@@ -1,4 +1,4 @@
-import { relations, sql } from 'drizzle-orm';
+import { not, relations, sql } from 'drizzle-orm';
 import { boolean, decimal, index, integer, pgEnum, primaryKey, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 import { enquiry_accomodation, enquiry_board_basis, enquiry_destination, enquiry_resorts, enquiry_table } from './enquiry-schema';
@@ -46,8 +46,8 @@ export const transaction = pgTable('transaction', {
   holiday_type_id: uuid().references(() => package_type.id),
   created_at: timestamp({ mode: 'string' }).notNull().defaultNow(),
   agent_id: uuid().references(() => usersTable.id),
-  user_id: text().references(() => user.id).notNull(),
   lead_source: leadSourceEnum().default("SHOP"),
+  user_id: text().references(() => user.id).notNull(),
   
 });
 
@@ -95,7 +95,7 @@ export const board_basis = pgTable('board_basis', {
   id: uuid('id')
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
-  type: varchar(),
+  type: varchar().notNull(),
 });
 export const board_basis_relation = relations(board_basis, ({ one, many }) => ({
   enquiry_board_basis: many(enquiry_board_basis),
@@ -106,7 +106,7 @@ export const destination = pgTable('destination_table', {
   id: uuid()
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
-  name: varchar(),
+  name: varchar().notNull(),
   type: varchar(),
   country_id: uuid().references(() => country.id),
 });
@@ -124,7 +124,7 @@ export const country = pgTable('country_table', {
   id: uuid()
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
-  country_name: varchar(),
+  country_name: varchar().notNull(),
   country_code: varchar(),
 });
 export const country_relation = relations(country, ({ one, many }) => ({
@@ -136,7 +136,7 @@ export const accomodation_list = pgTable('accomodation_list_table', {
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
   type_id: uuid().references(() => accomodation_type.id),
-  name: varchar(),
+  name: varchar().notNull(),
 resorts_id: uuid().references(() => resorts.id),
 });
 export const accomodation_list_relations = relations(accomodation_list, ({ one, many }) => ({
@@ -158,7 +158,7 @@ export const resorts = pgTable('resorts_table', {
   id: uuid()
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
-  name: varchar(),
+  name: varchar().notNull(),
   destination_id: uuid().references(() => destination.id),
 });
 export const resortsRelations = relations(resorts, ({ one, many }) => ({

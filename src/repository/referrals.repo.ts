@@ -18,7 +18,7 @@ export type ReferralRepo = {
     fetchReferrerStatsByUserId: (id: string) => Promise<FetchReferrerStats>,
     fetchReferralCommissionByUserId: (id: string) => Promise<FetchReferral[]>,
     insertReferral: (transaction_id: string, referrerId: string, commission: string) => Promise<void>,
-    fetchReferrerByClientId: (clientId: string) => Promise<{ referrerId: string | null, percentageCommission: number | null }>,
+    fetchReferrerByClientId: (clientId: string) => Promise<{ referrerId: string | null, percentageCommission: number | null } | null>,
     userMonthlyStats: (userId: string) => Promise<{
         successRate: number,
         conversionRate: number,
@@ -279,7 +279,7 @@ export const referralRepo: ReferralRepo = {
             percentageCommission: user.percentageCommission,
         }).from(clientTable).innerJoin(user, eq(clientTable.referrerId, user.id)).where(eq(clientTable.id, clientId));
 
-
+        if (respo.length === 0) return null;
         return {
             referrerId: respo[0].referrerId,
             percentageCommission: respo[0].percentageCommission,

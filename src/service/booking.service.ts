@@ -73,7 +73,7 @@ export const bookingService = (
 
 
       const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
-      if (transaction_id && referrer.referrerId) {
+      if (transaction_id && referrer && referrer.referrerId) {
         const organization = await authRepo.fetchOrganizationByUserId(referrer.referrerId);
         if (organization) {
           const owner = await authRepo.fetchOwnerOrganizationByOrgId(organization.organizationId);
@@ -83,9 +83,9 @@ export const bookingService = (
           }
 
           else {
-            if(owner.userId === referrer.referrerId){
+            if (owner.userId === referrer.referrerId) {
               await referralRepo.insertReferral(transaction_id, owner.userId, ((referrer.percentageCommission ?? 0) + 5).toString());
-            }else{
+            } else {
               await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
               await referralRepo.insertReferral(transaction_id, owner.userId, '5');
             }

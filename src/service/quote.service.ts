@@ -69,7 +69,7 @@ export const quoteService = (
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
-      if (holiday_type.name === 'Cruise Package'){
+      if (holiday_type.name === 'Cruise Package') {
 
         const result = await repo.insertCruise(data);
         id = result.quote_id;
@@ -81,7 +81,7 @@ export const quoteService = (
       }
 
       const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
-      if (transaction_id && referrer.referrerId) {
+      if (transaction_id && referrer && referrer.referrerId) {
         const organization = await authRepo.fetchOrganizationByUserId(referrer.referrerId);
         if (organization) {
           const owner = await authRepo.fetchOwnerOrganizationByOrgId(organization.organizationId);
@@ -100,7 +100,7 @@ export const quoteService = (
         else {
           await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
         }
-      } 
+      }
 
       return { id, transaction_id };
     },
@@ -128,8 +128,9 @@ export const quoteService = (
 
       if (!holiday_type) throw new AppError('No holiday type found', true, 400);
 
-      if (holiday_type === 'Cruise Package'){
-        return await repo.fetchCruiseToUpdate(quote_id)};
+      if (holiday_type === 'Cruise Package') {
+        return await repo.fetchCruiseToUpdate(quote_id)
+      };
 
       return await repo.fetchPackageToUpdate(quote_id);
     },

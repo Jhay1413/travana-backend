@@ -1,0 +1,1 @@
+ALTER TABLE "accomodation_list_table" ALTER COLUMN "name" SET NOT NULL;

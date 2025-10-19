@@ -169,7 +169,7 @@ export const transactionController = {
     try {
       const { search, destination_ids, selected_ids } = req.query as { search: string; destination_ids: string; selected_ids: string };
 
-      console.log(search,"asdasdasdassad")
+      console.log(search, "asdasdasdassad")
       const destinationIds = (destination_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const resorts = await service.fetchResorts(search ?? undefined, destinationIds ?? [], selectedIds ?? []);
@@ -1135,6 +1135,18 @@ export const transactionController = {
       const { id } = req.params;
       const resort = await service.fetchResortById(id);
       res.status(200).json(resort);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  structuredScrapeData: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+
+      const { clientId, agentId, packageId } = req.query as { clientId: string, agentId: string, packageId: string };
+      const result = await service.structuredScrapeData(data, agentId, clientId, packageId);
+      res.status(200).json(result);
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });

@@ -71,6 +71,21 @@ import { task } from '../schema/task-schema';
 import { headlinesTable } from '../schema/headlines-schema';
 
 export type TransactionRepo = {
+
+  fetchAccomodationByName: (name: string) => Promise<z.infer<typeof accomodationQuerySchema>[] | null | undefined>;
+  fetchBoardBasisByName: (name: string) => Promise<z.infer<typeof boardBasisQuerySchema> | undefined>;
+  fetchAirportByCode: (code: string) => Promise<z.infer<typeof airportQuerySchema> | undefined>;
+  fetchDestinationByName: (name: string) => Promise<{
+    id: string,
+    name: string,
+    country_id: string
+  }[] | undefined>;
+  fetchResortByName: (name: string) => Promise<{
+    id: string,
+    name: string,
+    destination_id: string,
+    country_id: string
+  }[] | undefined>;
   fetchExpiredQuotes: (agent_id?: string) => Promise<{ data: z.infer<typeof quotePipelineSchema>[] }>;
   fetchQuotesByStatus: (
     status: string,
@@ -181,10 +196,14 @@ export type TransactionRepo = {
   fetchAccomodationById: (id: string) => Promise<z.infer<typeof accomodation_mutate_schema>>
 
 
-  insertDestination: (data: z.infer<typeof destinationMutateSchema>) => Promise<void>
-  insertResort: (data: z.infer<typeof resortMutateSchema>) => Promise<void>
-  insertAccomodation: (data: { resort_id: string, name: string, type_id: string }) => Promise<void>
-  insertCountry: (name: string, code: string) => Promise<void>
+  insertDestination: (data: z.infer<typeof destinationMutateSchema>) => Promise<{
+    id: string
+  }>
+  insertResort: (data: z.infer<typeof resortMutateSchema>) => Promise<{
+    id: string
+  }>
+  insertAccomodation: (data: { resort_id: string, name: string, type_id: string | null }) => Promise<{ id: string }>
+  insertCountry: (name: string, code: string) => Promise<{ id: string }>
   insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>
   insertTourOperator: (data: z.infer<typeof tour_operator_mutate_schema>) => Promise<void>
 
@@ -222,7 +241,7 @@ export type TransactionRepo = {
 
 
   fetchAllRoomTypes: () => Promise<{ id: string; name: string }[]>;
-  insertRoomType: (data: { name: string }) => Promise<void>;
+  insertRoomType: (data: { name: string }) => Promise<{ id: string }>;
   updateRoomType: (id: string, data: { name: string }) => Promise<void>;
   deleteRoomType: (id: string) => Promise<void>;
 
@@ -343,8 +362,6 @@ export type TransactionRepo = {
   updateResort: (id: string, data: z.infer<typeof resortMutateSchema>) => Promise<void>;
   fetchResortById: (id: string) => Promise<z.infer<typeof resortMutateSchema>>;
 
-
-
   // Headlines endpoints
   insertHeadline: (data: z.infer<typeof headlinesMutationSchema>) => Promise<void>;
   updateHeadline: (id: string, data: z.infer<typeof headlinesMutationSchema>) => Promise<void>;
@@ -353,8 +370,72 @@ export type TransactionRepo = {
   deleteHeadline: (id: string) => Promise<void>;
 
 };
-
 export const transactionRepo: TransactionRepo = {
+  fetchResortByName: async (name) => {
+    const response = await db.query.resorts.findMany({
+      where: ilike(resorts.name, `%${name}%`),
+      with: {
+        destination: {
+          with: {
+            country: true
+          }
+        }
+      }
+    });
+    if (response && response.length > 0) {
+      return response.map((resort) => ({
+        id: resort.id ?? '',
+        name: resort.name ?? '',
+        destination_id: resort.destination_id ?? '',
+        country_id: resort.destination?.country_id ?? '',
+      }));
+    }
+    return undefined;
+  },
+  fetchDestinationByName: async (name) => {
+    const response = await db.query.destination.findMany({
+      where: ilike(destination.name, `%${name}%`),
+    });
+    if (response && response.length > 0) {
+      return response.map((dest) => ({
+        id: dest.id ?? '',
+        name: dest.name ?? '',
+        country_id: dest.country_id ?? '',
+      }));
+    }
+    return undefined;
+  },
+  fetchAccomodationByName: async (name) => {
+
+    const response = await db.query.accomodation_list.findMany({
+      where: ilike(accomodation_list.name, `%${name}%`),
+      with: {
+        resorts: {
+          with: {
+            destination: {
+              with: {
+                country: true
+              }
+            }
+          }
+        }
+      }
+    });
+    return response;
+  },
+  fetchBoardBasisByName: async (name) => {
+    const response = await db.query.board_basis.findFirst({
+      where: ilike(board_basis.type, `%${name}%`),
+    })
+    return response;
+  },
+  fetchAirportByCode: async (code) => {
+    const response = await db.query.airport.findFirst({
+      where: eq(airport.airport_code, code),
+    })
+    return response;
+  },
+
   fetchDestinationById: async (id) => {
     const response = await db.query.destination.findFirst({
       where: eq(destination.id, id),
@@ -579,16 +660,19 @@ export const transactionRepo: TransactionRepo = {
     };
   },
   insertDestination: async (data) => {
-    await db.insert(destination).values(data);
+    const result = await db.insert(destination).values(data).returning({ id: destination.id });
+    return { id: result[0].id };
   },
   insertResort: async (data) => {
-    await db.insert(resorts).values(data);
+    const result = await db.insert(resorts).values(data).returning({ id: resorts.id });
+    return { id: result[0].id };
   },
   insertCountry: async (name, code) => {
-    await db.insert(country).values({
+    const response = await db.insert(country).values({
       country_name: name,
       country_code: code,
-    });
+    }).returning({ id: country.id });
+    return { id: response[0].id };
   },
 
   insertLodge: async (data) => {
@@ -717,7 +801,8 @@ export const transactionRepo: TransactionRepo = {
     }));
   },
   insertRoomType: async (data) => {
-    await db.insert(room_type).values(data);
+    const result = await db.insert(room_type).values(data).returning({ id: room_type.id });
+    return { id: result[0].id };
   },
   updateRoomType: async (id, data) => {
     await db.update(room_type).set(data).where(eq(room_type.id, id));
@@ -1281,11 +1366,12 @@ export const transactionRepo: TransactionRepo = {
 
 
   insertAccomodation: async (data) => {
-    await db.insert(accomodation_list).values({
+    const result = await db.insert(accomodation_list).values({
       name: data.name,
-      type_id: data.type_id,
+      type_id: data.type_id ?? null,
       resorts_id: data.resort_id,
-    });
+    }).returning({ id: accomodation_list.id });
+    return { id: result[0].id };
   },
   updateLeadSource: async (transaction_id, lead_source) => {
 

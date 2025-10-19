@@ -3,8 +3,8 @@ import { NotificationRepo } from '../repository/notification.repo';
 import { TransactionRepo } from '../repository/transaction.repo';
 import { UserRepo } from '../repository/user.repo';
 import { NotificationProvider } from '../provider/notification.provider';
-import { 
-  lodgeMutateSchema, 
+import {
+  lodgeMutateSchema,
   headlinesMutationSchema,
   tour_operator_mutate_schema,
   accomodation_mutate_schema,
@@ -17,9 +17,13 @@ import {
 } from '../types/modules/data-management';
 import { airportMutationSchema } from '../types/modules/airports/mutation';
 import { countryMutateSchema } from '../types/modules/country/mutation';
-import { destinationMutateSchema } from '../types/modules/transaction/mutation';
+import { destinationMutateSchema, quote_mutate_schema } from '../types/modules/transaction/mutation';
 import { resortMutateSchema } from '../types/modules/transaction/mutation';
-import z from 'zod';
+import z, { check } from 'zod';
+import { StructuredScrapeDataSchema } from '@/types/modules/transaction';
+import { board_basis, room_type } from '@/schema/transactions-schema';
+import { formatISO, parse } from 'date-fns';
+import Fuse from 'fuse.js';
 
 export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, clientRepo: ClientRepo, notificationRepo: NotificationRepo, notificationProvider: NotificationProvider) => {
   return {
@@ -384,6 +388,183 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
     },
     fetchResortById: async (id: string) => {
       return await repo.fetchResortById(id);
+    },
+    structuredScrapeData: async (data: z.infer<typeof StructuredScrapeDataSchema>, agentId: string, clientId: string, package_type_id: string) => {
+
+      const parsed = parse(data.check_in_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+      const parsedTravelDate = parse(data.travel_date, "dd-MM-yyyy", new Date());
+      const initialData: z.infer<typeof quote_mutate_schema> = {
+        travel_date: formatISO(parsedTravelDate),
+        agent_id: agentId,
+        client_id: clientId,
+        holiday_type: package_type_id,
+        sales_price: parseFloat(data.sales_price),
+        adults: data.adults,
+        children: data.children,
+        infants: data.infants,
+        no_of_nights: data.no_of_nights,
+        transfer_type: data.transfer_type,
+        country: "",
+        destination: "",
+        resort: "",
+
+        check_in_date_time: formatISO(parsed),
+        is_future_deal: false,
+        flights: [],
+        hotels: [],
+        main_board_basis_id: "",
+        accomodation_id: "",
+
+      }
+      const board_basis = await repo.fetchBoardBasis();
+      const airports = await repo.fetchAllAirports(undefined, undefined, 1000);
+      const country = await repo.fetchCountry();
+      const roomTypes = await repo.fetchRoomTypes();
+
+      if (data.room_type) {
+        const fuse = new Fuse(roomTypes, {
+          keys: ['name'],
+          threshold: 0.4,
+        });
+        const result = fuse.search(data.room_type);
+
+        if (result.length > 0) {
+          initialData.room_type = data.room_type;
+        }
+        else {
+          const response = await repo.insertRoomType({ name: data.room_type });
+          initialData.room_type = data.room_type;
+        }
+      }
+      const normalize = (s: string) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (data.accommodation) {
+        const fetchAccomodation = await repo.fetchAccomodationByName(data.accommodation);
+        if (data.board_basis) {
+
+          const fetchBoardBasis = board_basis.find(bb => normalize(bb.type) === normalize(data.board_basis));
+          if (fetchBoardBasis) {
+            initialData.main_board_basis_id = fetchBoardBasis.id;
+          }
+        }
+        if (fetchAccomodation && Array.isArray(fetchAccomodation)) {
+          const fuse = new Fuse(fetchAccomodation, {
+            keys: ['name'],
+            threshold: 0.4, // lower = stricter matching
+          });
+          const result = fuse.search(data.accommodation);
+          if (result.length > 0) {
+            initialData.accomodation_id = result[0].item.id;
+            initialData.country = result[0].item.resorts?.destination?.country_id ?? "";
+            initialData.destination = result[0].item.resorts?.destination_id ?? "";
+            initialData.resort = result[0].item.resorts_id ?? "";
+          }
+          else {
+            let countryId: string | undefined = undefined;
+            let destinationId: string | undefined = undefined;
+            let resortId: string | undefined = undefined;
+
+
+            const scrapeCountry = country.find(c => normalize(c.country_name) === normalize(data.country));
+            if (scrapeCountry) {
+              countryId = scrapeCountry.id;
+            } else {
+              const insertedCountry = await repo.insertCountry(data.country, "");
+              countryId = insertedCountry.id;
+            }
+
+            const fetchDestination = await repo.fetchDestinationByName(data.destination);
+            if (fetchDestination) {
+              const fuseDest = new Fuse(fetchDestination, {
+                keys: ['name'],
+                threshold: 0.4,
+              });
+              const resultDest = fuseDest.search(data.destination);
+              destinationId = resultDest[0].item.id;
+            } else {
+              const insertedDestination = await repo.insertDestination({ name: data.destination, country_id: countryId });
+              destinationId = insertedDestination.id;
+            }
+
+
+            const fetchResort = await repo.fetchResortByName(data.resort);
+            if (fetchResort) {
+              const fuseResort = new Fuse(fetchResort, {
+                keys: ['name'],
+                threshold: 0.4,
+              });
+              const resultResort = fuseResort.search(data.resort);
+              resortId = resultResort[0].item.id;
+            } else {
+              console.log("Resort not found, inserting new resort");
+              const insertedResort = await repo.insertResort({ name: data.resort, destination_id: destinationId ?? "", country_id: countryId ?? "" });
+              console.log('Inserted resort:', insertedResort.id);
+              resortId = insertedResort.id;
+            }
+
+
+            const insertedAccomodation = await repo.insertAccomodation({ resort_id: resortId ?? "", name: data.accommodation, type_id: null });
+            initialData.accomodation_id = insertedAccomodation.id;
+            initialData.country = countryId ?? "";
+            initialData.destination = destinationId ?? "";
+            initialData.resort = resortId ?? "";
+          }
+        }
+      }
+
+      if (data.hotels && data.hotels.length > 1) {
+        for (const hotel of data.hotels.slice(1)) {
+          const fetchAccomodation = await repo.fetchAccomodationByName(hotel.accommodation);
+
+          const parsed = parse(hotel.check_in_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+          if (fetchAccomodation) {
+            const fuse = new Fuse(fetchAccomodation, {
+              keys: ['name'],
+              threshold: 0.4,
+            })
+            const result = fuse.search(hotel.accommodation);
+            if (result.length === 0) continue;
+            const resortAccomodation = result[0].item;
+            const hotelData = {
+              country: resortAccomodation.resorts?.destination?.country_id ?? "",
+              destination: resortAccomodation.resorts?.destination_id ?? "",
+              resort: resortAccomodation.resorts_id ?? "",
+              accomodation_id: resortAccomodation.id,
+              no_of_nights: hotel.no_of_nights,
+              check_in_date_time: formatISO(parsed),
+              room_type: hotel.room_type,
+              board_basis_id: board_basis.find(bb => bb.type.toLowerCase() === hotel.board_basis.toLowerCase())?.id || "",
+              cost: 0,
+              commission: 0,
+              is_included_in_package: false,
+            }
+            initialData.hotels?.push(hotelData);
+          }
+        }
+      }
+      if (data.flights && data.flights.length > 0) {
+        for (const flight of data.flights) {
+          const parsedDeparture = parse(flight.departure_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+          const parsedArrival = parse(flight.arrival_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+          const flightData = {
+            flight_number: flight.flight_number,
+            departing_airport_id: airports.data.find(ap => ap.airport_code.toLowerCase() === flight.departing_airport.toLowerCase())?.id || "",
+            arrival_airport_id: airports.data.find(ap => ap.airport_code.toLowerCase() === flight.arrival_airport.toLowerCase())?.id || "",
+            departure_date_time: formatISO(parsedDeparture),
+            arrival_date_time: formatISO(parsedArrival),
+            flight_type: flight.flight_type === "Outbound" ? "Outbound" : "Inbound",
+            cost: 0,
+            commission: 0,
+            is_included_in_package: false,
+          }
+          initialData.flights?.push(flightData);
+        }
+      }
+
+      return initialData;
+
     }
+
   };
+
+
 };

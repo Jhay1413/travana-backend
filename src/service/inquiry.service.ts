@@ -24,7 +24,7 @@ export const inquiryService = (repo: InquiryRepo, referralRepo: ReferralRepo, au
       const result = await repo.insertInquiry(data);
 
       const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
-      if (result.transaction_id && referrer.referrerId) {
+      if (result.transaction_id && referrer && referrer.referrerId) {
         const organization = await authRepo.fetchOrganizationByUserId(referrer.referrerId);
         if (organization) {
           const owner = await authRepo.fetchOwnerOrganizationByOrgId(organization.organizationId);
