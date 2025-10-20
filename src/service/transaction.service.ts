@@ -22,7 +22,7 @@ import { resortMutateSchema } from '../types/modules/transaction/mutation';
 import z, { check } from 'zod';
 import { StructuredScrapeDataSchema } from '@/types/modules/transaction';
 import { board_basis, room_type } from '@/schema/transactions-schema';
-import { formatISO, parse } from 'date-fns';
+import { differenceInCalendarDays, formatISO, parse, startOfDay } from 'date-fns';
 import Fuse from 'fuse.js';
 
 export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, clientRepo: ClientRepo, notificationRepo: NotificationRepo, notificationProvider: NotificationProvider) => {
@@ -402,12 +402,11 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         adults: data.adults,
         children: data.children,
         infants: data.infants,
-        no_of_nights: data.no_of_nights,
         transfer_type: data.transfer_type,
         country: "",
         destination: "",
         resort: "",
-
+        no_of_nights: "",
         check_in_date_time: formatISO(parsed),
         is_future_deal: false,
         flights: [],
@@ -429,7 +428,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         const result = fuse.search(data.room_type);
 
         if (result.length > 0) {
-          initialData.room_type = data.room_type;
+          initialData.room_type = result[0].item.name;
         }
         else {
           const response = await repo.insertRoomType({ name: data.room_type });
@@ -556,8 +555,17 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             commission: 0,
             is_included_in_package: false,
           }
+
+
           initialData.flights?.push(flightData);
         }
+      }
+      const returnFlight = initialData.flights?.find(f => f.flight_type === "Inbound");
+      if (returnFlight) {
+        const checkInDate = startOfDay(parsed)
+        const departDate = startOfDay(new Date(returnFlight.departure_date_time))
+        const numberOfDays = differenceInCalendarDays(departDate, checkInDate)
+        initialData.no_of_nights = numberOfDays.toString()
       }
 
       return initialData;
