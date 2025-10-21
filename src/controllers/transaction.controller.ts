@@ -1151,5 +1151,15 @@ export const transactionController = {
       console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
+  },
+  setImageAsPrimary: async (req: Request, res: Response) => {
+    try {
+      const { old_primary_id, new_primary_id } = req.body;
+      await service.setImageAsPrimary(new_primary_id, old_primary_id);
+      res.status(200).json({ message: 'Image set as primary successfully' });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
   }
 };

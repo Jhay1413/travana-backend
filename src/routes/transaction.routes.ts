@@ -162,4 +162,6 @@ router.get('/data-management/resorts/:id', transactionController.fetchResortById
 
 router.post('/scrape-data/structure', transactionController.structuredScrapeData);
 
+router.patch('/set-primary-image', transactionController.setImageAsPrimary);
+
 export default router;

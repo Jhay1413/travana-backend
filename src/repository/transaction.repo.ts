@@ -378,8 +378,19 @@ export type TransactionRepo = {
 
   }[]) => Promise<void>;
   fetchDealImagesByOwnerId: (owner_id: string) => Promise<z.infer<typeof deal_images>[]>;
+  setImageAsPrimary: (new_primary_id: string, old_primary_id?: string) => Promise<void>;
 };
 export const transactionRepo: TransactionRepo = {
+  setImageAsPrimary: async (new_primary_id, old_primary_id) => {
+    await db.transaction(async (tx) => {
+
+      if (old_primary_id) {
+
+        await tx.update(deal_images).set({ isPrimary: false }).where(eq(deal_images.id, old_primary_id));
+      }
+      await tx.update(deal_images).set({ isPrimary: true }).where(eq(deal_images.id, new_primary_id));
+    });
+  },
   fetchDealImagesByOwnerId: async (owner_id) => {
     const response = await db.query.deal_images.findMany({
       where: eq(deal_images.owner_id, owner_id),
@@ -390,7 +401,7 @@ export const transactionRepo: TransactionRepo = {
     await db.insert(deal_images).values(data).onConflictDoUpdate({
       target: [deal_images.owner_id, deal_images.image_url],
       set: {
-        owner_id : data[0].owner_id,
+        owner_id: data[0].owner_id,
       }
     });
   },

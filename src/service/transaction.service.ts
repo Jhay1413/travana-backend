@@ -583,6 +583,9 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
     },
     fetchDealImagesByOwnerId: async (owner_id: string) => {
       return await repo.fetchDealImagesByOwnerId(owner_id);
+    },
+    setImageAsPrimary: async (new_primary_id: string, old_primary_id?: string) => {
+      return await repo.setImageAsPrimary(new_primary_id, old_primary_id);
     }
   };
 
