@@ -413,6 +413,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         hotels: [],
         main_board_basis_id: "",
         accomodation_id: "",
+        deal_images: data.hotel_images
 
       }
       const board_basis = await repo.fetchBoardBasis();
@@ -567,12 +568,24 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         const numberOfDays = differenceInCalendarDays(departDate, checkInDate)
         initialData.no_of_nights = numberOfDays.toString()
       }
-
       return initialData;
+    },
 
+    insertDealImages: async (data: {
+      owner_id: string;
+      image_url: string;
+      isPrimary: boolean;
+      owner_type: 'package_holiday' | 'hot_tub_break' | 'cruise';
+      s3_key?: string;
+
+    }[]) => {
+      await repo.insertDealImages(data);
+    },
+    fetchDealImagesByOwnerId: async (owner_id: string) => {
+      return await repo.fetchDealImagesByOwnerId(owner_id);
     }
-
   };
+
 
 
 };

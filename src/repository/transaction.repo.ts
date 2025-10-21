@@ -23,6 +23,7 @@ import {
   cottages,
   country,
   cruise_extra_item,
+  deal_images,
   deletion_codes,
   destination,
   lodges,
@@ -368,9 +369,31 @@ export type TransactionRepo = {
   fetchAllHeadlines: () => Promise<z.infer<typeof headlinesSchema>[]>;
   fetchHeadlineById: (id: string) => Promise<z.infer<typeof headlinesSchema>>;
   deleteHeadline: (id: string) => Promise<void>;
+  insertDealImages: (data: {
+    owner_id: string;
+    image_url: string;
+    isPrimary: boolean;
+    owner_type: 'package_holiday' | 'hot_tub_break' | 'cruise';
+    s3_key?: string
 
+  }[]) => Promise<void>;
+  fetchDealImagesByOwnerId: (owner_id: string) => Promise<z.infer<typeof deal_images>[]>;
 };
 export const transactionRepo: TransactionRepo = {
+  fetchDealImagesByOwnerId: async (owner_id) => {
+    const response = await db.query.deal_images.findMany({
+      where: eq(deal_images.owner_id, owner_id),
+    });
+    return response;
+  },
+  insertDealImages: async (data) => {
+    await db.insert(deal_images).values(data).onConflictDoUpdate({
+      target: [deal_images.owner_id, deal_images.image_url],
+      set: {
+        owner_id : data[0].owner_id,
+      }
+    });
+  },
   fetchResortByName: async (name) => {
     const response = await db.query.resorts.findMany({
       where: ilike(resorts.name, `%${name}%`),

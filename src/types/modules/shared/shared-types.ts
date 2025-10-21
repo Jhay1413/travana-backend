@@ -28,7 +28,7 @@ export const hotels = z.object({
   board_basis: z.string(),
   no_of_nights: z.string(),
   room_type: z.string(),
-  check_in_date_time:z.string(),
+  check_in_date_time: z.string(),
   cost: z.number(),
   commission: z.number(),
   accomodation: z.string(),
@@ -38,6 +38,7 @@ export const hotels = z.object({
   country: z.string(),
   stay_type: z.nullable(z.string()).optional(),
   is_included_in_package: z.boolean(),
+  accomodation_id: z.string().optional(),
 });
 
 export const transfers = z.object({

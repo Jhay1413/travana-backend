@@ -299,5 +299,5 @@ export const StructuredScrapeDataSchema = z.object({
   attraction_tickets: StringRecordArray,
   car_hire: StringRecordArray,
   airport_parking: StringRecordArray,
-  lounge_pass: StringRecordArray
+  lounge_pass: StringRecordArray,
 });

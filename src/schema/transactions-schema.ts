@@ -1,5 +1,5 @@
 import { not, relations, sql } from 'drizzle-orm';
-import { boolean, decimal, index, integer, pgEnum, primaryKey, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, decimal, index, integer, pgEnum, primaryKey, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 import { enquiry_accomodation, enquiry_board_basis, enquiry_destination, enquiry_resorts, enquiry_table } from './enquiry-schema';
 import { airport } from './flights-schema';
@@ -34,7 +34,7 @@ import { task } from './task-schema';
 import { referral } from './referral-schema';
 import { user } from './auth-schema';
 
-export const leadSourceEnum = pgEnum('lead_source', ['SHOP','FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']);
+export const leadSourceEnum = pgEnum('lead_source', ['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']);
 export const transactionStatusEnum = pgEnum('transaction_status', ['on_quote', 'on_enquiry', 'on_booking']);
 export const transaction = pgTable('transaction', {
   id: uuid('id')
@@ -48,11 +48,11 @@ export const transaction = pgTable('transaction', {
   agent_id: uuid().references(() => usersTable.id),
   lead_source: leadSourceEnum().default("SHOP"),
   user_id: text().references(() => user.id).notNull(),
-  
+
 });
 
 export const transactionRelation = relations(transaction, ({ one, many }) => ({
-  user:one(user,{
+  user: one(user, {
     fields: [transaction.user_id],
     references: [user.id],
   }),
@@ -78,7 +78,7 @@ export const transactionRelation = relations(transaction, ({ one, many }) => ({
     references: [clientTable.id],
   }),
   referrals: many(referral),
-  tasks:many(task),
+  tasks: many(task),
   notes: many(notes),
 }));
 export const accomodation_type = pgTable('accomodation_type', {
@@ -137,7 +137,7 @@ export const accomodation_list = pgTable('accomodation_list_table', {
     .primaryKey(),
   type_id: uuid().references(() => accomodation_type.id),
   name: varchar().notNull(),
-resorts_id: uuid().references(() => resorts.id),
+  resorts_id: uuid().references(() => resorts.id),
 });
 export const accomodation_list_relations = relations(accomodation_list, ({ one, many }) => ({
   //   booking_accomodation: many(booking_accomodation),
@@ -305,13 +305,27 @@ export const cruise_extra_item_relation = relations(cruise_extra_item, ({ one, m
 }));
 
 
-export const deletion_codes = pgTable('deletion_codes',{
-  id:uuid().defaultRandom().primaryKey(),
-  is_used:boolean().default(false),
-  code:varchar(),
-  created_at:timestamp({ mode: 'string' }).notNull().defaultNow(),
+export const deletion_codes = pgTable('deletion_codes', {
+  id: uuid().defaultRandom().primaryKey(),
+  is_used: boolean().default(false),
+  code: varchar(),
+  created_at: timestamp({ mode: 'string' }).notNull().defaultNow(),
 })
-export const room_type = pgTable('room_type',{
-  id:uuid().defaultRandom().primaryKey(),
-  name:varchar(),
+export const room_type = pgTable('room_type', {
+  id: uuid().defaultRandom().primaryKey(),
+  name: varchar(),
 })
+
+
+export const owner_type_enum = pgEnum('owner_type_enum', ['package_holiday', 'hot_tub_break', 'cruise']);
+export const deal_images = pgTable('deal_images', {
+  id: uuid().defaultRandom().primaryKey(),
+  image_url: varchar(),
+  s3Key: varchar(),
+  owner_type: owner_type_enum(),
+  owner_id: text().notNull(),
+  isPrimary: boolean().default(false),
+
+}, (table) => ({
+  unique_key: unique().on(table.owner_id, table.image_url)
+}))

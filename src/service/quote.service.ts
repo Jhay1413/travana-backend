@@ -9,6 +9,8 @@ import z from 'zod';
 import { NotificationProvider } from '../provider/notification.provider';
 import { AuthRepo } from '../repository/auth.repo';
 import { ReferralRepo } from '../repository/referrals.repo';
+import { TransactionRepo } from '../repository/transaction.repo';
+import { transaction } from '@/schema/transactions-schema';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -18,7 +20,8 @@ export const quoteService = (
   notificationRepo: NotificationRepo,
   notificationProvider: NotificationProvider,
   authRepo: AuthRepo,
-  referralRepo: ReferralRepo
+  referralRepo: ReferralRepo,
+  transactionRepo: TransactionRepo
 ) => {
   return {
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
@@ -80,6 +83,23 @@ export const quoteService = (
         transaction_id = result.transaction_id;
       }
 
+      if (data.deal_images && data.deal_images.length > 0) {
+
+        if (data.holiday_type_name === 'Package Holiday' && data.accomodation_id) {
+          const imagesToInsert = data.deal_images.map(image => ({
+            owner_id: data.accomodation_id ?? " ",
+            image_url: image,
+            isPrimary: false,
+            owner_type: 'package_holiday' as const,
+
+
+          }))
+          await transactionRepo.insertDealImages(imagesToInsert);
+        }
+
+      }
+
+
       const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
       if (transaction_id && referrer && referrer.referrerId) {
         const organization = await authRepo.fetchOrganizationByUserId(referrer.referrerId);
@@ -121,7 +141,16 @@ export const quoteService = (
       return await repo.fetchQuoteSummaryByAgent(agent_id, agentIdToFetch, isFetchAll);
     },
     fetchQuoteById: async (quote_id: string) => {
-      return await repo.fetchQuoteById(quote_id);
+
+      const response = await repo.fetchQuoteById(quote_id);
+
+      if (response.holiday_type === 'Package Holiday' && response.hotels && response.hotels.length > 0) {
+        console.log('Fetching deal images for accomodation id:', response.hotels[0]?.accomodation_id);
+        const dealImages = await transactionRepo.fetchDealImagesByOwnerId(response.hotels[0]?.accomodation_id || '');
+
+        return { ...response, deal_images: dealImages };
+      }
+      return response;
     },
     fetchPackageToUpdate: async (quote_id: string) => {
       const holiday_type = await repo.fetchHolidayTypeByQuoteId(quote_id);

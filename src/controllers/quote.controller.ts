@@ -8,8 +8,9 @@ import { notificationProvider } from '../provider/notification.provider';
 import { authRepo } from '../repository/auth.repo';
 import { referralRepo } from '../repository/referrals.repo';
 import { Request, Response } from 'express';
+import { transactionRepo } from '../repository/transaction.repo';
 
-const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo);
+const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo);
 
 export const quoteController = {
   convertQuote: async (req: Request, res: Response) => {
@@ -19,7 +20,7 @@ export const quoteController = {
       const { user_id } = req.query;
 
       const quote = await service.convertQuote(transaction_id, data, user_id as string);
-      res.status(201).json({id:quote.id,message:'Quote converted successfully'});
+      res.status(201).json({ id: quote.id, message: 'Quote converted successfully' });
     } catch (error) {
       console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
@@ -27,7 +28,7 @@ export const quoteController = {
   },
   insertQuote: async (req: Request, res: Response) => {
     try {
-      const data  = req.body;
+      const data = req.body;
       const quote = await service.insertQuote(data);
       res.status(201).json(quote);
     } catch (error) {
@@ -37,9 +38,9 @@ export const quoteController = {
   },
   duplicateQuote: async (req: Request, res: Response) => {
     try {
-      const  data  = req.body;
+      const data = req.body;
       const quote = await service.duplicateQuote(data);
-      res.status(201).json( quote );
+      res.status(201).json(quote);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -56,10 +57,10 @@ export const quoteController = {
   fetchQuoteSummaryByAgent: async (req: Request, res: Response) => {
     try {
       const { agent_id } = req.params;
-      const {isFetchAll,agentIdToFetch} = req.query;
+      const { isFetchAll, agentIdToFetch } = req.query;
 
       const fetchAll = isFetchAll === 'true' ? true : false;
-      const quote = await service.fetchQuoteSummaryByAgent(agent_id,agentIdToFetch as string,fetchAll);
+      const quote = await service.fetchQuoteSummaryByAgent(agent_id, agentIdToFetch as string, fetchAll);
       res.status(200).json(quote);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
@@ -86,9 +87,9 @@ export const quoteController = {
   updateQuote: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const  data  = req.body;
+      const data = req.body;
       const quote = await service.updateQuote(data, id);
-      res.status(200).json({message:'Quote updated successfully'});
+      res.status(200).json({ message: 'Quote updated successfully' });
     } catch (error) {
       console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
@@ -216,14 +217,14 @@ export const quoteController = {
   updateQuoteExpiry: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { date_expiry,user_id } = req.body;
+      const { date_expiry, user_id } = req.body;
       const quote = await service.updateQuoteExpiry(id, date_expiry);
       res.status(200).json({ quote });
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
- setFutureDealDate: async (req: Request, res: Response) => {
+  setFutureDealDate: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
       const { future_deal_date } = req.body;

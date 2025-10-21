@@ -12,6 +12,7 @@ import {
   lounge_pass,
   transfers,
 } from '../shared';
+import { deal_images } from '../transaction';
 
 export const quoteQuerySummarySchema = z.object({
   id: z.string(),
@@ -78,6 +79,9 @@ export const quoteBasedSchema = z.object({
   is_future_deal: z.nullable(z.boolean()).optional(),
   future_deal_date: z.nullable(z.date()).optional(),
   quote_ref: z.nullable(z.string()).optional(),
+
+  deal_images: z.array(deal_images).optional(),
+  
   referrals: z.array(z.object({
     id: z.string(),
     name: z.string(),

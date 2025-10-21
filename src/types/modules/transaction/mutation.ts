@@ -74,6 +74,16 @@ export const accomodationMutateSchema = z.object({
 
 //Qoute types
 
+export const owner_type_enum = z.enum(['package_holiday', 'hot_tub_break', 'cruise']);
+
+export const deal_images = z.object({
+  id: z.string().optional(),
+  image_url: z.string().nullable(),
+  s3Key: z.string().nullable(),
+  owner_type: owner_type_enum,
+  owner_id: z.string(),
+  isPrimary: z.boolean()
+})
 export const quote_mutate_schema = z.object({
   quote_id: z.string().optional(),
   lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
@@ -137,6 +147,8 @@ export const quote_mutate_schema = z.object({
   pre_cruise_stay: z.string().optional(),
   post_cruise_stay: z.string().optional(),
   quote_cruise_extra: z.array(z.string()).optional(),
+
+  deal_images: z.array(z.string()).optional(),
 
   passengers: z
     .array(

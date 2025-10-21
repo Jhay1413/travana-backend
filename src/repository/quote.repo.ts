@@ -1845,6 +1845,7 @@ export const quoteRepo: QuoteRepo = {
                 'cost', ${quote_accomodation.cost},
                 'commission', ${quote_accomodation.commission},
                 'accomodation', ${accomodation_list.name},
+                'accomodation_id', ${accomodation_list.id},
                 'resorts', ${resorts.name},
                 'destination', ${destination.name},
                 'is_primary', ${quote_accomodation.is_primary},
@@ -2033,6 +2034,8 @@ export const quoteRepo: QuoteRepo = {
                 h.id,
                 {
                   ...h,
+                  id: h.id,
+                  accomodation_id: h.accomodation_id,
                   no_of_nights: h.no_of_nights.toString(),
                   cost: parseFloat(h.cost),
                   commission: parseFloat(h.commission),
