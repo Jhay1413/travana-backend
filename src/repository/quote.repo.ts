@@ -632,7 +632,7 @@ export const quoteRepo: QuoteRepo = {
         if (data.passengers && data.passengers.length > 0) {
           await tx.insert(passengers).values(
             data.passengers.map((data) => ({
-              type: data.type,
+              type: data.type ?? "adults",
               age: data.age,
               quote_id: quote_id.id,
             }))
