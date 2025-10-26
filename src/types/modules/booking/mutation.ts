@@ -4,7 +4,7 @@ export const booking_mutate_schema = z.object({
   transaction_id: z.string().optional(),
   quote_id: z.string().optional(),
   holiday_type_name: z.string().optional(),
-  lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM','PHONE_ENQUIRY']).optional(),
+  lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
   travel_date: z.string(),
   main_tour_operator_id: z.nullable(z.string()).optional(),
   hays_ref: z.string(),
@@ -51,7 +51,7 @@ export const booking_mutate_schema = z.object({
   pre_cruise_stay: z.string().optional(),
   post_cruise_stay: z.string().optional(),
   booking_cruise_extra: z.array(z.string()).optional(),
-
+  deal_images: z.array(z.string()).optional(),
   passengers: z.array(
     z.object({
       id: z.string().optional(),

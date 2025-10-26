@@ -8,8 +8,9 @@ import { notificationProvider } from '../provider/notification.provider';
 import { Request, Response } from 'express';
 import { authRepo } from '../repository/auth.repo';
 import { referralRepo } from '../repository/referrals.repo';
+import { transactionRepo } from '../repository/transaction.repo';
 
-const service = bookingService(bookingRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo);
+const service = bookingService(bookingRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo,transactionRepo);
 
 export const bookingController = {
   convertBooking: async (req: Request, res: Response) => {

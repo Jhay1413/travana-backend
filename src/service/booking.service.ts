@@ -11,6 +11,7 @@ import { auth } from '../lib/auth';
 import { AuthService } from './auth.service';
 import { AuthRepo } from '../repository/auth.repo';
 import { ReferralRepo } from '../repository/referrals.repo';
+import { TransactionRepo } from '@/repository/transaction.repo';
 
 export const bookingService = (
   repo: BookingRepo,
@@ -20,7 +21,8 @@ export const bookingService = (
   notificationRepo: NotificationRepo,
   notificationProvider: NotificationProvider,
   authRepo: AuthRepo,
-  referralRepo: ReferralRepo
+  referralRepo: ReferralRepo,
+  transactionRepo: TransactionRepo
 ) => {
   return {
     convert: async (transaction_id: string, data: z.infer<typeof booking_mutate_schema>, user_id: string) => {
@@ -68,6 +70,21 @@ export const bookingService = (
         const result = await repo.insert(data);
         id = result.id;
         transaction_id = result.transaction_id;
+      }
+      if (data.deal_images && data.deal_images.length > 0) {
+
+        if (data.holiday_type_name === 'Package Holiday' && data.accomodation_id) {
+          const imagesToInsert = data.deal_images.map(image => ({
+            owner_id: data.accomodation_id ?? " ",
+            image_url: image,
+            isPrimary: false,
+            owner_type: 'package_holiday' as const,
+
+
+          }))
+          await transactionRepo.insertDealImages(imagesToInsert);
+        }
+
       }
 
 
@@ -157,7 +174,16 @@ export const bookingService = (
       return await repo.delete(booking_id, deletionCode, deletedBy);
     },
     fetchBookingById: async (booking_id: string) => {
-      return await repo.fetchBookingById(booking_id);
+      const response = await repo.fetchBookingById(booking_id);
+
+      if (response.holiday_type === 'Package Holiday' && response.hotels && response.hotels.length > 0) {
+        console.log('Fetching deal images for accomodation id:', response.hotels[0]?.accomodation_id);
+        const dealImages = await transactionRepo.fetchDealImagesByOwnerId(response.hotels[0]?.accomodation_id || '');
+
+        return { ...response, deal_images: dealImages };
+      }
+      return response;
+
     },
     restoreBooking: async (booking_id: string) => {
       return await repo.restore(booking_id);
