@@ -440,10 +440,13 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
       if (data.accommodation) {
         const fetchAccomodation = await repo.fetchAccomodationByName(data.accommodation);
         if (data.board_basis) {
-
-          const fetchBoardBasis = board_basis.find(bb => normalize(bb.type) === normalize(data.board_basis));
-          if (fetchBoardBasis) {
-            initialData.main_board_basis_id = fetchBoardBasis.id;
+          const fuse = new Fuse(board_basis, {
+            keys: ['type'],
+            threshold: 0.4,
+          });
+          const result = fuse.search(data.board_basis);
+          if (result.length > 0) {
+            initialData.main_board_basis_id = result[0].item.id;
           }
         }
         if (fetchAccomodation && Array.isArray(fetchAccomodation)) {
