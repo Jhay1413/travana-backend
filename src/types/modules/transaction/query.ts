@@ -23,6 +23,7 @@ export const accomodationQuerySchema = z.object({
     id: z.string(),
     type: z.string(),
   }).optional()),
+  description: z.nullable(z.string()).optional(),
 });
 export const bookingTypeQuerySchema = z.object({
   id: z.string(),

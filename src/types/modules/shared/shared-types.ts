@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { bookingCruiseQuerySchema, bookingHotTubQuerySchema, bookingQuerySchema } from '../booking';
 import { quoteCruiseQuerySchema, quoteHotTubQuerySchema, quotePackageHolidayQuerySchema } from '../quote';
+import { desc } from 'drizzle-orm';
 
 export const financials = z.object({
   tour_name: z.string(),
@@ -39,6 +40,7 @@ export const hotels = z.object({
   stay_type: z.nullable(z.string()).optional(),
   is_included_in_package: z.boolean(),
   accomodation_id: z.string().optional(),
+  description: z.nullable(z.string()).optional(),
 });
 
 export const transfers = z.object({

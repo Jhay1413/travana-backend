@@ -2358,6 +2358,7 @@ export const bookingRepo: BookingRepo = {
                 'cost', ${booking_accomodation.cost},
                 'commission', ${booking_accomodation.commission},
                 'accomodation', ${accomodation_list.name},
+                'description', ${accomodation_list.description},
                 'resorts', ${resorts.name},
                 'destination', ${destination.name},
                 'is_primary', ${booking_accomodation.is_primary},

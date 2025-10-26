@@ -449,7 +449,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         if (fetchAccomodation && Array.isArray(fetchAccomodation)) {
           const fuse = new Fuse(fetchAccomodation, {
             keys: ['name'],
-            threshold: 0.4, // lower = stricter matching
+            threshold: 0.4,
           });
           const result = fuse.search(data.accommodation);
           if (result.length > 0) {
@@ -457,6 +457,17 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             initialData.country = result[0].item.resorts?.destination?.country_id ?? "";
             initialData.destination = result[0].item.resorts?.destination_id ?? "";
             initialData.resort = result[0].item.resorts_id ?? "";
+
+            if (data.hotel_description && !result[0].item.description) {
+              await repo.updateAccomodation(result[0].item.id, {
+                name: result[0].item.name,
+                resort_id: result[0].item.resorts_id ?? "",
+                country: result[0].item.resorts?.destination?.country_id ?? "",
+                destination: result[0].item.resorts?.destination_id ?? "",
+                description: data.hotel_description
+              });
+            }
+
           }
           else {
             let countryId: string | undefined = undefined;
@@ -502,7 +513,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             }
 
 
-            const insertedAccomodation = await repo.insertAccomodation({ resort_id: resortId ?? "", name: data.accommodation, type_id: null });
+            const insertedAccomodation = await repo.insertAccomodation({ resort_id: resortId ?? "", name: data.accommodation, type_id: null, description: data.hotel_description || null });
             initialData.accomodation_id = insertedAccomodation.id;
             initialData.country = countryId ?? "";
             initialData.destination = destinationId ?? "";

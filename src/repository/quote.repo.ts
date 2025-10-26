@@ -1846,6 +1846,7 @@ export const quoteRepo: QuoteRepo = {
                 'commission', ${quote_accomodation.commission},
                 'accomodation', ${accomodation_list.name},
                 'accomodation_id', ${accomodation_list.id},
+                'description', ${accomodation_list.description},
                 'resorts', ${resorts.name},
                 'destination', ${destination.name},
                 'is_primary', ${quote_accomodation.is_primary},

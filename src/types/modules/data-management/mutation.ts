@@ -6,7 +6,7 @@ export const headlinesMutationSchema = z.object({
   title: z.string(),
   message: z.string(),
   link: z.string().optional(),
-  post_type: postTypeEnum,  
+  post_type: postTypeEnum,
   expiry_date: z.string(),
 });
 
@@ -25,7 +25,8 @@ export const accomodation_mutate_schema = z.object({
   destination: z.string(),
   name: z.string(),
   resort_id: z.string(),
-  type_id: z.string(),
+  type_id: z.nullable(z.string()).optional(),
+  description: z.string().optional(),
 });
 
 export const lodgeMutateSchema = z.object({

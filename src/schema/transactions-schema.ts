@@ -138,6 +138,7 @@ export const accomodation_list = pgTable('accomodation_list_table', {
   type_id: uuid().references(() => accomodation_type.id),
   name: varchar().notNull(),
   resorts_id: uuid().references(() => resorts.id),
+  description: varchar(),
 });
 export const accomodation_list_relations = relations(accomodation_list, ({ one, many }) => ({
   //   booking_accomodation: many(booking_accomodation),
