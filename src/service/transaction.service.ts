@@ -486,32 +486,78 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               countryId = insertedCountry.id;
             }
 
-            const fetchDestination = await repo.fetchDestinationByName(data.destination);
-            if (fetchDestination) {
+            let destinationName = data.destination;
+            if (destinationName == null || destinationName.trim() === "") {
+              destinationName = data.country;
+            }
+            const fetchDestination = await repo.fetchDestinationByName(destinationName);
+
+            if (Array.isArray(fetchDestination) && fetchDestination.length > 0) {
               const fuseDest = new Fuse(fetchDestination, {
                 keys: ['name'],
                 threshold: 0.4,
               });
-              const resultDest = fuseDest.search(data.destination);
-              destinationId = resultDest[0].item.id;
+
+              const resultDest = fuseDest.search(destinationName);
+
+              if (resultDest.length > 0) {
+                // ✅ Found a similar destination
+                destinationId = resultDest[0].item.id;
+              } else {
+                // 🆕 No fuzzy match, insert new destination
+                const insertedDestination = await repo.insertDestination({
+                  name: destinationName,
+                  country_id: countryId,
+                });
+                destinationId = insertedDestination.id;
+              }
+
             } else {
-              const insertedDestination = await repo.insertDestination({ name: data.destination, country_id: countryId });
+              // 🆕 No destinations found at all, insert new one
+              const insertedDestination = await repo.insertDestination({
+                name: destinationName,
+                country_id: countryId,
+              });
               destinationId = insertedDestination.id;
             }
 
 
-            const fetchResort = await repo.fetchResortByName(data.resort);
-            if (fetchResort) {
+
+            let resortName: string = data.resort;
+
+
+            if (data.resort == null || data.resort.trim() === "") {
+              resortName = data.accommodation
+            }
+            const fetchResort = await repo.fetchResortByName(resortName);
+
+            if (Array.isArray(fetchResort) && fetchResort.length > 0) {
               const fuseResort = new Fuse(fetchResort, {
                 keys: ['name'],
                 threshold: 0.4,
               });
-              const resultResort = fuseResort.search(data.resort);
-              resortId = resultResort[0].item.id;
+
+              const resultResort = fuseResort.search(resortName);
+
+              if (resultResort.length > 0) {
+                resortId = resultResort[0].item.id;
+              } else {
+                console.log("Resort name not similar enough, inserting new resort");
+                const insertedResort = await repo.insertResort({
+                  name: resortName,
+                  destination_id: destinationId ?? "",
+                  country_id: countryId ?? "",
+                });
+                resortId = insertedResort.id;
+              }
+
             } else {
               console.log("Resort not found, inserting new resort");
-              const insertedResort = await repo.insertResort({ name: data.resort, destination_id: destinationId ?? "", country_id: countryId ?? "" });
-              console.log('Inserted resort:', insertedResort.id);
+              const insertedResort = await repo.insertResort({
+                name: resortName,
+                destination_id: destinationId ?? "",
+                country_id: countryId ?? "",
+              });
               resortId = insertedResort.id;
             }
 
@@ -536,7 +582,9 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               threshold: 0.4,
             })
             const result = fuse.search(hotel.accommodation);
-            if (result.length === 0) continue;
+
+            if (!result) continue;
+
             const resortAccomodation = result[0].item;
             const hotelData = {
               country: resortAccomodation.resorts?.destination?.country_id ?? "",
