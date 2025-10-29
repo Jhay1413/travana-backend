@@ -36,7 +36,8 @@ const authConfig = {
     "https://referral-dev.travana.app",
     "https://www.referral-dev.travana.app",
     'https://dev-travana-client.travana.app',
-    'https://www.dev-travana-client.travana.app' // Add this line
+    'https://www.dev-travana-client.travana.app',
+    'https://www.prod-api.travana.app',
   ],
 
   emailAndPassword: {

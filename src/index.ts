@@ -24,7 +24,8 @@ const corsOptions = {
     'https://referral-dev.travana.app',
     'https://www.referral-dev.travana.app',
     'https://dev-travana-client.travana.app',
-    'https://www.dev-travana-client.travana.app' // Add this line
+    'https://www.dev-travana-client.travana.app',
+    'https://www.prod-api.travana.app'
   ], // This is the origin of the client
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
