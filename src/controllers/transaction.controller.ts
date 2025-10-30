@@ -61,8 +61,8 @@ export const transactionController = {
   },
   insertNote: async (req: Request, res: Response) => {
     try {
-      const { content, transaction_id, agent_id, parent_id } = req.body;
-      await service.insertNote(content, transaction_id, agent_id, parent_id);
+      const { content, description,transaction_id, agent_id, parent_id } = req.body;
+      await service.insertNote(content || description, transaction_id, agent_id, parent_id);
       res.status(200).json({ message: 'Note inserted' });
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
@@ -71,10 +71,12 @@ export const transactionController = {
   reassignTransaction: async (req: Request, res: Response) => {
     try {
       const { transaction_id } = req.params;
-      const { agent_id, type, client_id, current_user_id, ref_id } = req.body;
-      await service.reassignTransaction(agent_id, transaction_id, type, client_id, current_user_id, ref_id);
+      const { agentId, type, clientId, currentUserId, refId } = req.body;
+      console.log(agentId, type, clientId, currentUserId, refId);
+      await service.reassignTransaction(agentId, transaction_id, type, clientId, currentUserId, refId);
       res.status(200).json({ message: 'Transaction reassigned' });
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
