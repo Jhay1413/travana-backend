@@ -195,6 +195,7 @@ export const taskRepo: TaskRepo = {
             assigned_by_id: data.assigned_by_id_v2 ?? '',
             number: data.number ?? '',
             type: data.type ?? '',
+            client: data.client ?? undefined,
         }));
     },
     fetchCreatedTaskInfinite: async (filters) => {

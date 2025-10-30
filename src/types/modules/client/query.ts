@@ -32,8 +32,8 @@ export const clientQuerySchema = z.object({
   whatsAppVerified: z.boolean().nullable(),
   mailAllowed: z.nullable(z.boolean()).optional(),
   address: z.array(addressQuerySchema).optional(),
-  referrerId: z.string().optional(),
-  referrerName: z.string().optional(),
+  referrerId: z.nullable(z.string()).optional(),
+  referrerName: z.nullable(z.string()).optional(),
 });
 
 export const clientInfoSchema = clientQuerySchema.omit({

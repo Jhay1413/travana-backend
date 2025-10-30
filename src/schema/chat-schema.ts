@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, integer, uuid, jsonb, pgEnum, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer, uuid, jsonb, pgEnum, varchar, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { usersTable } from './user-schema';
 import { user } from './auth-schema';
@@ -68,7 +68,14 @@ export const chatMessageRead = pgTable('chat_message_reads', {
   userId: uuid('user_id').references(() => usersTable.id, { onDelete: 'cascade' }),
   user_id_v2: text('user_id_v2').references(() => user.id, { onDelete: 'cascade' }),
   readAt: timestamp('read_at').defaultNow(),
-});
+},
+  (table) => ({
+    // 👇 Composite unique constraint using three fields
+    uniqueReadRecord: uniqueIndex('unique_message_user_v2_idx').on(
+      table.messageId,
+      table.user_id_v2
+    ),
+  }));
 
 export const chatRoomRelations = relations(chatRoom, ({ many }) => ({
   participants: many(chatParticipant),

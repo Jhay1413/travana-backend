@@ -1,7 +1,9 @@
+import { auth } from "../lib/auth";
 import { chatRepo } from "../repository/chat.repo";
 import { chatService } from "../service/chat.service";
 
 import { Request, Response } from "express";
+import { fromNodeHeaders } from "better-auth/node";
 
 const service = chatService(chatRepo);
 
@@ -174,13 +176,19 @@ export const chatController = {
     },
     markAllMessageAsRead: async (req: Request, res: Response) => {
         try {
-            const roomId = req.params.roomId;
-            const userId = req.body.userId;
+            const roomId = req.params.roomId; 
+            const session = await auth.api.getSession({
 
-            if (!roomId || !userId) {
-                return res.status(400).json({ error: 'Room ID and User ID are required' });
+                headers: fromNodeHeaders(req.headers)
+            })
+
+            if (!session || !session.user) {
+                return res.status(401).json({ error: 'Unauthorized' });
             }
-            await service.markAllMessageAsRead(roomId, userId);
+            if (!roomId) {
+                return res.status(400).json({ error: 'Room ID is required' });
+            }
+            await service.markAllMessageAsRead(roomId, session.user.id);
             return res.status(200).json({
                 message: 'All messages marked as read successfully',
             });

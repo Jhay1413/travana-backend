@@ -1,7 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { eq, and } from 'drizzle-orm';
-import { chatService } from '../service/chat.service';
 import { userService } from '../service/user.service';
 
 interface ChatSocket {
@@ -37,6 +36,7 @@ import { chatParticipant } from '../schema/chat-schema';
 import { db } from '../db/db';
 import { userRepo } from '../repository/user.repo';
 import { chatRepo } from '../repository/chat.repo';
+import { chatService } from '../service/chat.service';
 // Initialize socket server
 
 const chatInstance = chatService(chatRepo);
@@ -241,7 +241,7 @@ const setupEventHandlers = () => {
                 };
 
                 // Broadcast message to all users in the room
-             
+
                 io.to(roomId).emit('new_message', messageData);
 
                 // Emit confirmation to sender
@@ -497,4 +497,9 @@ export const emitTicketReplyAdded = (data: { ticketId: string; replyId: string; 
     if (io) {
         io.emit('ticket_reply_added', data);
     }
-}; 
+};
+export const emitMessageRead = (data: { messageId: string[]; userId: string; roomId: string }) => {
+    if (io) {
+        io.to(data.roomId).emit('message_read', data);
+    }
+};

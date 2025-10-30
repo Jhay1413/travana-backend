@@ -1,14 +1,10 @@
-import { ChatRepo, } from "@/repository/chat.repo";
+import { ChatRepo, } from "../repository/chat.repo";
 import { chatFiltersQuerySchema, chatMessagesQuerySchema, createRoomMutationSchema, joinRoomMutationSchema, leaveRoomMutationSchema, markMessageAsReadMutationSchema, sendMessageMutationSchema, updateRoomMutationSchema } from "@/types/modules/chat";
-import { join } from "path";
 import z from "zod";
-
+// import { emitMessageRead } from '../lib/socket-handler';
 
 export const chatService = (chatRepo: ChatRepo) => {
-
-
     return {
-
         getRooms: (userId: string, filters: z.infer<typeof chatFiltersQuerySchema>) => {
             return chatRepo.getRooms(userId, filters);
 
@@ -61,8 +57,16 @@ export const chatService = (chatRepo: ChatRepo) => {
         getRoomById: (roomId: string) => {
             return chatRepo.getRoomById(roomId);
         },
-        markAllMessageAsRead: (roomId: string, userId: string) => {
-            return chatRepo.markAllMessageAsRead(roomId, userId);
+        markAllMessageAsRead: async (roomId: string, userId: string) => {
+            const unreadMessages = await chatRepo.getAllUnreadMessagesId(roomId);
+            console.log("Unread Messages IDs: ", unreadMessages);
+            if (!unreadMessages || unreadMessages.length === 0) {
+                return;
+            }
+            await chatRepo.markAllMessageAsRead(unreadMessages, userId);
+            // ✅ Lazy import fixes circular dependency
+            const { emitMessageRead } = await import('../lib/socket-handler');
+            emitMessageRead({ messageId: unreadMessages, userId, roomId });
         }
 
     }
