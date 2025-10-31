@@ -6,7 +6,7 @@ export const booking_mutate_schema = z.object({
   holiday_type_name: z.string().optional(),
   lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
   travel_date: z.string(),
-  main_tour_operator_id: z.nullable(z.string()).optional(),
+  main_tour_operator_id: z.string(),
   hays_ref: z.string(),
   supplier_ref: z.string(),
   sales_price: z.number().or(z.string()).pipe(z.coerce.number()).optional(),
@@ -37,7 +37,7 @@ export const booking_mutate_schema = z.object({
   lodge_id: z.nullable(z.string()).optional(),
   pets: z.number().optional(),
   lodge_park_name: z.string().optional(),
-  lodge_type: z.string().optional(),
+  lodge_type: z.nullable(z.string()).optional(),
   cottage_id: z.nullable(z.string()).optional(),
   lodge_code: z.string().optional(),
 
@@ -218,7 +218,6 @@ export const requiredHotTubFieldsBook = booking_mutate_schema.merge(
     lodge_id: z.string().min(1, 'Required'),
     pets: z.number().min(0, 'Required'),
     lodge_park_name: z.string().min(1, 'Required'),
-    lodge_type: z.string().min(1, 'Required'),
   })
 );
 export const requiredCruiseFieldsBook = booking_mutate_schema.merge(

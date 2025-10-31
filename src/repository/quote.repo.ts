@@ -607,6 +607,7 @@ export const quoteRepo: QuoteRepo = {
             infant: data.infants ? data.infants : 0,
             child: data.children ? data.children : 0,
             adult: data.adults ? data.adults : 0,
+            lodge_type: data.lodge_type ? data.lodge_type : "N/A",
             date_expiry: date_expiry,
             is_future_deal: data.is_future_deal,
             future_deal_date: data.is_future_deal ? data.future_deal_date : null,
@@ -1687,6 +1688,7 @@ export const quoteRepo: QuoteRepo = {
         ...(result.length > 0 && result[0].name === 'Hot Tub Break'
           ? [
             quote.lodge_id,
+            quote.lodge_type,
             lodges.lodge_name,
             lodges.lodge_code,
             park.name,
@@ -1753,6 +1755,7 @@ export const quoteRepo: QuoteRepo = {
         selected_fields.park_name = park.name;
         selected_fields.park_location = park.location;
         selected_fields.park_code = park.code;
+        selected_fields.lodge_type = quote.lodge_type;
         selected_fields.cottage_id = quote.cottage_id;
         selected_fields.cottage_name = cottages.cottage_name;
         selected_fields.cottage_code = cottages.cottage_code;
@@ -2328,6 +2331,7 @@ export const quoteRepo: QuoteRepo = {
           title: response.title,
           quote_ref: response.quote_ref,
           lodge_id: response.lodge_id,
+          lodge_type: response.lodge_type,
           pets: response.pets,
           lodge_park_name: response.lodge?.park?.name,
           lodge_code: response.lodge?.lodge_code,
@@ -3187,6 +3191,7 @@ export const quoteRepo: QuoteRepo = {
             adult: data.adults ? data.adults : 0,
             is_future_deal: data.is_future_deal,
             date_expiry: date_expiry,
+            lodge_type:data.lodge_type ?? null,
             quote_status: 'QUOTE_IN_PROGRESS',
             future_deal_date: data.is_future_deal ? data.future_deal_date : null,
           })

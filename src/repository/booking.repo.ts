@@ -1088,7 +1088,7 @@ export const bookingRepo: BookingRepo = {
         lodge_code: response?.lodge?.lodge_code,
         lodge_park_type: response?.lodge_type,
         cottage_id: response?.cottage_id,
-
+        lodge_type: response?.lodge_type,
         adults: response?.adult,
         children: response?.child,
         infants: response?.infant,
@@ -1500,6 +1500,7 @@ export const bookingRepo: BookingRepo = {
           infant: data.infants ? data.infants : 0,
           child: data.children ? data.children : 0,
           adult: data.adults ? data.adults : 0,
+          lodge_type:data.lodge_type
         })
         .where(eq(booking.id, booking_id));
 
@@ -2205,6 +2206,7 @@ export const bookingRepo: BookingRepo = {
       transaction.lead_source,
       ...(result.length > 0 && result[0].name === 'Hot Tub Break'
         ? [
+          booking.lodge_type,
           booking.lodge_id,
           lodges.lodge_name,
           lodges.lodge_code,
@@ -2265,6 +2267,7 @@ export const bookingRepo: BookingRepo = {
       selected_fields.lodge_name = lodges.lodge_name;
       selected_fields.lodge_code = lodges.lodge_code;
       selected_fields.park_name = park.name;
+      selected_fields.lodge_type = booking.lodge_type;
       selected_fields.park_location = park.location;
       selected_fields.park_code = park.code;
       selected_fields.cottage_id = booking.cottage_id;

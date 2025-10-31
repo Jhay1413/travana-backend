@@ -126,14 +126,14 @@ export const quote_mutate_schema = z.object({
   accomodation_id: z.string().optional(),
   accomodation_type: z.string().optional(),
   main_board_basis_id: z.string().optional(),
-  room_type: z.string().optional(),
+  room_type: z.nullable(z.string()).optional(),
   is_primary: z.optional(z.boolean()),
 
   //hot tub
   lodge_id: z.nullable(z.string()).optional(),
   pets: z.number().optional(),
   lodge_park_name: z.string().optional(),
-  lodge_type: z.string().optional(),
+  lodge_type: z.nullable(z.string()).optional(),
   cottage_id: z.nullable(z.string()).optional(),
   lodge_code: z.string().optional(),
 
@@ -321,7 +321,6 @@ export const requiredHotTubFields = quote_mutate_schema.merge(
     lodge_id: z.string().min(1, 'Required'),
     pets: z.number().min(0, 'Required'),
     lodge_park_name: z.string().min(1, 'Required'),
-    lodge_type: z.string().min(1, 'Required'),
   })
 );
 export const requiredCruiseFields = quote_mutate_schema.merge(
