@@ -104,5 +104,64 @@ export const clientController = {
         } catch (error) {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
+    },
+    uploadClientFile: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const file = req.file;
+
+            const { fileType, fileTitle } = req.body;
+
+
+            if (!file) {
+                return res.status(400).json({ error: 'No file provided' });
+            }
+
+            const response = await service.uploadClientFile(id, file, fileType, fileTitle);
+
+            return res.status(200).json({
+                message: 'Client file uploaded successfully',
+                fileUrl: response,
+                fileTitle: fileTitle,
+            });
+        } catch (error) {
+            return res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
+    fetchClientFiles: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const clientFiles = await service.fetchClientFiles(id);
+            res.status(200).json(clientFiles);
+        } catch (error) {
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
+    fetchClientFile: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const clientFile = await service.fetchClientFile(id);
+            res.status(200).json(clientFile);
+        } catch (error) {
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
+    deleteClientFile: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            await service.deleteClientFile(id);
+            res.status(204).json({ message: 'Client file deleted successfully' });
+        } catch (error) {
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
+    getClientFileCount: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const fileCount = await service.getClientFileCount(id);
+            res.status(200).json({ count: fileCount });
+        } catch (error) {
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
     }
-}
+};

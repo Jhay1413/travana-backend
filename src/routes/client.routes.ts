@@ -1,28 +1,43 @@
 import { Router } from 'express';
 import { clientController } from '../controllers/client.controller';
-import { uploadSingle } from '../middleware/upload';
+import { uploadClientFile, uploadSingle } from '../middleware/upload';
 import { authMiddleware } from '../middleware/authChecker';
 
 const router = Router();
 
-// All client routes require authentication
+// ✅ All client routesrequire authentication
 router.use(authMiddleware);
 
-// Client CRUD operations
-router.get('/:id', clientController.fetchClientById);
+/* ===============================
+   CLIENT CRUD OPERATIONS
+   =============================== */
 router.get('/', clientController.fetchClients);
+router.get('/:id', clientController.fetchClientById);
 router.post('/', clientController.createClient);
 router.put('/:id', clientController.updateClient);
 router.delete('/:id', clientController.deleteClient);
 
-// Client specific routes
-
+/* ===============================
+   CLIENT SPECIFIC ROUTES
+   =============================== */
 router.get('/:id/inquiry-summary', clientController.fetchInquirySummary);
 router.get('/:id/transactions', clientController.fetchClientTransactions);
 router.get('/:id/for-update', clientController.fetchClientForUpdate);
-router.get('/:fileKey/signed-url', clientController.getSignedUrl);
 
-// File upload route with multer middleware
+/* ===============================
+   CLIENT FILE ROUTES
+   =============================== */
+router.get('/:id/files/count', clientController.getClientFileCount);
+router.get('/:id/files', clientController.fetchClientFiles);
+router.get('/:id/files/:fileId', clientController.fetchClientFile);
+router.post('/:id/files', uploadClientFile, clientController.uploadClientFile);
+router.delete('/files/:id', clientController.deleteClientFile);
+
+
+// Upload client avatar
 router.post('/:id/avatar', uploadSingle, clientController.uploadClientAvatar);
+
+// File utility route (not tied to specific client)
+router.get('/files/:fileKey/signed-url', clientController.getSignedUrl);
 
 export default router;

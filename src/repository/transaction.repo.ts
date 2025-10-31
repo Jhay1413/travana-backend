@@ -203,7 +203,7 @@ export type TransactionRepo = {
   insertResort: (data: z.infer<typeof resortMutateSchema>) => Promise<{
     id: string
   }>
-  insertAccomodation: (data: { resort_id: string, name: string, type_id: string | null, description?: string | null}) => Promise<{ id: string }>
+  insertAccomodation: (data: { resort_id: string, name: string, type_id: string | null, description?: string | null }) => Promise<{ id: string }>
   insertCountry: (name: string, code: string) => Promise<{ id: string }>
   insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>
   insertTourOperator: (data: z.infer<typeof tour_operator_mutate_schema>) => Promise<void>
@@ -1704,6 +1704,7 @@ export const transactionRepo: TransactionRepo = {
             ? {
               id: data.resorts.destination.id,
               name: data.resorts.destination.name ?? '',
+              country_id: data.resorts.destination.country_id ?? '',
             }
             : null,
         }

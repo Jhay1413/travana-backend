@@ -22,6 +22,7 @@ const ticketFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFi
     'image/png',
     'image/gif',
     'image/webp',
+
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -31,7 +32,9 @@ const ticketFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFi
     'text/csv',
     'application/zip',
     'application/x-rar-compressed',
-    'application/x-7z-compressed'
+    'application/x-7z-compressed',
+    'application/json',
+    'text/json',
   ];
 
   if (allowedMimeTypes.includes(file.mimetype)) {
@@ -60,5 +63,6 @@ const ticketUpload = multer({
 });
 
 export const uploadSingle = upload.single('avatar');
+export const uploadClientFile = upload.single('file');
 export const uploadMultiple = upload.array('files', 5); // For multiple files if needed
 export const uploadTicketFiles = ticketUpload.array('files', 10); // For ticket files

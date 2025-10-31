@@ -11,6 +11,8 @@ import { country, destination, package_type, transaction } from '../schema/trans
 import { enquiry_cruise_destination, enquiry_destination, enquiry_table } from '../schema/enquiry-schema';
 import { user } from '../schema/auth-schema';
 import { cruise_destination } from '../schema/cruise-schema';
+import { clientFileMutationSchema, clientFileQuerySchema } from '../types/modules/client-file';
+import { clientFileTable } from '../schema/client-file-schema';
 
 export type ClientRepo = {
   fetchClientById: (id: string) => Promise<z.infer<typeof clientQuerySchema>>;
@@ -23,10 +25,73 @@ export type ClientRepo = {
   fetchClientForUpdate: (id: string) => Promise<z.infer<typeof clientMutationSchema>>;
   uploadClientAvatar: (id: string, avatar: string) => Promise<void>;
 
+  insertClientFile: (data: z.infer<typeof clientFileMutationSchema>) => Promise<string>;
+  fetchClientFiles: (clientId: string) => Promise<z.infer<typeof clientFileQuerySchema>[]>;
+  fetchClientFile: (fileId: string) => Promise<z.infer<typeof clientFileQuerySchema> | null>;
+  deleteClientFile: (fileId: string) => Promise<void>;
+  getClientName: (clientId: string) => Promise<string | null>;
+  getClientFileCount: (clientId: string) => Promise<number>;
+
 };
 
 export const clientRepo: ClientRepo = {
+  insertClientFile: async (data) => {
+    const response = await db
+      .insert(clientFileTable)
+      .values({
+        fileTitle: data.fileTitle,
+        filename: data.filename,
+        fileUrl: data.fileUrl,
+        fileType: data.fileType,
+        clientId: data.clientId,
+      })
+      .returning({ id: clientFileTable.id });
 
+    return response[0].id;
+  },
+  fetchClientFiles: async (clientId) => {
+    const files = await db.query.clientFileTable.findMany({
+      where: eq(clientFileTable.clientId, clientId),
+      orderBy: [desc(clientFileTable.createdAt)],
+    });
+
+    return files.map((file) => ({
+      ...file,
+      clientId: file?.clientId || "", id: file.id, fileType: file?.fileType || "", fileUrl: file?.fileUrl || "", fileTitle: file?.fileTitle || '', filename: file?.filename || '',
+      createdAt: file.createdAt.toISOString(),
+    }));
+  },
+  fetchClientFile: async (fileId) => {
+    const file = await db.query.clientFileTable.findFirst({
+      where: eq(clientFileTable.id, fileId),
+    });
+    if (!file) return null;
+    return { ...file, clientId: file?.clientId || "", id: file.id, fileType: file?.fileType || "", fileUrl: file?.fileUrl || "", fileTitle: file?.fileTitle || '', filename: file?.filename || '', createdAt: file?.createdAt.toISOString() };
+  },
+  deleteClientFile: async (fileId) => {
+    await db.delete(clientFileTable).where(eq(clientFileTable.id, fileId));
+  },
+  getClientName: async (clientId) => {
+    const client = await db.query.clientTable.findFirst({
+      where: eq(clientTable.id, clientId),
+      columns: {
+        firstName: true,
+        surename: true,
+      },
+    });
+
+    if (!client) return null
+
+    return `${client.firstName}-${client.surename}`;
+  },
+  getClientFileCount: async (clientId) => {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(clientFileTable)
+      .where(eq(clientFileTable.clientId, clientId));
+    console.log(result)
+    return result[0]?.count || 0;
+  },
   fetchClientById: async (id) => {
     const response = await db.query.clientTable.findFirst({
       where: eq(clientTable.id, id),
@@ -67,8 +132,8 @@ export const clientRepo: ClientRepo = {
     };
     return {
       ...response,
-      referrerName: response.referrer ? `${response.referrer?.firstName} ${response.referrer?.lastName}` :  undefined,
-      referrerPhoneNumber: response.referrer ? response.referrer?.phoneNumber :  undefined,
+      referrerName: response.referrer ? `${response.referrer?.firstName} ${response.referrer?.lastName}` : undefined,
+      referrerPhoneNumber: response.referrer ? response.referrer?.phoneNumber : undefined,
     };
   },
   fetchClients: async (page, query, clientId) => {
