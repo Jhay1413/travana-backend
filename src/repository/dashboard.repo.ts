@@ -1362,7 +1362,7 @@ export const dashboardRepo: DashboardRepo = {
 
         const monthly_profit = await db
             .select({
-                overall_commission: sql`
+                overall_commission: sql<string>`
           SUM(
             COALESCE((SELECT SUM(commission) FROM booking_flights WHERE booking_flights.booking_id = booking_table.id), 0)
             + COALESCE((SELECT SUM(commission) FROM booking_airport_parking WHERE booking_airport_parking.booking_id = booking_table.id), 0)
@@ -1380,7 +1380,7 @@ export const dashboardRepo: DashboardRepo = {
             .where(and(eq(transaction.user_id, agentId), gte(booking.date_created, monthStart)));
         const last_month_profit = await db
             .select({
-                overall_commission: sql`
+                overall_commission: sql<string>`
           SUM(
             COALESCE((SELECT SUM(commission) FROM booking_flights WHERE booking_flights.booking_id = booking_table.id), 0)
             + COALESCE((SELECT SUM(commission) FROM booking_airport_parking WHERE booking_airport_parking.booking_id = booking_table.id), 0)
@@ -1418,10 +1418,12 @@ export const dashboardRepo: DashboardRepo = {
             .innerJoin(transaction, eq(booking.transaction_id, transaction.id))
             .where(and(eq(transaction.user_id, agentId), gte(booking.date_created, monthStart)));
 
-        const totalDeals = countBooking[0]?.count || 1;
-        const commission = parseFloat(monthly_profit[0]?.overall_commission as string) || 0;
-        const averagePPU = commission / totalDeals;
+        const rawCount = countBooking[0]?.count;
+        const rawCommission = monthly_profit[0]?.overall_commission;
 
+        const totalDeals = Number(rawCount) > 0 ? Number(rawCount) : 1; // prevent division by 0
+        const commission = parseFloat(rawCommission) || 0;
+        const averagePPU = commission / totalDeals;
         const lost_deal = await db
             .select({ count: count() })
             .from(quote)
@@ -1437,8 +1439,10 @@ export const dashboardRepo: DashboardRepo = {
         const total_activity = total_lost + totalDeals;
         const closureRate = (totalDeals / (totalDeals + total_lost)) * 100;
 
-        const target_deals = Math.ceil((monthlyTarget - commission) / averagePPU);
-
+        const target_deals =
+            averagePPU > 0
+                ? Math.ceil((monthlyTarget - commission) / averagePPU)
+                : 0;
         const ppb = countBooking[0].count > 0
             ? (parseFloat(total_profit[0].overall_commission as string) ?? 0) / countBooking[0].count
             : 0;
