@@ -3191,7 +3191,7 @@ export const quoteRepo: QuoteRepo = {
             adult: data.adults ? data.adults : 0,
             is_future_deal: data.is_future_deal,
             date_expiry: date_expiry,
-            lodge_type:data.lodge_type ?? null,
+            lodge_type: data.lodge_type ?? null,
             quote_status: 'QUOTE_IN_PROGRESS',
             future_deal_date: data.is_future_deal ? data.future_deal_date : null,
           })

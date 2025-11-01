@@ -1439,7 +1439,6 @@ export const dashboardRepo: DashboardRepo = {
 
         const target_deals = Math.ceil((monthlyTarget - commission) / averagePPU);
 
-        console.log()
         const ppb = countBooking[0].count > 0
             ? (parseFloat(total_profit[0].overall_commission as string) ?? 0) / countBooking[0].count
             : 0;
