@@ -22,6 +22,7 @@ export type UserRepo = {
 };
 export const userRepo: UserRepo = {
 
+
   async fetchUsers(search?: string, user_id?: string) {
 
     const conditions = [];
@@ -111,7 +112,13 @@ export const userRepo: UserRepo = {
   },
   async updateUser(data: z.infer<typeof userMutationSchema>, user_id: string) {
     try {
-      await db.update(usersTable).set(data).where(eq(usersTable.id, user_id)).returning();
+      await db.update(user).set({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+
+      }).where(eq(user.id, user_id)).returning();
     } catch (error) {
       console.log(error);
       throw new AppError('Something went wrong', true, 500);

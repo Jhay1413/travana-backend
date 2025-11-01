@@ -14,6 +14,7 @@ export const userService = (repo: UserRepo) => {
     createUser: async (data: z.infer<typeof userMutationSchema>) => {
       return await repo.createUser(data);
     },
+    
     fetchAgentByAccountId: async (account_id: string) => {
       return await repo.fetchAgentByAccountId(account_id);
     },

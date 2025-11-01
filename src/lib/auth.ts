@@ -1,5 +1,4 @@
 import { betterAuth, BetterAuthOptions } from "better-auth";
-import { organization } from "better-auth/plugins";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../db/db";
 import { usersTable } from "../schema/user-schema";
@@ -7,7 +6,8 @@ import { member } from "../schema/auth-schema";
 import { fromNodeHeaders } from "better-auth/node";
 import { send_registration_email_service, send_referrer_invitation_email_service } from "../service/email.service";
 import { finalizeIssue } from "zod/v4/core/util.cjs";
-
+import { admin as adminPlugin, organization } from "better-auth/plugins"
+import { ac, admin, user } from "./permission";
 const authConfig = {
   database: drizzleAdapter(db, {
     provider: "pg",
@@ -37,7 +37,7 @@ const authConfig = {
     "https://www.referral-dev.travana.app",
     'https://dev-travana-client.travana.app',
     'https://www.dev-travana-client.travana.app',
-    'https://www.prod-api.travana.app',
+    'https://www.prod-api.travana.app', 
   ],
 
   emailAndPassword: {
@@ -80,6 +80,13 @@ const authConfig = {
     },
   },
   plugins: [
+    adminPlugin({
+      ac,
+      roles: {
+        admin,
+        user,
+      }
+    }),
     organization({
       async sendInvitationEmail(data) {
         const inviteLink = `${process.env.CLIENT_URL}/signup?token=${data.id}&email=${data.email}`;

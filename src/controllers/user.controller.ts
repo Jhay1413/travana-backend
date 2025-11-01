@@ -12,7 +12,7 @@ export const userController = {
       res.status(200).json(
 
         users,
-        
+
       );
     } catch (error) {
       res.status(500).json({
@@ -40,10 +40,8 @@ export const userController = {
     try {
       const { id } = req.params;
       const user = await service.fetchUserById(id);
-      res.status(200).json({
-        success: true,
-        data: user,
-      });
+      res.status(200).json(
+        user);
     } catch (error) {
       res.status(500).json({
         success: false,
