@@ -486,7 +486,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               countryId = insertedCountry.id;
             }
 
-            let destinationName = data.destination;
+            let destinationName = data.destination?.split(',')[0].trim() || '';
             if (destinationName == null || destinationName.trim() === "") {
               destinationName = data.country;
             }
@@ -523,7 +523,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
 
 
 
-            let resortName: string = data.resort;
+            let resortName: string = data.resort?.split(',')[0].trim() || '';
 
 
             if (data.resort == null || data.resort.trim() === "") {
