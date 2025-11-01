@@ -1255,7 +1255,9 @@ export const dashboardRepo: DashboardRepo = {
             );
 
         // Use the target from database or default to 6000 if not found
-        const monthlyTarget = parseFloat(monthlyTargetQuery[0]?.target_amount as string) || 6000;
+        const targetStr = monthlyTargetQuery[0]?.target_amount;
+        const parsedTarget = targetStr != null ? parseFloat(targetStr as string) : NaN;
+        const monthlyTarget = Number.isFinite(parsedTarget) ? parsedTarget : 6000;
 
         const last_day_profit = await db
             .select({
@@ -1436,6 +1438,8 @@ export const dashboardRepo: DashboardRepo = {
         const closureRate = (totalDeals / (totalDeals + total_lost)) * 100;
 
         const target_deals = Math.ceil((monthlyTarget - commission) / averagePPU);
+
+        console.log()
         const ppb = countBooking[0].count > 0
             ? (parseFloat(total_profit[0].overall_commission as string) ?? 0) / countBooking[0].count
             : 0;
