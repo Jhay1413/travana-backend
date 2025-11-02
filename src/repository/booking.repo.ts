@@ -26,6 +26,7 @@ import {
   cruise_extra_item,
   deletion_codes,
   destination,
+  forwardsReport,
   lodges,
   package_type,
   park,
@@ -114,7 +115,9 @@ export type BookingRepo = {
   }>;
   fetchHistoricalBookings: (id: string) => Promise<any[]>;
   fetchHistoricalBookingById: (id: string) => Promise<any>;
+  generateForwardsReport: () => Promise<void>;
   fetchForwardCommission: () => Promise<z.infer<typeof forwardsSchema>[]>;
+  updateForwardAdjustment: (id: string, adjustment: number) => Promise<void>;
 };
 
 export const bookingRepo: BookingRepo = {
@@ -824,7 +827,7 @@ export const bookingRepo: BookingRepo = {
             )
           )
       );
-     
+
       return { id: booking_id.id };
     });
   },
@@ -1500,7 +1503,7 @@ export const bookingRepo: BookingRepo = {
           infant: data.infants ? data.infants : 0,
           child: data.children ? data.children : 0,
           adult: data.adults ? data.adults : 0,
-          lodge_type:data.lodge_type
+          lodge_type: data.lodge_type
         })
         .where(eq(booking.id, booking_id));
 
@@ -2512,7 +2515,7 @@ export const bookingRepo: BookingRepo = {
 
     const referrals = Array.from(new Map((data?.referrals ?? []).filter((r: any) => r?.id).map((r: any) => [r.id, { ...r, id: r.id }])).values()) || [];
     const percentageComission = referrals.reduce((acc: number, curr: any) => acc + parseFloat(curr.commission), 0);
-   
+
     const payload = {
       ...data,
       no_of_nights: data?.num_of_nights.toString() ?? "0",
@@ -2796,6 +2799,30 @@ export const bookingRepo: BookingRepo = {
     };
   },
   fetchForwardCommission: async () => {
+
+    const commissions = await db.query.forwardsReport.findMany(
+      {
+        where: eq(forwardsReport.year, new Date().getFullYear()),
+        orderBy: asc(forwardsReport.month)
+      }
+    );
+
+    return commissions.map((commission) => {
+      const adjustedCommission = parseFloat(commission.company_commission) + parseFloat(commission.adjustment || '0');
+      return {
+        id: commission.id,
+        year: commission.year.toString(),
+        adjustment: commission.adjustment ? commission.adjustment.toString() : '0',
+        month: commission.monthName,
+        target: parseFloat(commission.target),
+        travanaCommission: adjustedCommission,
+        referralCommission: parseFloat(commission.agent_commission),
+        total_commission: adjustedCommission - parseFloat(commission.agent_commission),
+        target_remaining: parseFloat(commission.target) - (adjustedCommission)
+      }
+    });
+  },
+  generateForwardsReport: async () => {
     const currentDate = new Date();
     const startYear = startOfYear(currentDate);
     const endYear = endOfYear(currentDate);
@@ -3010,14 +3037,39 @@ export const bookingRepo: BookingRepo = {
       }, 0);
       return {
         month: monthName,
+        monthNumber: monthNumber,
         travanaCommission: totalCommission,
-        referralCommission: totalReferralCommission,
+        referralCommission: totalReferralCommission ?? 0,
         target: 15000,
-        target_remaining: 15000 - (totalCommission + totalReferralCommission),
-        total_commission: totalCommission + totalReferralCommission,
       };
     });
+    console.log('monthlyCommissions', monthlyCommissions);
+    await Promise.all(
+      monthlyCommissions.map(async (monthData) => {
 
-    return monthlyCommissions.slice(0, 12);
+        if (monthData.monthNumber > 12) return
+        // Upsert monthly commission data
+        await db.insert(forwardsReport).values({
+          year: new Date().getFullYear(),
+          month: monthData.monthNumber,
+          monthName: monthData.month,
+          target: "15000",
+          company_commission: monthData.travanaCommission.toString(),
+          agent_commission: monthData.referralCommission.toString(),
+        }).onConflictDoUpdate({
+          target: [forwardsReport.year, forwardsReport.month],
+          set: {
+            company_commission: monthData.travanaCommission.toString(),
+            agent_commission: monthData.referralCommission.toString(),
+          }
+        })
+      })
+    );
   },
+  updateForwardAdjustment: async (id: string, adjustment: number) => {
+    await db.update(forwardsReport).set({
+      adjustment: adjustment.toString(),
+    }).where(eq(forwardsReport.id, id));
+  }
 };
+

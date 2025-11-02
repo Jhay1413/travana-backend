@@ -230,5 +230,11 @@ export const bookingService = (
     fetchForwardCommission: async () => {
       return await repo.fetchForwardCommission();
     },
+    generateForwardsReport: async () => {
+      return await repo.generateForwardsReport();
+    },
+    updateForwardAdjustment: async (id: string, adjustment: number) => {
+      return await repo.updateForwardAdjustment(id, adjustment);
+    }
   };
 };

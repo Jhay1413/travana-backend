@@ -30,7 +30,7 @@ export const bookingForReportQuerySchema = z.object({
   holiday_type: z.string(),
   client_name: z.string(),
   clientId: z.string(),
-  destination:z.nullable(z.string()).optional(),
+  destination: z.nullable(z.string()).optional(),
   accomodation: z.nullable(z.string()).optional(),
   agent_id: z.string(),
   agent_name: z.string(),
@@ -156,6 +156,9 @@ export const historicalBookingQuerySchema = z.object({
 });
 
 export const forwardsSchema = z.object({
+  id: z.string(),
+  year: z.string().optional(),
+  adjustment: z.string(),
   month: z.string(),
   travanaCommission: z.number(),
   referralCommission: z.number(),

@@ -1,5 +1,5 @@
 import { not, relations, sql } from 'drizzle-orm';
-import { boolean, decimal, index, integer, pgEnum, primaryKey, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
+import { boolean, decimal, index, integer, numeric, pgEnum, primaryKey, text, timestamp, unique, uuid, varchar } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 import { enquiry_accomodation, enquiry_board_basis, enquiry_destination, enquiry_resorts, enquiry_table } from './enquiry-schema';
 import { airport } from './flights-schema';
@@ -33,6 +33,7 @@ import { notes } from './note-schema';
 import { task } from './task-schema';
 import { referral } from './referral-schema';
 import { user } from './auth-schema';
+import { table } from 'console';
 
 export const leadSourceEnum = pgEnum('lead_source', ['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']);
 export const transactionStatusEnum = pgEnum('transaction_status', ['on_quote', 'on_enquiry', 'on_booking']);
@@ -330,3 +331,19 @@ export const deal_images = pgTable('deal_images', {
 }, (table) => ({
   unique_key: unique().on(table.owner_id, table.image_url)
 }))
+
+export const forwardsReport = pgTable('forwards_report', {
+  id: uuid().defaultRandom().primaryKey(),
+  month: integer().notNull(),
+  monthName: varchar().notNull(),
+  year: integer().notNull(),
+  target: numeric({ precision: 10, scale: 2 }).notNull(),
+  company_commission: numeric({ precision: 10, scale: 2 }).notNull(),
+  agent_commission: numeric({ precision: 10, scale: 2 }).notNull(),
+  created_at: timestamp({ mode: 'string' }).notNull().defaultNow(),
+  adjustment: numeric({ precision: 10, scale: 2 }).default("0.00"),
+
+}, (table) => [
+  unique('year_month_idx').on(table.year, table.month),
+  index('year_month_index').on(table.year, table.month),
+]);

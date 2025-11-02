@@ -9,8 +9,9 @@ import { Request, Response } from 'express';
 import { authRepo } from '../repository/auth.repo';
 import { referralRepo } from '../repository/referrals.repo';
 import { transactionRepo } from '../repository/transaction.repo';
+import { booking } from '@/types/modules/dashboard/query';
 
-const service = bookingService(bookingRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo,transactionRepo);
+const service = bookingService(bookingRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo);
 
 export const bookingController = {
   convertBooking: async (req: Request, res: Response) => {
@@ -196,4 +197,24 @@ export const bookingController = {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
-};
+  generateForwardsReport: async (req: Request, res: Response) => {
+    try {
+      await service.generateForwardsReport();
+      res.status(200).json({ message: 'Forwards report generated successfully' });
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateForwardAdjustment: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { adjustment } = req.body;
+      await service.updateForwardAdjustment(id, adjustment);
+      res.status(200).json({ message: 'Forward adjustment updated successfully' });
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+}

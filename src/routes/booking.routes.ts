@@ -7,6 +7,8 @@ const router = Router();
 router.get('/', bookingController.fetchBookings);
 router.post('/', bookingController.createBooking);
 
+
+router.put('/:id/adjust-forward', bookingController.updateForwardAdjustment);
 router.put('/:id', bookingController.updateBooking);
 router.delete('/:id', bookingController.deleteBooking);
 
@@ -24,6 +26,7 @@ router.get('/:id', bookingController.fetchBookingById);
 
 // Conversion and restoration
 router.post('/convert/:transaction_id', bookingController.convertBooking);
+router.post('/generate-forwards-report', bookingController.generateForwardsReport);
 router.patch('/:id/restore', bookingController.restoreBooking);
 
 export default router;
