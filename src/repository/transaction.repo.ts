@@ -848,7 +848,13 @@ export const transactionRepo: TransactionRepo = {
     const offset = (page - 1) * limit;
     const conditions = [search ? or(ilike(airport.airport_name, `%${search}%`), ilike(airport.airport_code, `%${search}%`)) : undefined].filter(Boolean);
 
-    const query = db.select().from(airport);
+    const query = db.select({
+      id: airport.id,
+      airport_name: airport.airport_name,
+      airport_code: airport.airport_code,
+      country_id: airport.country_id,
+      countryName: country.country_name,
+    }).from(airport);
     if (conditions.length > 0) {
       query.where(and(...conditions));
     }
@@ -858,13 +864,14 @@ export const transactionRepo: TransactionRepo = {
       .from(airport)
       .where(conditions.length > 0 ? and(...conditions) : undefined);
 
-    const airports = await query.limit(limit).offset(offset);
+    const airports = await query.leftJoin(country, eq(airport.country_id, country.id)).limit(limit).offset(offset);
 
     return {
       data: airports.map((data) => ({
         id: data.id ?? '',
         airport_name: data.airport_name ?? '',
         airport_code: data.airport_code ?? '',
+        countryName:data.countryName ?? '',
       })),
       pagination: {
         page,

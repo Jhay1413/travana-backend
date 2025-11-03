@@ -5,6 +5,7 @@ export const airportQuerySchema = z.object({
     airport_name: z.string(),
     airport_code: z.string(),
     country_id: z.nullable(z.string().optional()),
-    destination_id: z.string().optional()
+    destination_id: z.string().optional(),
+    countryName: z.string().optional(),
 
 })

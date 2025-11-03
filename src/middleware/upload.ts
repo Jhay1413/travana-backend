@@ -7,22 +7,14 @@ const storage = multer.memoryStorage();
 // File filter to only allow images
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // Check if file is an image
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'));
-  }
-};
-
-// File filter for tickets - allows various file types
-const ticketFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  // Allowed file types for tickets
   const allowedMimeTypes = [
+    // Images
     'image/jpeg',
     'image/png',
     'image/gif',
     'image/webp',
 
+    // Documents
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -30,11 +22,60 @@ const ticketFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFi
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain',
     'text/csv',
+
+    // Archives
     'application/zip',
     'application/x-rar-compressed',
     'application/x-7z-compressed',
+
+    // JSON/Text
     'application/json',
     'text/json',
+
+    // Audio
+    'audio/mpeg',  // for .mp3
+    'audio/wav',   // ✅ for .wav
+    'audio/x-wav', // some browsers use this alternate type
+  ];
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error(`File type ${file.mimetype} is not allowed!`));
+  }
+};
+
+// File filter for tickets - allows various file types
+const ticketFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Allowed file types for tickets
+  const allowedMimeTypes = [
+    // Images
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+
+    // Documents
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain',
+    'text/csv',
+
+    // Archives
+    'application/zip',
+    'application/x-rar-compressed',
+    'application/x-7z-compressed',
+
+    // JSON/Text
+    'application/json',
+    'text/json',
+
+    // Audio
+    'audio/mpeg',  // for .mp3
+    'audio/wav',   // ✅ for .wav
+    'audio/x-wav', // some browsers use this alternate type
   ];
 
   if (allowedMimeTypes.includes(file.mimetype)) {
