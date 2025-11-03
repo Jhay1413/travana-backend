@@ -473,100 +473,109 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
 
           }
           else {
-            let countryId: string | undefined = undefined;
-            let destinationId: string | undefined = undefined;
-            let resortId: string | undefined = undefined;
+            let countryId: string | undefined;
+            let destinationId: string | undefined;
+            let resortId: string | undefined;
 
-
-            const scrapeCountry = country.find(c => normalize(c.country_name) === normalize(data.country));
-            if (scrapeCountry) {
-              countryId = scrapeCountry.id;
-            } else {
-              const insertedCountry = await repo.insertCountry(data.country, "");
-              countryId = insertedCountry.id;
-            }
-
+            let resortName = data.resort?.split(',')[0].trim() || '';
             let destinationName = data.destination?.split(',')[0].trim() || '';
-            if (destinationName == null || destinationName.trim() === "") {
-              destinationName = data.country;
-            }
+
+            if (!resortName) resortName = data.accommodation;
+            if (!destinationName) destinationName = data.country;
+
+            // Prepare empty placeholders
+            let existingResort = {} as { id: string; name: string; destination_id: string; country_id: string };
+            let existingDestination = {} as { id: string; name: string; country_id: string };
+            let existingCountry = {} as { id: string; country_name: string; country_code: string };
+
+            const fetchResort = await repo.fetchResortByName(resortName);
             const fetchDestination = await repo.fetchDestinationByName(destinationName);
 
-            if (Array.isArray(fetchDestination) && fetchDestination.length > 0) {
-              const fuseDest = new Fuse(fetchDestination, {
-                keys: ['name'],
-                threshold: 0.4,
-              });
-
-              const resultDest = fuseDest.search(destinationName);
-
-              if (resultDest.length > 0) {
-                // ✅ Found a similar destination
-                destinationId = resultDest[0].item.id;
-              } else {
-                // 🆕 No fuzzy match, insert new destination
-                const insertedDestination = await repo.insertDestination({
-                  name: destinationName,
-                  country_id: countryId,
-                });
-                destinationId = insertedDestination.id;
-              }
-
-            } else {
-              // 🆕 No destinations found at all, insert new one
-              const insertedDestination = await repo.insertDestination({
-                name: destinationName,
-                country_id: countryId,
-              });
-              destinationId = insertedDestination.id;
-            }
-
-
-
-            let resortName: string = data.resort?.split(',')[0].trim() || '';
-
-
-            if (data.resort == null || data.resort.trim() === "") {
-              resortName = data.accommodation
-            }
-            const fetchResort = await repo.fetchResortByName(resortName);
-
+            // ✅ Resort check
             if (Array.isArray(fetchResort) && fetchResort.length > 0) {
-              const fuseResort = new Fuse(fetchResort, {
-                keys: ['name'],
-                threshold: 0.4,
-              });
-
-              const resultResort = fuseResort.search(resortName);
-
-              if (resultResort.length > 0) {
-                resortId = resultResort[0].item.id;
-              } else {
-                console.log("Resort name not similar enough, inserting new resort");
-                const insertedResort = await repo.insertResort({
-                  name: resortName,
-                  destination_id: destinationId ?? "",
-                  country_id: countryId ?? "",
-                });
-                resortId = insertedResort.id;
+              const fuse = new Fuse(fetchResort, { keys: ['name'], threshold: 0.4 });
+              const result = fuse.search(resortName);
+              if (result.length > 0) {
+                existingResort = result[0].item;
+                resortId = existingResort.id;
+                destinationId = existingResort.destination_id;
+                countryId = existingResort.country_id;
               }
-
-            } else {
-              console.log("Resort not found, inserting new resort");
-              const insertedResort = await repo.insertResort({
-                name: resortName,
-                destination_id: destinationId ?? "",
-                country_id: countryId ?? "",
-              });
-              resortId = insertedResort.id;
             }
 
+            // ✅ Destination check
+            if (Object.keys(existingResort).length === 0 && Array.isArray(fetchDestination) && fetchDestination.length > 0) {
+              const fuse = new Fuse(fetchDestination, { keys: ['name'], threshold: 0.4 });
+              const result = fuse.search(destinationName);
+              if (result.length > 0) {
+                existingDestination = result[0].item;
+                destinationId = existingDestination.id;
+                countryId = existingDestination.country_id;
+              }
+            }
 
-            const insertedAccomodation = await repo.insertAccomodation({ resort_id: resortId ?? "", name: data.accommodation, type_id: null, description: data.hotel_description || null });
-            initialData.accomodation_id = insertedAccomodation.id;
-            initialData.country = countryId ?? "";
-            initialData.destination = destinationId ?? "";
-            initialData.resort = resortId ?? "";
+            // ✅ Country check
+            if (Object.keys(existingDestination).length === 0 && Object.keys(existingResort).length === 0) {
+              const scrapeCountry = country.find(c => normalize(c.country_name) === normalize(data.country));
+              if (scrapeCountry) {
+                existingCountry = {
+                  id: scrapeCountry.id,
+                  country_name: scrapeCountry.country_name,
+                  country_code: scrapeCountry.country_code ?? 'N/A',
+                };
+                countryId = scrapeCountry.id;
+              } else {
+                const insertedCountry = await repo.insertCountry(data.country, 'N/A');
+                existingCountry = {
+                  id: insertedCountry.id,
+                  country_name: data.country,
+                  country_code: "N/A",
+                };
+                countryId = insertedCountry.id;
+              }
+            }
+
+            // ✅ Now handle inserts for missing hierarchy
+            if (Object.keys(existingResort).length === 0) {
+              // If destination is missing, insert it
+              if (Object.keys(existingDestination).length === 0) {
+                const newDest = await repo.insertDestination({
+                  name: destinationName,
+                  country_id: countryId!,
+                });
+                existingDestination = {
+                  id: newDest.id,
+                  name: destinationName,
+                  country_id: countryId!,
+
+                };
+                destinationId = newDest.id;
+              }
+
+              // Then insert the resort
+              const newResort = await repo.insertResort({
+                name: resortName,
+                destination_id: destinationId!,
+                country_id: countryId!,
+              });
+              existingResort = {
+                id: newResort.id, name: resortName, destination_id: destinationId!, country_id: countryId!
+              };
+              resortId = newResort.id;
+            }
+
+            // ✅ Always insert accommodation at the end
+            const insertedAccommodation = await repo.insertAccomodation({
+              resort_id: resortId!,
+              name: data.accommodation,
+              type_id: null,
+              description: data.hotel_description || null,
+            });
+
+            initialData.accomodation_id = insertedAccommodation.id;
+            initialData.country = countryId!;
+            initialData.destination = destinationId!;
+            initialData.resort = resortId!;
           }
         }
       }
