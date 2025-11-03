@@ -217,4 +217,14 @@ export const bookingController = {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
+  getBookingByPeriod: async (req: Request, res: Response) => {
+    try {
+      const { periodId } = req.params;
+      const bookings = await service.getBookingByPeriod(periodId);
+      res.status(200).json(bookings);
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  }
 }

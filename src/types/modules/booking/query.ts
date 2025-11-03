@@ -166,3 +166,17 @@ export const forwardsSchema = z.object({
   target_remaining: z.number(),
   total_commission: z.number(),
 });
+
+export const forwardsBookingList = z.object({
+  agentName: z.string(),
+  agentId: z.string(),
+  clientId: z.string(),
+  clientName:z.string(),
+  quote_name: z.string(),
+  holiday_type: z.string(),
+  resorts: z.string().nullable(),
+  lead_source: z.string().nullable(),
+  profit: z.number(),
+  date_booked: z.string(),
+  travel_date: z.string(),
+})

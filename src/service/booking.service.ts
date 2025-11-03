@@ -235,6 +235,10 @@ export const bookingService = (
     },
     updateForwardAdjustment: async (id: string, adjustment: number) => {
       return await repo.updateForwardAdjustment(id, adjustment);
+    },
+    getBookingByPeriod: async (periodId:string) => {
+      const bookings = await repo.getBookingByPeriod(periodId);
+      return bookings;
     }
   };
 };

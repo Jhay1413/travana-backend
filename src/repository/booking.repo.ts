@@ -44,14 +44,16 @@ import {
   bookingQuerySchema,
   bookingCruiseQuerySchema,
   bookingHotTubQuerySchema,
+  forwardsBookingList,
 } from '../types/modules/booking';
-import { endOfYear, startOfYear } from 'date-fns';
+import { endOfYear, format, startOfYear } from 'date-fns';
 import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne, SQL, count } from 'drizzle-orm';
 import z from 'zod';
 import { dataValidator } from '../helpers/data-validator';
 import { AppError } from '../middleware/errorHandler';
 import { preProcessUpdate } from '../helpers/pre_process';
 export type BookingRepo = {
+  getBookingByPeriod: (periodId: string) => Promise<z.infer<typeof forwardsBookingList>[]>
   convertCruise: (transaction_id: string, data: z.infer<typeof booking_mutate_schema>) => Promise<{ id: string }>;
   convertPackage: (transaction_id: string, data: z.infer<typeof booking_mutate_schema>) => Promise<{ id: string }>;
   fetchHolidayTypeById: (booking_id: string) => Promise<string | undefined>;
@@ -2976,18 +2978,24 @@ export const bookingRepo: BookingRepo = {
           )
         )
       );
-
     const historical_data = historial_monthly_data.map((booking) => ({
       ...booking,
       referral_commission: '0',
     }));
 
+    type BookingWithSource = (typeof response)[0] & { source_type: string };
+
+    const responseIds = new Set(response.map(b => b.id));
     const monthlyData = [...response, ...historical_data].reduce((acc, booking) => {
       if (booking.travel_date) {
         const travelDate = new Date(booking.travel_date);
-        const month = travelDate.getMonth() + 1;
 
-        const year = travelDate.getFullYear();
+        // Calculate recognition month based on travel_date - 8 weeks
+        const recognitionDate = new Date(travelDate);
+        recognitionDate.setDate(recognitionDate.getDate() - 56); // 8 weeks before
+
+        const month = recognitionDate.getMonth() + 1;
+        const year = recognitionDate.getFullYear();
         const currentYear = new Date().getFullYear();
 
         let monthKey = month;
@@ -2998,15 +3006,22 @@ export const bookingRepo: BookingRepo = {
         if (!acc[monthKey]) {
           acc[monthKey] = [];
         }
+        // Determine the source type
+        const sourceType = responseIds.has(booking.id)
+          ? "current"
+          : "historical";
         acc[monthKey].push({
           ...booking,
           travel_date: booking.travel_date || '',
           booking_commission: booking.booking_commission || '0',
           referral_commission: booking.referral_commission || '0',
+          source_type: sourceType,
         });
       }
       return acc;
-    }, {} as Record<number, typeof response>);
+    }, {} as Record<number, BookingWithSource[]>);
+
+    console.log('monthlyData', monthlyData[8]);
 
     // Create array of objects with month names and total commissions (14 months total)
     const monthNames = [
@@ -3028,15 +3043,25 @@ export const bookingRepo: BookingRepo = {
 
     const monthlyCommissions = monthNames.map((monthName, index) => {
       const monthNumber = index + 1; // 1-14
-      const monthBookings = monthlyData[monthNumber + 2] || [];
+      const monthBookings = monthlyData[monthNumber] || [];
       const totalCommission = monthBookings.reduce((sum: number, booking: (typeof response)[0]) => {
         return sum + (parseFloat(booking.booking_commission || '0') || 0);
       }, 0);
       const totalReferralCommission = monthBookings.reduce((sum: number, booking: (typeof response)[0]) => {
         return sum + (parseFloat(booking.referral_commission || '0') || 0);
       }, 0);
+      const currentBookingIds = monthBookings
+        .filter((b) => b.source_type === "current")
+        .map((b) => b.id);
+
+      // Get IDs of "historical" bookings only
+      const historicalBookingIds = monthBookings
+        .filter((b) => b.source_type === "historical")
+        .map((b) => b.id);
       return {
         month: monthName,
+        deal_ids: currentBookingIds,
+        historical_ids: historicalBookingIds,
         monthNumber: monthNumber,
         travanaCommission: totalCommission,
         referralCommission: totalReferralCommission ?? 0,
@@ -3054,11 +3079,14 @@ export const bookingRepo: BookingRepo = {
           month: monthData.monthNumber,
           monthName: monthData.month,
           target: "15000",
+
           company_commission: monthData.travanaCommission.toString(),
           agent_commission: monthData.referralCommission.toString(),
         }).onConflictDoUpdate({
           target: [forwardsReport.year, forwardsReport.month],
           set: {
+            deal_ids: monthData.deal_ids,
+            historical_ids: monthData.historical_ids,
             company_commission: monthData.travanaCommission.toString(),
             agent_commission: monthData.referralCommission.toString(),
           }
@@ -3070,6 +3098,182 @@ export const bookingRepo: BookingRepo = {
     await db.update(forwardsReport).set({
       adjustment: adjustment.toString(),
     }).where(eq(forwardsReport.id, id));
+  },
+  getBookingByPeriod: async (periodId: string) => {
+
+    const hotel_tour_operator = aliasedTable(tour_operator, 'hotel_tour_operator');
+    const transfer_tour_operator = aliasedTable(tour_operator, 'transfer_tour_operator');
+    const car_hire_operator = aliasedTable(tour_operator, 'car_hire_operator');
+    const ticket_operator = aliasedTable(tour_operator, 'ticket_operator');
+    const lounge_pass_operator = aliasedTable(tour_operator, 'lounge_pass_operator');
+    const parking_operator = aliasedTable(tour_operator, 'parking_operator');
+    const flight_operator = aliasedTable(tour_operator, 'flight_operator');
+    const flight_departing_airport = aliasedTable(airport, 'flight_departing_airport');
+    const flight_arrival_airport = aliasedTable(airport, 'flight_arrival_airport');
+    const lounge_pass_airport = aliasedTable(airport, 'lounge_pass_airport');
+    const parking_airport = aliasedTable(airport, 'parking_airport');
+    const main_tour_operator = aliasedTable(tour_operator, 'main_tour_operator');
+    const agentTable = aliasedTable(user, 'user');
+    const userReferrer = aliasedTable(user, 'userReferrer');
+    const response = await db.query.forwardsReport.findFirst({
+      where: eq(forwardsReport.id, periodId),
+    })
+
+    const bookings = [] as z.infer<typeof forwardsBookingList>[];
+    const dealIds = response?.deal_ids || [];
+    const historicalIds = response?.historical_ids || [];
+
+    if (dealIds.length > 0) {
+      const groupByFields = [
+        booking.id,
+        agentTable.firstName,
+        agentTable.lastName,
+        package_type.name,
+        clientTable.firstName,
+        clientTable.surename,
+        transaction.client_id,
+        transaction.status,
+        transaction.id,
+        booking.sales_price,
+        booking.package_commission,
+        booking.travel_date,
+        booking.discounts,
+        booking.service_charge,
+        booking.num_of_nights,
+        booking.transfer_type,
+        booking.booking_status,
+        main_tour_operator.name,
+        booking.infant,
+        booking.child,
+        booking.adult,
+        booking.date_created,
+        user.firstName,
+        user.lastName,
+        transaction.lead_source,
+        resorts.name,
+
+      ];
+
+      const selected_fields: Record<string, any> = {
+        title: booking.title,
+        holiday_type: package_type.name,
+        clientName: sql<string>`${clientTable.firstName} || ' ' || ${clientTable.surename}`,
+        clientId: transaction.client_id,
+        agentName: sql<string>`${agentTable.firstName} || ' ' || ${agentTable.lastName}`,
+        agentId: transaction.user_id,
+        travel_date: booking.travel_date,
+        date_booked: booking.date_created,
+        lead_source: transaction.lead_source,
+        resorts: resorts.name,
+      };
+
+      let query = db
+        .select({
+          ...selected_fields,
+          profit: sql<string>`
+            COALESCE((SELECT SUM(commission) FROM booking_flights WHERE booking_flights.booking_id = booking_table.id), 0)
+            + COALESCE((SELECT SUM(commission) FROM booking_airport_parking WHERE booking_airport_parking.booking_id = booking_table.id), 0)
+            + COALESCE((SELECT SUM(commission) FROM booking_lounge_pass WHERE booking_lounge_pass.booking_id = booking_table.id), 0)
+            + COALESCE((SELECT SUM(commission) FROM booking_attraction_ticket WHERE booking_attraction_ticket.booking_id = booking_table.id), 0)
+            + COALESCE((SELECT SUM(commission) FROM booking_car_hire WHERE booking_car_hire.booking_id = booking_table.id), 0)
+            + COALESCE((SELECT SUM(commission) FROM booking_transfers WHERE booking_transfers.booking_id = booking_table.id), 0)
+            + COALESCE((SELECT SUM(commission) FROM booking_accomodation WHERE booking_accomodation.booking_id = booking_table.id), 0)
+            + booking_table.package_commission
+           
+          `.as('overall_commission'),
+        })
+        .from(booking)
+        .innerJoin(transaction, eq(booking.transaction_id, transaction.id))
+        .innerJoin(agentTable, eq(transaction.user_id, agentTable.id))
+        .leftJoin(referral, eq(transaction.id, referral.transactionId))
+        .leftJoin(userReferrer, eq(referral.referrerId, userReferrer.id))
+        .innerJoin(clientTable, eq(transaction.client_id, clientTable.id))
+        .innerJoin(package_type, eq(booking.holiday_type_id, package_type.id))
+        .leftJoin(booking_accomodation, eq(booking.id, booking_accomodation.booking_id))
+        .leftJoin(booking_transfers, eq(booking.id, booking_transfers.booking_id))
+        .leftJoin(board_basis, eq(booking_accomodation.board_basis_id, board_basis.id))
+        .leftJoin(hotel_tour_operator, eq(booking_accomodation.tour_operator_id, hotel_tour_operator.id))
+        .leftJoin(transfer_tour_operator, eq(booking_transfers.tour_operator_id, transfer_tour_operator.id))
+        .leftJoin(accomodation_list, eq(booking_accomodation.accomodation_id, accomodation_list.id))
+        .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
+        .leftJoin(destination, eq(resorts.destination_id, destination.id))
+        .leftJoin(country, eq(destination.country_id, country.id))
+        .leftJoin(booking_car_hire, eq(booking.id, booking_car_hire.booking_id))
+        .leftJoin(car_hire_operator, eq(booking_car_hire.tour_operator_id, car_hire_operator.id))
+        .leftJoin(booking_attraction_ticket, eq(booking.id, booking_attraction_ticket.booking_id))
+        .leftJoin(ticket_operator, eq(booking_attraction_ticket.tour_operator_id, ticket_operator.id))
+        .leftJoin(booking_lounge_pass, eq(booking.id, booking_lounge_pass.booking_id))
+        .leftJoin(lounge_pass_operator, eq(booking_lounge_pass.tour_operator_id, lounge_pass_operator.id))
+        .leftJoin(lounge_pass_airport, eq(booking_lounge_pass.airport_id, lounge_pass_airport.id))
+        .leftJoin(booking_airport_parking, eq(booking.id, booking_airport_parking.booking_id))
+        .leftJoin(parking_operator, eq(booking_airport_parking.tour_operator_id, parking_operator.id))
+        .leftJoin(parking_airport, eq(booking_airport_parking.airport_id, parking_airport.id))
+        .leftJoin(booking_flights, eq(booking.id, booking_flights.booking_id))
+        .leftJoin(flight_operator, eq(booking_flights.tour_operator_id, flight_operator.id))
+        .leftJoin(flight_departing_airport, eq(booking_flights.departing_airport_id, flight_departing_airport.id))
+        .leftJoin(flight_arrival_airport, eq(booking_flights.arrival_airport_id, flight_arrival_airport.id))
+        .leftJoin(main_tour_operator, eq(booking.main_tour_operator_id, main_tour_operator.id))
+        .leftJoin(passengers, eq(booking.id, passengers.booking_id))
+
+        .where(and(inArray(booking.id, dealIds), eq(transaction.status, 'on_booking'), ne(booking.is_active, false)))
+        .groupBy(...groupByFields);
+
+
+      const data = await query as any[];
+
+      const payload = data.map(data => {
+
+        return {
+          ...data,
+          travel_date: format(new Date(data.travel_date), 'MMM dd yyyy'),
+          quote_name: data.quote_name ? data.quote_name : 'N/A',
+          profit: data.profit,
+          date_booked: format(new Date(data.date_booked), 'MMM dd yyyy'),
+
+        }
+      })
+
+      bookings.push(...payload);
+    }
+
+    if (historicalIds.length > 0) {
+      const historical = await db
+        .select({
+          id: historicalBooking.id,
+          travel_date: historicalBooking.departure_date,
+          booking_commission: historicalBooking.profit,
+          clientName: sql<string>`${clientTable.firstName} || ' ' || ${clientTable.surename}`,
+          clientId: historicalBooking.client_id,
+          destination: historicalBooking.destination_country,
+          profit: historicalBooking.profit,
+          booking_date: historicalBooking.booking_date,
+          departure_date: historicalBooking.departure_date,
+        })
+        .from(historicalBooking)
+        .leftJoin(clientTable, eq(historicalBooking.client_id, clientTable.id))
+        .where(
+          and(
+            inArray(historicalBooking.id, historicalIds),
+          )
+        );
+
+      const payload = historical.map((booking) => ({
+        agentName: 'N/A',
+        agentId: 'N/A',
+        clientId: booking.clientId!,
+        clientName: booking.clientName!,
+        quote_name: 'N/A',
+        holiday_type: 'N/A',
+        resorts: booking.destination ?? "N/A",
+        lead_source: 'N/A',
+        profit: booking.profit ? parseFloat(booking.profit) : 0,
+        date_booked: format(new Date(booking.booking_date!), 'MMM dd yyyy'),
+        travel_date: format(new Date(booking.travel_date!), 'MMM dd yyyy'),
+      }));
+
+      bookings.push(...payload);
+    }
+    return bookings;
   }
-};
+}
 

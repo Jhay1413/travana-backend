@@ -8,6 +8,7 @@ router.get('/', bookingController.fetchBookings);
 router.post('/', bookingController.createBooking);
 
 
+
 router.put('/:id/adjust-forward', bookingController.updateForwardAdjustment);
 router.put('/:id', bookingController.updateBooking);
 router.delete('/:id', bookingController.deleteBooking);
@@ -18,7 +19,7 @@ router.get('/summary/agent/:agent_id', bookingController.fetchBookingSummaryByAg
 router.get('/forwards/data', bookingController.fetchForwardCommission);
 router.get('/deleted', bookingController.fetchDeletedBookings);
 router.get('/historical/:id', bookingController.fetchHistoricalBookingById);
-
+router.get('/period/:periodId', bookingController.getBookingByPeriod);
 // Parameterized routes (most specific to least specific)
 router.get('/:id/historical', bookingController.fetchHistoricalBookings);
 router.get('/:id/for-update', bookingController.fetchBookingToUpdate);

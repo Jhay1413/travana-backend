@@ -1,0 +1,2 @@
+ALTER TABLE "forwards_report" ADD COLUMN "deal_ids" text[] DEFAULT ARRAY[]::text[] NOT NULL;--> statement-breakpoint
+ALTER TABLE "forwards_report" ADD COLUMN "historical_ids" text[] DEFAULT ARRAY[]::text[] NOT NULL;

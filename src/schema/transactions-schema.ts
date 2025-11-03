@@ -342,6 +342,12 @@ export const forwardsReport = pgTable('forwards_report', {
   agent_commission: numeric({ precision: 10, scale: 2 }).notNull(),
   created_at: timestamp({ mode: 'string' }).notNull().defaultNow(),
   adjustment: numeric({ precision: 10, scale: 2 }).default("0.00"),
+  deal_ids: text().array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
+  historical_ids: text().array()
+    .notNull()
+    .default(sql`ARRAY[]::text[]`),
 
 }, (table) => [
   unique('year_month_idx').on(table.year, table.month),

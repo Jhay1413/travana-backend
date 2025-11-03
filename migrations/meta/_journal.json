@@ -1331,6 +1331,13 @@
       "when": 1762087882471,
       "tag": "0189_fancy_mesmero",
       "breakpoints": true
+    },
+    {
+      "idx": 190,
+      "version": "7",
+      "when": 1762154192307,
+      "tag": "0190_normal_enchantress",
+      "breakpoints": true
     }
   ]
 }
