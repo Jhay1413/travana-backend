@@ -388,13 +388,14 @@ export const taskRepo: TaskRepo = {
     },
     fetchTaskByTransaction: async (transaction_id) => {
         const response = await db.query.task.findMany({
-            where: eq(task.transaction_id, transaction_id),
+            where: and(eq(task.transaction_id, transaction_id),ne(task.status,"Completed")),
             with: {
                 user: true,
                 client: true,
                 assigned_by_user: true,
             }
         });
+        console.log(response);
         return response.map((data) => ({
             id: data.id,
             agent: data.user,
