@@ -871,7 +871,7 @@ export const transactionRepo: TransactionRepo = {
         id: data.id ?? '',
         airport_name: data.airport_name ?? '',
         airport_code: data.airport_code ?? '',
-        countryName:data.countryName ?? '',
+        countryName: data.countryName ?? '',
       })),
       pagination: {
         page,
@@ -2161,7 +2161,7 @@ export const transactionRepo: TransactionRepo = {
         enquiry_status: enquiry_table.status,
         status: transaction.status,
         agent_id: transaction.user_id,
-        client_id: transaction.user_id,
+        client_id: transaction.client_id,
         transactionId: transaction.id,
         is_expired: sql`CASE WHEN ${enquiry_table.date_expiry} < ${new Date()} THEN true ELSE false END`,
         agentName: sql`${user.firstName} || ' ' || ${user.lastName}`,
@@ -3378,10 +3378,9 @@ export const transactionRepo: TransactionRepo = {
       .where(and(eq(transaction.client_id, client_id), eq(transaction.status, 'on_quote')))
       .groupBy(...groupByFields);
 
-    const data: unknown[] = await query;
+    const data: any[] = await query;
 
-    const parsedQueryResult = z.array(allDealsQueryResult).parse(data);
-    const payload = parsedQueryResult.map((data) => ({
+    const payload = data.map((data) => ({
       ...data,
       cruise_date: data?.cruise_date ? new Date(data.cruise_date) : null,
       post_cruise_stay: data?.post_cruise_stay ? data.post_cruise_stay : null,
@@ -3393,26 +3392,30 @@ export const transactionRepo: TransactionRepo = {
       discount: parseFloat(data?.discount ?? 0),
       service_charge: parseFloat(data?.service_charge ?? 0),
       num_of_nights: data.num_of_nights ? data.num_of_nights : 0,
-      overall_commission: data?.overall_commission ? data.overall_commission : 0,
-      overall_cost: data?.overall_cost ? data.overall_cost : 0,
+      overall_commission: parseFloat(data?.overall_commission ?? 0),
+      overall_cost: parseFloat(data?.overall_cost ?? 0),
 
-      cruise_extra: Array.from(new Set((data?.cruise_extra ?? []).filter((c) => c?.id).map((c) => c.name))),
+      cruise_extra: Array.from(new Set((data?.cruise_extra ?? []).filter((c: any) => c?.id).map((c: any) => c.name))),
 
-      voyages: Array.from(new Map((data?.voyages ?? []).filter((v) => v?.id).map((v) => [v.id, { ...v, id: v.id }])).values()),
+      voyages: Array.from(new Map((data?.voyages ?? []).filter((v: any) => v?.id).map((v: any) => [v.id, { ...v, id: v.id }])).values()),
 
-      passengers: Array.from(new Map((data?.passengers ?? []).filter((p) => p?.id).map((p) => [p.id, { ...p, age: p.age }])).values()),
+      passengers: Array.from(
+        new Map((data?.passengers ?? []).filter((p: any) => p?.id).map((p: any) => [p.id, { ...p, age: parseInt(p.age) }])).values()
+      ),
 
       hotels: Array.from(
         new Map(
           (data?.hotels ?? [])
-            .filter((h) => h?.id)
-            .map((h) => [
+            .filter((h: any) => h?.id)
+            .map((h: any) => [
               h.id,
               {
                 ...h,
-
-                cost: parseFloat(h.cost.toString()),
-                commission: parseFloat(h.commission.toString()),
+                id: h.id,
+                accomodation_id: h.accomodation_id,
+                no_of_nights: h.no_of_nights.toString(),
+                cost: parseFloat(h.cost),
+                commission: parseFloat(h.commission),
               },
             ])
         ).values()
@@ -3421,15 +3424,15 @@ export const transactionRepo: TransactionRepo = {
       transfers: Array.from(
         new Map(
           (data?.transfers ?? [])
-            .filter((t) => t?.id)
-            .map((t) => [
+            .filter((t: any) => t?.id)
+            .map((t: any) => [
               t.id,
               {
                 ...t,
                 pick_up_time: new Date(t.pick_up_time).toISOString(),
                 drop_off_time: new Date(t.drop_off_time).toISOString(),
-                cost: parseFloat(t.cost.toString()),
-                commission: parseFloat(t.commission.toString()),
+                cost: parseFloat(t.cost),
+                commission: parseFloat(t.commission),
               },
             ])
         ).values()
@@ -3438,17 +3441,17 @@ export const transactionRepo: TransactionRepo = {
       car_hire: Array.from(
         new Map(
           (data?.car_hire ?? [])
-            .filter((c) => c?.id)
-            .map((c) => [
+            .filter((c: any) => c?.id)
+            .map((c: any) => [
               c.id,
               {
                 ...c,
                 no_of_days: c.no_of_days.toString(),
                 pick_up_time: new Date(c.pick_up_time),
                 drop_off_time: new Date(c.drop_off_time),
-                driver_age: c.driver_age,
-                cost: parseFloat(c.cost.toString()),
-                commission: parseFloat(c.commission.toString()),
+                driver_age: parseInt(c.driver_age),
+                cost: parseFloat(c.cost),
+                commission: parseFloat(c.commission),
               },
             ])
         ).values()
@@ -3457,15 +3460,15 @@ export const transactionRepo: TransactionRepo = {
       attraction_tickets: Array.from(
         new Map(
           (data?.attraction_tickets ?? [])
-            .filter((a) => a?.id)
-            .map((a) => [
+            .filter((a: any) => a?.id)
+            .map((a: any) => [
               a.id,
               {
                 ...a,
-                number_of_tickets: a.number_of_tickets,
+                number_of_tickets: parseInt(a.number_of_tickets),
                 date_of_visit: new Date(a.date_of_visit),
-                cost: parseFloat(a.cost.toString()),
-                commission: parseFloat(a.commission.toString()),
+                cost: parseFloat(a.cost),
+                commission: parseFloat(a.commission),
               },
             ])
         ).values()
@@ -3474,14 +3477,14 @@ export const transactionRepo: TransactionRepo = {
       lounge_pass: Array.from(
         new Map(
           (data?.lounge_pass ?? [])
-            .filter((l) => l?.id)
-            .map((l) => [
+            .filter((l: any) => l?.id)
+            .map((l: any) => [
               l.id,
               {
                 ...l,
                 date_of_usage: new Date(l.date_of_usage),
-                cost: parseFloat(l.cost.toString()),
-                commission: parseFloat(l.commission.toString()),
+                cost: parseFloat(l.cost),
+                commission: parseFloat(l.commission),
               },
             ])
         ).values()
@@ -3490,14 +3493,14 @@ export const transactionRepo: TransactionRepo = {
       airport_parking: Array.from(
         new Map(
           (data?.airport_parking ?? [])
-            .filter((a) => a?.id)
-            .map((a) => [
+            .filter((a: any) => a?.id)
+            .map((a: any) => [
               a.id,
               {
                 ...a,
                 parking_date: new Date(a.parking_date),
-                cost: parseFloat(a.cost.toString()),
-                commission: parseFloat(a.commission.toString()),
+                cost: parseFloat(a.cost),
+                commission: parseFloat(a.commission),
               },
             ])
         ).values()
@@ -3506,13 +3509,13 @@ export const transactionRepo: TransactionRepo = {
       flights: Array.from(
         new Map(
           (data?.flights ?? [])
-            .filter((f) => f?.id)
-            .map((f) => [
+            .filter((f: any) => f?.id)
+            .map((f: any) => [
               f.id,
               {
                 ...f,
-                cost: parseFloat(f.cost.toString()),
-                commission: parseFloat(f.commission.toString()),
+                cost: parseFloat(f.cost),
+                commission: parseFloat(f.commission),
                 departure_date_time: new Date(f.departure_date_time),
                 arrival_date_time: new Date(f.arrival_date_time),
               },

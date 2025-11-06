@@ -12,6 +12,7 @@ export const clientController = {
             const client = await service.fetchClientById(id);
             res.status(200).json(client);
         } catch (error) {
+            console.log(error);
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },

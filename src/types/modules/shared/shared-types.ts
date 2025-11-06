@@ -126,13 +126,14 @@ export const cruise_data = z.object({
     .optional(),
 });
 
+
 export const cruiseFields = z.object({
-  cruise_line: z.string().optional(),
-  cruise_ship: z.string().optional(),
-  cruise_date: z.date().optional(),
-  cabin_type: z.string().optional(),
-  cruise_name: z.string().optional(),
-  pre_cruise_stay: z.number().optional(),
+  cruise_line: z.nullable(z.string()).optional(),
+  cruise_ship: z.nullable(z.string()).optional(),
+  cruise_date: z.nullable(z.date()).optional(),
+  cabin_type: z.nullable(z.string()).optional(),
+  cruise_name: z.nullable(z.string()).optional(),
+  pre_cruise_stay: z.nullable(z.number()).optional(),
   post_cruise_stay: z.number().optional(),
   overall_commission: z.number(),
   overall_cost: z.number(),

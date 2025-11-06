@@ -349,8 +349,9 @@ export const transactionController = {
     try {
       const { client_id } = req.params;
       const all_deals = await service.fetchAllDeals(client_id);
-      res.status(200).json({ all_deals });
+      res.status(200).json(all_deals);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
