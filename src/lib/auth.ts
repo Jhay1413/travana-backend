@@ -26,6 +26,7 @@ const authConfig = {
     },
     autoSignInAfterVerification: true,
     sendOnSignUp: false,
+    
   },
   trustedOrigins: [
     "https://www.travana.app",
@@ -43,6 +44,7 @@ const authConfig = {
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
+    autoSignIn: false,
   },
   user: {
     additionalFields: {
