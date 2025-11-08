@@ -12,6 +12,7 @@ import ticketRoutes from './ticket.routes';
 import taskRoutes from './task.routes';
 import dashboardRoutes from './dashboard.routes';
 import chatRoutes from './chat.routes';
+import aiRoutes from './ai.routes';
 import { fromNodeHeaders } from 'better-auth/node';
 import { auth } from '../lib/auth';
 import authRoutes from './authRoutes';
@@ -22,7 +23,6 @@ import { ReferralService } from '../service/referrals.service';
 import { referralRepo } from '../repository/referrals.repo';
 
 
-const service = ReferralService(referralRepo);
 const router = Router();
 
 // API routes
@@ -41,6 +41,7 @@ router.use('/tasks', taskRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/chat', chatRoutes);
 router.use('/auth-options', authRoutes);
+router.use('/ai', aiRoutes);
 
 
 router.get('/org/list', async (req, res) => {

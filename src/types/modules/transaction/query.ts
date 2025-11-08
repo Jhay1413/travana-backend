@@ -302,3 +302,31 @@ export const StructuredScrapeDataSchema = z.object({
   airport_parking: StringRecordArray,
   lounge_pass: StringRecordArray,
 });
+
+
+
+
+// Travel Deal Schema - matches the JSON file format
+export const travelDealSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  subtitle: z.string().optional().default(""),
+  travelDate: z.string().min(1, "Travel date is required"),
+  nights: z.string().min(1, "Number of nights is required"),
+  boardBasis: z.string().min(1, "Board basis is required"),
+  departureAirport: z.string().min(1, "Departure airport is required"),
+  luggageTransfers: z.string().min(1, "Luggage & transfers info is required"),
+  price: z.string().optional().default(""),
+});
+
+export type TravelDeal = z.infer<typeof travelDealSchema>;
+
+// Response from the API after generating the post
+export interface GeneratedPostResponse {
+  id?:string;
+  post: string;
+  subtitle: string;
+  resortSummary: string;
+  hashtags: string;
+  deal: TravelDeal;
+  deal_images?: string[];
+}

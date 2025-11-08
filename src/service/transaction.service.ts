@@ -616,9 +616,12 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         for (const flight of data.flights) {
           const parsedDeparture = parse(flight.departure_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
           const parsedArrival = parse(flight.arrival_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+
+          const departing_airport = airports.data.find(ap => ap.airport_code.toLowerCase() === flight.departing_airport.toLowerCase());
           const flightData = {
             flight_number: flight.flight_number,
-            departing_airport_id: airports.data.find(ap => ap.airport_code.toLowerCase() === flight.departing_airport.toLowerCase())?.id || "",
+            departure_airport_name: departing_airport?.airport_name || "",
+            departing_airport_id: departing_airport?.id || "",
             arrival_airport_id: airports.data.find(ap => ap.airport_code.toLowerCase() === flight.arrival_airport.toLowerCase())?.id || "",
             departure_date_time: formatISO(parsedDeparture),
             arrival_date_time: formatISO(parsedArrival),

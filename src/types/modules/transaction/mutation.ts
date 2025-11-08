@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { clientMutationSchema } from '../client';
+import { travelDealSchema } from './query';
 
 export const enquiry_mutate_schema = z.object({
   id: z.nullable(z.string()).optional(),
@@ -301,6 +302,13 @@ export const quote_mutate_schema = z.object({
   referralId: z.nullable(z.string()).optional(),
   referrerId: z.nullable(z.string()).optional(),
   potentialCommission: z.nullable(z.number()).optional(),
+  travelDeal: z.nullable(z.object({
+    post: z.string(),
+    subtitle:z.string(),
+    resortSummary: z.string(),
+    hashtags: z.string(),
+    deal: travelDealSchema,
+  })).optional(),
 });
 
 export const requiredHolidayFields = quote_mutate_schema.merge(

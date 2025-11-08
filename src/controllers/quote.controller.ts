@@ -244,6 +244,14 @@ export const quoteController = {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
+  fetchTravelDeals: async (req: Request, res: Response) => {
+    try {
+      const deals = await service.fetchTravelDeals();
+      res.status(200).json(deals);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
 
 
   //   restoreQuote: async (req: Request, res: Response) => {

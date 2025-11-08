@@ -121,6 +121,9 @@ export const quoteService = (
           await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
         }
       }
+      if (data.travelDeal) {
+        await repo.insertTravelDeal(data.travelDeal, id!);
+      }
 
       return { id, transaction_id };
     },
@@ -264,5 +267,8 @@ export const quoteService = (
     unsetFutureDealDate: async (id: string, status?: string) => {
       return await repo.unsetFutureDealDate(id, status);
     },
+    fetchTravelDeals: async () => {
+      return await repo.fetchTravelDeals();
+    }
   };
 };

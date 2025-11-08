@@ -1,0 +1,1 @@
+ALTER TABLE "travel_deal" ADD COLUMN "post" text NOT NULL;

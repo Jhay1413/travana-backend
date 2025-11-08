@@ -16,6 +16,7 @@ import {
   quote_flights,
   quote_lounge_pass,
   quote_transfers,
+  travelDeal,
 } from '../schema/quote-schema';
 import { referral } from '../schema/referral-schema';
 import {
@@ -32,6 +33,7 @@ import {
   board_basis,
   cruise_extra_item,
   tour_operator,
+  deal_images,
 } from '../schema/transactions-schema';
 import { format } from 'date-fns';
 import {
@@ -44,7 +46,7 @@ import {
   quoteQuerySummarySchema,
   unionAllType,
 } from '../types/modules/quote/query';
-import { quoteChild, quoteTitleSchema } from '../types/modules/transaction';
+import { GeneratedPostResponse, quoteChild, quoteTitleSchema } from '../types/modules/transaction';
 import { quote_mutate_schema } from '../types/modules/transaction/mutation';
 import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne } from 'drizzle-orm';
 import z from 'zod';
@@ -175,6 +177,8 @@ export type QuoteRepo = {
   setFutureDealDate: (id: string, future_deal_date: string) => Promise<void>;
   unsetFutureDealDate: (id: string, status?: string) => Promise<void>;
   fetchHolidayTypeByQuoteId: (quote_id: string) => Promise<string | undefined>;
+  insertTravelDeal: (data: GeneratedPostResponse, quote_id: string) => Promise<void>;
+  fetchTravelDeals: () => Promise<GeneratedPostResponse[]>;
 };
 
 export const quoteRepo: QuoteRepo = {
@@ -3914,4 +3918,81 @@ export const quoteRepo: QuoteRepo = {
       throw new AppError('Something went wrong unsetting future deal', true, 500);
     }
   },
+  insertTravelDeal: async (data, quote_id) => {
+    const arr = data.hashtags.split(" ").map(word => word.replace("#", ""));
+    await db.insert(travelDeal).values({
+      post: data.post,
+      subtitle: data.subtitle,
+      resortSummary: data.resortSummary,
+      hashtags: arr,
+      title: data.deal.title,
+      travelDate: data.deal.travelDate,
+      nights: parseInt(data.deal.nights),
+      boardBasis: data.deal.boardBasis,
+      departureAirport: data.deal.departureAirport,
+      luggageTransfers: data.deal.luggageTransfers,
+      price: data.deal.price,
+      quote_id: quote_id,
+    });
+  },
+  fetchTravelDeals: async () => {
+    const response = await db.query.travelDeal.findMany({
+      with: {
+        quote: {
+          columns: {
+            id: true,
+          },
+          with: {
+            accomodation: {
+              where: (accom, { eq }) => eq(accom.is_primary, true),
+
+            }
+          }
+
+        }
+      },
+      orderBy: (deal, { desc }) => [desc(deal.created_at)],
+    });
+
+    const accomIds = response
+      .map(deal => deal.quote?.accomodation?.[0]?.accomodation_id)
+      .filter((id): id is string => !!id); // filter out undefined
+
+    const allImages = await db.query.deal_images.findMany({
+      where: accomIds.length > 0 ? inArray(deal_images.owner_id, accomIds) : undefined,
+    });
+
+    // Map images to their owner_id
+    const imagesMap = allImages.reduce<Record<string, string[]>>((acc, img) => {
+      if (!acc[img.owner_id]) acc[img.owner_id] = [];
+      acc[img.owner_id].push(img.image_url ?? " ");
+      return acc;
+    }, {});
+
+    console.log("Images Map:", accomIds);
+
+    // Attach images to each deal
+    return response.map(deal => {
+      const accomId = deal.quote?.accomodation?.[0]?.accomodation_id;
+      return {
+        ...deal,
+        hashtags: deal.hashtags && deal.hashtags.length > 0
+          ? deal.hashtags.map(tag => `#${tag}`).join(', ')
+          : " ",
+        resortSummary: deal.resortSummary || "N/A",
+        subtitle: deal.subtitle || "N/A",
+        deal: {
+          subtitle: deal.subtitle || "N/A",
+          title: deal.title,
+          travelDate: deal.travelDate!,
+          nights: deal.nights.toString(),
+          boardBasis: deal.boardBasis ?? 'N/A',
+          departureAirport: deal.departureAirport ?? 'N/A',
+          luggageTransfers: deal.luggageTransfers ?? 'N/A',
+          price: deal.price ?? "0",
+        },
+        deal_images: accomId ? imagesMap[accomId] ?? [] : [],
+      };
+    });
+  }
 };

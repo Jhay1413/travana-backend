@@ -10,6 +10,7 @@ router.post('/duplicate', quoteController.duplicateQuote);
 
 // Quote fetching
 router.get('/', quoteController.fetchQuotes);
+router.get('/travel-deals', quoteController.fetchTravelDeals);
 router.get('/summary/client/:id', quoteController.fetchQuoteSummaryByClient);
 router.get('/summary/agent/:agent_id', quoteController.fetchQuoteSummaryByAgent);
 router.get('/:id', quoteController.fetchQuoteById);

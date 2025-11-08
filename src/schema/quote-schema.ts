@@ -1,10 +1,11 @@
-import { relations } from 'drizzle-orm';
-import { boolean, date, integer, numeric, pgEnum, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { relations, sql } from 'drizzle-orm';
+import { boolean, date, integer, numeric, pgEnum, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { pgTable } from 'drizzle-orm/pg-core';
 import { accomodation_list, board_basis, cottages, cruise_extra_item, lodges, package_type, tour_operator, transaction } from './transactions-schema';
 import { airport } from './flights-schema';
 import { booking } from './booking-schema';
 import { usersTable } from './user-schema';
+import { array } from 'zod';
 
 export const quoteStatusEnum = pgEnum('quote_status', [
   'NEW_LEAD',
@@ -39,14 +40,14 @@ export const quote = pgTable('quote_table', {
   infant: integer(),
   child: integer(),
   adult: integer(),
-  title:varchar(),
+  title: varchar(),
   lodge_type: varchar(),
   transfer_type: varchar('transfer_type').default('none').notNull(),
   quote_status: quoteStatusEnum(),
   main_tour_operator_id: uuid().references(() => tour_operator.id),
   date_created: timestamp({ precision: 0, withTimezone: true }).defaultNow(),
   date_expiry: timestamp({ precision: 0, withTimezone: true }),
-  is_future_deal:boolean().default(false),
+  is_future_deal: boolean().default(false),
   future_deal_date: date({ mode: 'string' }),
   // Deletion tracking fields
   is_active: boolean().default(true),
@@ -79,6 +80,10 @@ export const quote_relation = relations(quote, ({ one, many }) => ({
   main_tour_operator: one(tour_operator, {
     fields: [quote.main_tour_operator_id],
     references: [tour_operator.id],
+  }),
+  travel_deal: one(travelDeal, {
+    fields: [quote.id],
+    references: [travelDeal.quote_id],
   }),
   passengers: many(passengers),
   accomodation: many(quote_accomodation),
@@ -392,5 +397,32 @@ export const quote_cruise_itinerary_relation = relations(quote_cruise_itinerary,
   quote_cruise: one(quote_cruise, {
     fields: [quote_cruise_itinerary.quote_cruise_id],
     references: [quote_cruise.id],
+  }),
+}));
+
+
+export const travelDeal = pgTable('travel_deal', {
+  id: uuid().defaultRandom().primaryKey(),
+  title: varchar().notNull(),
+  subtitle: varchar(),
+  post: text().notNull(),
+  resortSummary: varchar(),
+  hashtags: text().array().notNull().default(sql`ARRAY[]::text[]`),
+  travelDate: date({ mode: "string" }),
+  nights: integer().notNull(),
+  boardBasis: varchar(),
+  departureAirport: varchar(),
+  luggageTransfers: varchar(),
+  price: numeric('price', { precision: 10, scale: 2 }),
+  quote_id: uuid().references(() => quote.id, {
+    onDelete: 'cascade',
+  }).notNull(),
+  created_at: timestamp({ precision: 0, withTimezone: true }).defaultNow(),
+})
+
+export const travelDeal_relation = relations(travelDeal, ({ one, many }) => ({
+  quote: one(quote, {
+    fields: [travelDeal.quote_id],
+    references: [quote.id],
   }),
 }));

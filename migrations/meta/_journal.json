@@ -1338,6 +1338,27 @@
       "when": 1762154192307,
       "tag": "0190_normal_enchantress",
       "breakpoints": true
+    },
+    {
+      "idx": 191,
+      "version": "7",
+      "when": 1762571670287,
+      "tag": "0191_special_jackal",
+      "breakpoints": true
+    },
+    {
+      "idx": 192,
+      "version": "7",
+      "when": 1762572272855,
+      "tag": "0192_tan_thunderbolt_ross",
+      "breakpoints": true
+    },
+    {
+      "idx": 193,
+      "version": "7",
+      "when": 1762578455105,
+      "tag": "0193_familiar_vector",
+      "breakpoints": true
     }
   ]
 }
