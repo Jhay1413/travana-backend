@@ -102,6 +102,11 @@ export const quote_mutate_schema = z.object({
     .refine((val) => val === undefined || val !== 0, {
       message: 'Sales price cannot be 0',
     }),
+  price_per_person: z
+    .number()
+    .or(z.string())
+    .pipe(z.coerce.number())
+    .optional(),
   commission: z.number().optional(),
   discount: z.number().or(z.string()).pipe(z.coerce.number()).optional(),
   service_charge: z.number().or(z.string()).pipe(z.coerce.number()).optional(),
@@ -304,7 +309,7 @@ export const quote_mutate_schema = z.object({
   potentialCommission: z.nullable(z.number()).optional(),
   travelDeal: z.nullable(z.object({
     post: z.string(),
-    subtitle:z.string(),
+    subtitle: z.string(),
     resortSummary: z.string(),
     hashtags: z.string(),
     deal: travelDealSchema,

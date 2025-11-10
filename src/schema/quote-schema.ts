@@ -41,6 +41,7 @@ export const quote = pgTable('quote_table', {
   child: integer(),
   adult: integer(),
   title: varchar(),
+  price_per_person: numeric('price_per_person', { precision: 10, scale: 2 }).default("0.00").notNull(),
   lodge_type: varchar(),
   transfer_type: varchar('transfer_type').default('none').notNull(),
   quote_status: quoteStatusEnum(),

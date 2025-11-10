@@ -325,6 +325,8 @@ export interface GeneratedPostResponse {
   id?:string;
   post: string;
   subtitle: string;
+  clientId?: string;
+  quoteId?: string;
   resortSummary: string;
   hashtags: string;
   deal: TravelDeal;
