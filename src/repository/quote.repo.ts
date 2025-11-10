@@ -3979,7 +3979,6 @@ export const quoteRepo: QuoteRepo = {
       return acc;
     }, {});
 
-    console.log("Images Map:", accomIds);
 
     // Attach images to each deal
     return response.map(deal => {
