@@ -1,0 +1,1 @@
+ALTER TABLE "quote_table" ADD COLUMN "price_per_person" numeric(10, 2) DEFAULT '0.00' NOT NULL;

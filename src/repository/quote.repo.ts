@@ -611,6 +611,7 @@ export const quoteRepo: QuoteRepo = {
             infant: data.infants ? data.infants : 0,
             child: data.children ? data.children : 0,
             adult: data.adults ? data.adults : 0,
+            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
             lodge_type: data.lodge_type ? data.lodge_type : "N/A",
             date_expiry: date_expiry,
             is_future_deal: data.is_future_deal,
@@ -809,6 +810,7 @@ export const quoteRepo: QuoteRepo = {
             service_charge: data.service_charge?.toString() ?? '0',
             quote_type: 'secondary',
             sales_price: data.sales_price?.toString() ?? '0',
+            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
             package_commission: data.commission?.toString() ?? '0',
             num_of_nights: Number.isFinite(parseInt(data.no_of_nights ?? '0')) ? parseInt(data.no_of_nights ?? '0') : 0,
             transfer_type: data.transfer_type,
@@ -1014,6 +1016,7 @@ export const quoteRepo: QuoteRepo = {
             title: data.title,
             quote_ref: data.quote_ref,
             sales_price: data.sales_price?.toString() ?? '0',
+            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
             package_commission: data.commission?.toString() ?? '0',
             num_of_nights: data.no_of_nights ? parseInt(data.no_of_nights) : 0,
             transfer_type: data.transfer_type,
@@ -1223,6 +1226,7 @@ export const quoteRepo: QuoteRepo = {
             title: data.title,
             quote_ref: data.quote_ref,
             sales_price: data.sales_price?.toString() ?? '0',
+            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
             package_commission: data.commission?.toString() ?? '0',
             num_of_nights: data.no_of_nights ? parseInt(data.no_of_nights) : 0,
             transfer_type: data.transfer_type,
@@ -2936,6 +2940,7 @@ export const quoteRepo: QuoteRepo = {
             service_charge: data.service_charge ? data.service_charge.toString() : '0',
             quote_type: data.quote_type,
             sales_price: data.sales_price ? data.sales_price.toString() : '0',
+            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
             title: data.title,
             quote_ref: data.quote_ref,
             package_commission: data.commission ? data.commission.toString() : '0',
@@ -3186,6 +3191,7 @@ export const quoteRepo: QuoteRepo = {
             service_charge: data.service_charge ? data.service_charge.toString() : '0',
             quote_type: data.quote_type,
             sales_price: data.sales_price ? data.sales_price.toString() : '0',
+            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
             package_commission: data.commission ? data.commission.toString() : '0',
             num_of_nights: data.no_of_nights ? parseInt(data.no_of_nights) : 0,
             transfer_type: data.transfer_type,
@@ -3943,10 +3949,14 @@ export const quoteRepo: QuoteRepo = {
             id: true,
           },
           with: {
+            transaction: {
+              columns: {
+                client_id: true,
+              }
+            },
             accomodation: {
               where: (accom, { eq }) => eq(accom.is_primary, true),
-
-            }
+            },
           }
 
         }
@@ -3981,6 +3991,8 @@ export const quoteRepo: QuoteRepo = {
           : " ",
         resortSummary: deal.resortSummary || "N/A",
         subtitle: deal.subtitle || "N/A",
+        clientId: deal.quote?.transaction?.client_id || "N/A",
+        quoteId: deal.quote?.id || "N/A",
         deal: {
           subtitle: deal.subtitle || "N/A",
           title: deal.title,

@@ -1359,6 +1359,13 @@
       "when": 1762578455105,
       "tag": "0193_familiar_vector",
       "breakpoints": true
+    },
+    {
+      "idx": 194,
+      "version": "7",
+      "when": 1762771900498,
+      "tag": "0194_melted_starhawk",
+      "breakpoints": true
     }
   ]
 }
