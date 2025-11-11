@@ -3677,38 +3677,8 @@ export const quoteRepo: QuoteRepo = {
     try {
       const pageSize = limit || 10;
 
-      const query = db
-        .select({
-          id: quote.id,
-          holiday_type: package_type.name,
-          title: quote.title,
-          quote_ref: quote.quote_ref,
-          num_of_nights: quote.num_of_nights,
-          lodge_destination: park.city,
-          lodge_name: lodges.lodge_name,
-          country: country.country_name,
-          cottage_destination: cottages.location,
-          cruise_destination: quote_cruise.cruise_name,
-          holiday_destination: destination.name,
-          resort_name: resorts.name,
-          date_created: quote.date_created,
-          sales_price: quote.sales_price,
-          quote_status: quote.quote_status,
-        })
-        .from(quote)
-        .leftJoin(transaction, eq(quote.transaction_id, transaction.id))
-        .leftJoin(package_type, eq(quote.holiday_type_id, package_type.id))
-        .leftJoin(lodges, eq(quote.lodge_id, lodges.id))
-        .leftJoin(park, eq(lodges.park_id, park.id))
-        .leftJoin(cottages, eq(quote.cottage_id, cottages.id))
-        .leftJoin(quote_cruise, eq(quote_cruise.quote_id, quote.id))
-        .leftJoin(quote_accomodation, eq(quote_accomodation.quote_id, quote.id))
-        .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
-        .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
-        .leftJoin(destination, eq(resorts.destination_id, destination.id))
-        .leftJoin(country, eq(destination.country_id, country.id));
-
       const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
+
       const searchOrs = words.length
         ? words.map((word) =>
           or(
@@ -3732,40 +3702,95 @@ export const quoteRepo: QuoteRepo = {
         max_price ? lte(quote.sales_price, max_price) : undefined,
         start_date ? gte(quote.date_created, new Date(start_date)) : undefined,
         end_date ? lte(quote.date_created, new Date(end_date)) : undefined,
-        cursor ? gt(quote.id, cursor) : undefined, // Cursor-based pagination
+        cursor ? gt(quote.id, cursor) : undefined,
       ].filter(Boolean);
 
-      if (filters.length) {
-        query.where(and(...filters));
-      }
 
-      // Apply cursor-based pagination
-      query.orderBy(asc(quote.id)).limit(pageSize + 1); // Get one extra to check if there are more
+      const response = await db.query.quote.findMany({
+        where: and(
+          eq(quote.is_active, true),
+          ...filters // apply your dynamic filters here
+        ),
+        with: {
+          holiday_type: true,
+          accomodation: {
+            where: (accom, { eq }) => eq(accom.is_primary, true),
+            with: {
+              board_basis: true,
+              accomodation: true,
+            }
+          },
+          lodge: {
+            with: {
 
-      const response = await query;
+              park: true
+            }
+          },
+          cottage: true,
+          quote_cruise: true,
 
-      // Check if there are more items
+        },
+        orderBy: (quote, { desc }) => [desc(quote.date_created)],
+        limit: pageSize + 1, // fetch one extra item to determine if there's a next page
+      })
+
+      const accomIds = response
+        .map(deal => deal.accomodation?.[0]?.accomodation_id)
+        .filter((id): id is string => !!id); // filter out undefined
+
+      const allImages = await db.query.deal_images.findMany({
+        where: accomIds.length > 0 ? inArray(deal_images.owner_id, accomIds) : undefined,
+      });
+      const imagesMap = allImages.reduce<Record<string, string[]>>((acc, img) => {
+        if (!acc[img.owner_id]) acc[img.owner_id] = [];
+        acc[img.owner_id].push(img.image_url ?? " ");
+        return acc;
+      }, {});
+
+
       const hasMore = response.length > pageSize;
       const data = hasMore ? response.slice(0, pageSize) : response;
       const nextCursor = hasMore ? data[data.length - 1]?.id : null;
 
+
+      const payload = response.map(data => {
+        const accomId = data.accomodation?.[0]?.accomodation_id;
+
+        const destination =
+          data.lodge?.lodge_name ??
+          data.cottage?.location ??
+          data.quote_cruise?.cruise_name ??
+          data.accomodation?.[0]?.accomodation?.name
+
+        return {
+          id: data.id,
+          holiday_type: data.holiday_type?.name,
+          travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : null,
+          title: data.title,
+          quote_ref: data.quote_ref,
+          num_of_nights: data.num_of_nights.toString(),
+          lodge_destination: data.lodge?.park?.city ?? null,
+          lodge_name: data.lodge?.lodge_name ?? null,
+          country: null,
+          cottage_destination: data.cottage?.location ?? null,
+          cruise_destination: data.quote_cruise?.cruise_name ?? null,
+          holiday_destination: data.accomodation?.[0]?.accomodation?.name ?? null,
+          resort_name: null,
+          date_created: new Date(data.date_created!).toISOString(),
+          price_per_person: parseFloat(data.price_per_person),
+          quote_status: data.quote_status,
+          board_basis: data.accomodation?.[0]?.board_basis?.type ?? null,
+          deal_images: accomId ? imagesMap[accomId] ?? [] : [],
+          destination: destination ?? "No Destination",
+        }
+      })
+
       return {
-        data: data.map((quote) => ({
-          ...quote,
-          date_created: new Date(quote.date_created!).toISOString(),
-          num_of_nights: quote.num_of_nights.toString() || '0',
-          destination: quote.holiday_destination
-            ? [quote.country, quote.holiday_destination, quote.resort_name].filter(Boolean).join(', ')
-            : quote.lodge_name
-              ? [quote.lodge_name, quote.lodge_destination].filter(Boolean).join(', ')
-              : quote.cruise_destination
-                ? quote.cruise_destination
-                : '',
-          sales_price: parseFloat(quote.sales_price as string),
-        })),
+        data: payload,
         nextCursor,
         hasMore,
-      };
+      }
+
     } catch (error) {
       console.log(error);
       throw new AppError('Something went wrong fetching free quotes', true, 500);
@@ -3956,7 +3981,20 @@ export const quoteRepo: QuoteRepo = {
             },
             accomodation: {
               where: (accom, { eq }) => eq(accom.is_primary, true),
+              with: {
+                board_basis: true,
+                accomodation: true,
+              }
             },
+            lodge: {
+              with: {
+
+                park: true
+              }
+            },
+            cottage: true,
+            quote_cruise: true,
+
           }
 
         }
@@ -3983,6 +4021,11 @@ export const quoteRepo: QuoteRepo = {
     // Attach images to each deal
     return response.map(deal => {
       const accomId = deal.quote?.accomodation?.[0]?.accomodation_id;
+      const destination =
+        deal.quote?.lodge?.lodge_name ??
+        deal.quote?.cottage?.location ??
+        deal.quote?.quote_cruise?.cruise_name ??
+        deal.quote?.accomodation?.[0]?.accomodation?.name
       return {
         ...deal,
         hashtags: deal.hashtags && deal.hashtags.length > 0
@@ -3992,6 +4035,7 @@ export const quoteRepo: QuoteRepo = {
         subtitle: deal.subtitle || "N/A",
         clientId: deal.quote?.transaction?.client_id || "N/A",
         quoteId: deal.quote?.id || "N/A",
+        destination: destination || "No Destination",
         deal: {
           subtitle: deal.subtitle || "N/A",
           title: deal.title,
