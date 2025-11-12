@@ -209,7 +209,7 @@ export const quoteController = {
         cursor,
         num_limit
       );
-      res.status(200).json({ quote });
+      res.status(200).json( quote );
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }

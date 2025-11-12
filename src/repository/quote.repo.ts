@@ -3689,11 +3689,15 @@ export const quoteRepo: QuoteRepo = {
           country: country.country_name,
           cottage_destination: cottages.location,
           cruise_destination: quote_cruise.cruise_name,
-          holiday_destination: destination.name,
+          holiday_destination: accomodation_list.name,
+          accomodation_id: quote_accomodation.accomodation_id,
           resort_name: resorts.name,
           date_created: quote.date_created,
           sales_price: quote.sales_price,
           quote_status: quote.quote_status,
+          price_per_person: quote.price_per_person,
+          board_basis:board_basis.type,
+          travel_date: quote.travel_date,
         })
         .from(quote)
         .leftJoin(transaction, eq(quote.transaction_id, transaction.id))
@@ -3703,6 +3707,7 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(cottages, eq(quote.cottage_id, cottages.id))
         .leftJoin(quote_cruise, eq(quote_cruise.quote_id, quote.id))
         .leftJoin(quote_accomodation, eq(quote_accomodation.quote_id, quote.id))
+        .leftJoin(board_basis, eq(quote_accomodation.board_basis_id, board_basis.id))
         .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
         .leftJoin(destination, eq(resorts.destination_id, destination.id))
@@ -3736,7 +3741,7 @@ export const quoteRepo: QuoteRepo = {
       ].filter(Boolean);
 
       if (filters.length) {
-        query.where(and(...filters));
+        query.where(and(eq(quote_accomodation.is_primary, true), ...filters));
       }
 
       // Apply cursor-based pagination
@@ -3744,28 +3749,63 @@ export const quoteRepo: QuoteRepo = {
 
       const response = await query;
 
-      // Check if there are more items
+
+      const accomIds = response
+        .map(deal => deal.accomodation_id)
+        .filter((id): id is string => !!id); // filter out undefined
+
+      const allImages = await db.query.deal_images.findMany({
+        where: accomIds.length > 0 ? inArray(deal_images.owner_id, accomIds) : undefined,
+      });
+      const imagesMap = allImages.reduce<Record<string, string[]>>((acc, img) => {
+        if (!acc[img.owner_id]) acc[img.owner_id] = [];
+        acc[img.owner_id].push(img.image_url ?? " ");
+        return acc;
+      }, {});
+
+
       const hasMore = response.length > pageSize;
       const data = hasMore ? response.slice(0, pageSize) : response;
       const nextCursor = hasMore ? data[data.length - 1]?.id : null;
 
+
+      const payload = response.map(data => {
+        const accomId = data.accomodation_id;
+
+        const destination =
+          data.lodge_destination ??
+          data.cottage_destination ??
+          data.cruise_destination ??
+          data.holiday_destination;
+        return {
+          id: data.id,
+          travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : null,
+          title: data.title,
+          holiday_type: data.holiday_type,
+          quote_ref: data.quote_ref,
+          num_of_nights: data.num_of_nights.toString(),
+          lodge_destination: data.lodge_destination ?? null,
+          lodge_name: data.lodge_name ?? null,
+          country: null,
+          cottage_destination: data.cottage_destination ?? null,
+          cruise_destination: data.cruise_destination ?? null,
+          holiday_destination: data.holiday_destination ?? null,
+          resort_name: null,
+          date_created: new Date(data.date_created!).toISOString(),
+          price_per_person: parseFloat(data.price_per_person),
+          quote_status: data.quote_status,
+          board_basis: data.board_basis ?? null,
+          deal_images: accomId ? imagesMap[accomId] ?? [] : [],
+          destination: destination ?? "No Destination",
+        }
+      })
+
       return {
-        data: data.map((quote) => ({
-          ...quote,
-          date_created: new Date(quote.date_created!).toISOString(),
-          num_of_nights: quote.num_of_nights.toString() || '0',
-          destination: quote.holiday_destination
-            ? [quote.country, quote.holiday_destination, quote.resort_name].filter(Boolean).join(', ')
-            : quote.lodge_name
-              ? [quote.lodge_name, quote.lodge_destination].filter(Boolean).join(', ')
-              : quote.cruise_destination
-                ? quote.cruise_destination
-                : '',
-          sales_price: parseFloat(quote.sales_price as string),
-        })),
+        data: payload,
         nextCursor,
         hasMore,
-      };
+      }
+
     } catch (error) {
       console.log(error);
       throw new AppError('Something went wrong fetching free quotes', true, 500);
@@ -3956,7 +3996,20 @@ export const quoteRepo: QuoteRepo = {
             },
             accomodation: {
               where: (accom, { eq }) => eq(accom.is_primary, true),
+              with: {
+                board_basis: true,
+                accomodation: true,
+              }
             },
+            lodge: {
+              with: {
+
+                park: true
+              }
+            },
+            cottage: true,
+            quote_cruise: true,
+
           }
 
         }
@@ -3983,6 +4036,11 @@ export const quoteRepo: QuoteRepo = {
     // Attach images to each deal
     return response.map(deal => {
       const accomId = deal.quote?.accomodation?.[0]?.accomodation_id;
+      const destination =
+        deal.quote?.lodge?.lodge_name ??
+        deal.quote?.cottage?.location ??
+        deal.quote?.quote_cruise?.cruise_name ??
+        deal.quote?.accomodation?.[0]?.accomodation?.name
       return {
         ...deal,
         hashtags: deal.hashtags && deal.hashtags.length > 0
@@ -3992,6 +4050,7 @@ export const quoteRepo: QuoteRepo = {
         subtitle: deal.subtitle || "N/A",
         clientId: deal.quote?.transaction?.client_id || "N/A",
         quoteId: deal.quote?.id || "N/A",
+        destination: destination || "No Destination",
         deal: {
           subtitle: deal.subtitle || "N/A",
           title: deal.title,

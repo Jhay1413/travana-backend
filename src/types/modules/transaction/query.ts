@@ -322,13 +322,14 @@ export type TravelDeal = z.infer<typeof travelDealSchema>;
 
 // Response from the API after generating the post
 export interface GeneratedPostResponse {
-  id?:string;
+  id?: string;
   post: string;
   subtitle: string;
   clientId?: string;
   quoteId?: string;
   resortSummary: string;
   hashtags: string;
+  destination?: string;
   deal: TravelDeal;
   deal_images?: string[];
 }
