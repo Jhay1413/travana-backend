@@ -43,7 +43,7 @@ export const transaction = pgTable('transaction', {
     .primaryKey(),
   status: transactionStatusEnum(),
   is_active: boolean().default(true),
-  client_id: uuid().references(() => clientTable.id).notNull(),
+  client_id: uuid().references(() => clientTable.id),
   holiday_type_id: uuid().references(() => package_type.id),
   created_at: timestamp({ mode: 'string' }).notNull().defaultNow(),
   agent_id: uuid().references(() => usersTable.id),

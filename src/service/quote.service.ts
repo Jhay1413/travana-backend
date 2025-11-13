@@ -30,6 +30,8 @@ export const quoteService = (
       // if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
       let id: string | undefined;
+      if (!data.client_id) throw new AppError('Client ID is required', true, 400);
+
 
       if (data.holiday_type_name === 'Cruise Package') {
         const result = await repo.convertQuoteCruise(transaction_id, data);
@@ -99,6 +101,7 @@ export const quoteService = (
 
       }
 
+      if (!data.client_id) return { id, transaction_id };
 
       const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
       if (transaction_id && referrer && referrer.referrerId) {

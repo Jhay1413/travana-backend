@@ -598,6 +598,7 @@ export const quoteRepo: QuoteRepo = {
             title: data.title,
             quote_ref: data.quote_ref,
             isQuoteCopy: data.isQuoteCopy ?? false,
+            isFreeQuote: data.isFreeQuote ?? false,
             transaction_id: transaction_id.id,
             travel_date: data.travel_date,
             discounts: data.discount?.toString() ?? '0',
@@ -1484,7 +1485,7 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
         .leftJoin(destination, eq(resorts.destination_id, destination.id))
-        .where(and(eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
+        .where(and(eq(quote.isFreeQuote, false), eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
         .groupBy(
           quote.id,
           quote.transaction_id,
@@ -1606,11 +1607,11 @@ export const quoteRepo: QuoteRepo = {
         .orderBy(desc(quote.date_created));
 
       if (!isFetchAll && agent?.role === 'manager' && agentIdToFetch) {
-        query.where(and(eq(transaction.user_id, agentIdToFetch), eq(transaction.status, 'on_quote'), ne(quote.quote_status, 'LOST')));
+        query.where(and(eq(quote.isFreeQuote, false), eq(transaction.user_id, agentIdToFetch), eq(transaction.status, 'on_quote'), ne(quote.quote_status, 'LOST')));
       } else if (isFetchAll && agent?.role === 'manager') {
-        query.where(and(eq(transaction.status, 'on_quote'), eq(quote.quote_type, 'primary'), ne(quote.quote_status, 'LOST')));
+        query.where(and(eq(quote.isFreeQuote, false), eq(transaction.status, 'on_quote'), eq(quote.quote_type, 'primary'), ne(quote.quote_status, 'LOST')));
       } else {
-        query.where(and(eq(transaction.user_id, agent_id), eq(transaction.status, 'on_quote'), ne(quote.quote_status, 'LOST')));
+        query.where(and(eq(quote.isFreeQuote, false), eq(transaction.user_id, agent_id), eq(transaction.status, 'on_quote'), ne(quote.quote_status, 'LOST')));
       }
 
       const response = await query;
@@ -1959,7 +1960,7 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(referral, eq(transaction.id, referral.transactionId))
         .leftJoin(userReferrer, eq(referral.referrerId, userReferrer.id))
         .innerJoin(agentTable, eq(transaction.user_id, agentTable.id))
-        .innerJoin(clientTable, eq(transaction.client_id, clientTable.id))
+        .leftJoin(clientTable, eq(transaction.client_id, clientTable.id))
         .innerJoin(package_type, eq(quote.holiday_type_id, package_type.id))
         .leftJoin(quote_accomodation, eq(quote.id, quote_accomodation.quote_id))
         .leftJoin(quote_transfers, eq(quote.id, quote_transfers.quote_id))
@@ -2010,7 +2011,6 @@ export const quoteRepo: QuoteRepo = {
       const referrals = Array.from(new Map((data?.referrals ?? []).filter((r: any) => r?.id).map((r: any) => [r.id, { ...r, id: r.id }])).values()) || [];
       const percentageComission = referrals.reduce((acc: number, curr: any) => acc + parseFloat(curr.commission), 0);
 
-      console.log(data.post_cruise_stay)
       const payload = {
         ...data,
         cruise_date: data?.cruise_date ? new Date(data.cruise_date) : null,
@@ -3342,7 +3342,7 @@ export const quoteRepo: QuoteRepo = {
 
       // Build filter conditions
       const filterConditions = [];
-
+      filterConditions.push(eq(quote.isFreeQuote, false));
       // Base condition - filter by active quotes (unless is_active filter is provided)
       if (filters?.is_active !== undefined) {
         filterConditions.push(eq(quote.is_active, filters.is_active));
@@ -3752,7 +3752,7 @@ export const quoteRepo: QuoteRepo = {
         query.where(and(...baseConditions));
       }
       // Apply cursor-based pagination
-      query.orderBy(asc(quote.id)).limit(pageSize + 1); // Get one extra to check if there are more
+      query.orderBy(desc(quote.date_created), asc(quote.id)).limit(pageSize + 1);
 
       const response = await query;
 
