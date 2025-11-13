@@ -597,12 +597,14 @@ export const quoteRepo: QuoteRepo = {
             cottage_id: data.cottage_id,
             title: data.title,
             quote_ref: data.quote_ref,
+            isQuoteCopy: data.isQuoteCopy ?? false,
             transaction_id: transaction_id.id,
             travel_date: data.travel_date,
             discounts: data.discount?.toString() ?? '0',
             service_charge: data.service_charge?.toString() ?? '0',
             quote_type: 'primary',
             sales_price: data.sales_price?.toString() ?? '0',
+
             package_commission: data.commission?.toString() ?? '0',
             num_of_nights: Number.isFinite(parseInt(data.no_of_nights ?? '0')) ? parseInt(data.no_of_nights ?? '0') : 0,
             transfer_type: data.transfer_type,
@@ -3696,7 +3698,7 @@ export const quoteRepo: QuoteRepo = {
           sales_price: quote.sales_price,
           quote_status: quote.quote_status,
           price_per_person: quote.price_per_person,
-          board_basis:board_basis.type,
+          board_basis: board_basis.type,
           travel_date: quote.travel_date,
         })
         .from(quote)
@@ -3714,6 +3716,7 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(country, eq(destination.country_id, country.id));
 
       const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
+
       const searchOrs = words.length
         ? words.map((word) =>
           or(
@@ -3737,13 +3740,17 @@ export const quoteRepo: QuoteRepo = {
         max_price ? lte(quote.sales_price, max_price) : undefined,
         start_date ? gte(quote.date_created, new Date(start_date)) : undefined,
         end_date ? lte(quote.date_created, new Date(end_date)) : undefined,
-        cursor ? gt(quote.id, cursor) : undefined, // Cursor-based pagination
+        cursor ? gt(quote.id, cursor) : undefined, // cursor-based pagination
       ].filter(Boolean);
 
-      if (filters.length) {
-        query.where(and(eq(quote_accomodation.is_primary, true), ...filters));
-      }
+      // ✅ Always include base conditions
+      const baseConditions = [eq(quote_accomodation.is_primary, true), eq(quote.isQuoteCopy, false)];
 
+      if (filters.length) {
+        query.where(and(...baseConditions, ...filters));
+      } else {
+        query.where(and(...baseConditions));
+      }
       // Apply cursor-based pagination
       query.orderBy(asc(quote.id)).limit(pageSize + 1); // Get one extra to check if there are more
 

@@ -87,6 +87,7 @@ export const deal_images = z.object({
 })
 export const quote_mutate_schema = z.object({
   quote_id: z.string().optional(),
+  isQuoteCopy: z.boolean().optional(),
   lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
   title: z.nullable(z.string()).optional(),
   quote_ref: z.nullable(z.string()).optional(),

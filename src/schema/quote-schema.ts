@@ -56,6 +56,7 @@ export const quote = pgTable('quote_table', {
   deleted_by: uuid().references(() => usersTable.id),
   deleted_at: timestamp({ precision: 0, withTimezone: true }),
   quote_ref: varchar(),
+  isQuoteCopy: boolean().default(false),
 });
 export const quote_relation = relations(quote, ({ one, many }) => ({
   quote_cruise: one(quote_cruise, {
