@@ -100,7 +100,9 @@ export const quoteService = (
         }
 
       }
-
+      if (data.travelDeal) {
+        await repo.insertTravelDeal(data.travelDeal, id!);
+      }
       if (!data.client_id) return { id, transaction_id };
 
       const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
@@ -124,9 +126,7 @@ export const quoteService = (
           await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
         }
       }
-      if (data.travelDeal) {
-        await repo.insertTravelDeal(data.travelDeal, id!);
-      }
+
 
       return { id, transaction_id };
     },
