@@ -270,8 +270,16 @@ export const quoteService = (
     unsetFutureDealDate: async (id: string, status?: string) => {
       return await repo.unsetFutureDealDate(id, status);
     },
-    fetchTravelDeals: async () => {
-      return await repo.fetchTravelDeals();
+    fetchTravelDeals: async (search?: string,
+      country_id?: string,
+      package_type_id?: string,
+      min_price?: string,
+      max_price?: string,
+      start_date?: string,
+      end_date?: string,
+      cursor?: string,
+      limit?: number) => {
+      return await repo.fetchTravelDeals(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
     }
   };
 };

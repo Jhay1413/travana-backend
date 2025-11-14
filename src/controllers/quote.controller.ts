@@ -209,7 +209,7 @@ export const quoteController = {
         cursor,
         num_limit
       );
-      res.status(200).json( quote );
+      res.status(200).json(quote);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -246,9 +246,30 @@ export const quoteController = {
   },
   fetchTravelDeals: async (req: Request, res: Response) => {
     try {
-      const deals = await service.fetchTravelDeals();
+      const { search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit } = req.query as {
+        search?: string;
+        country_id?: string;
+        package_type_id?: string;
+        min_price?: string;
+        max_price?: string;
+        start_date?: string;
+        end_date?: string;
+        cursor?: string;
+        limit?: string;
+      };
+      const num_limit = limit ? Number(limit) : 10;
+      const deals = await service.fetchTravelDeals(search,
+        country_id,
+        package_type_id,
+        min_price,
+        max_price,
+        start_date,
+        end_date,
+        cursor,
+        num_limit);
       res.status(200).json(deals);
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
