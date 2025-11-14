@@ -9,8 +9,9 @@ import { authRepo } from '../repository/auth.repo';
 import { referralRepo } from '../repository/referrals.repo';
 import { Request, Response } from 'express';
 import { transactionRepo } from '../repository/transaction.repo';
-
-const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo);
+import { AiService } from '../service/ai.service';
+export const aiService = AiService(); // singleton instance
+const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService);
 
 export const quoteController = {
   convertQuote: async (req: Request, res: Response) => {
@@ -268,6 +269,20 @@ export const quoteController = {
         cursor,
         num_limit);
       res.status(200).json(deals);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  generatePostContent: async (req: Request, res: Response) => {
+    try {
+      const { quoteDetails } = req.body;
+      const { id } = req.params;
+      const postContent = await service.generatePostContent(quoteDetails, id);
+      res.status(200).json({
+        message: 'Post content generated successfully',
+        postContent
+      });
     } catch (error) {
       console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });

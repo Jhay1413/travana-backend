@@ -35,7 +35,7 @@ import {
   tour_operator,
   deal_images,
 } from '../schema/transactions-schema';
-import { format } from 'date-fns';
+import { format, sub } from 'date-fns';
 import {
   freeQuoteListQuerySchema,
   quoteBasedSchema,
@@ -47,11 +47,12 @@ import {
   unionAllType,
 } from '../types/modules/quote/query';
 import { GeneratedPostResponse, quoteChild, quoteTitleSchema } from '../types/modules/transaction';
-import { quote_mutate_schema } from '../types/modules/transaction/mutation';
+import { quote_mutate_schema, travelDealType } from '../types/modules/transaction/mutation';
 import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne } from 'drizzle-orm';
 import z from 'zod';
 import { dataValidator } from '../helpers/data-validator';
 import { airport } from '../schema/flights-schema';
+import { de } from 'zod/v4/locales';
 
 export type QuoteRepo = {
   fetchHolidayTypeById: (quote_id: string) => Promise<string>;
@@ -3696,6 +3697,15 @@ export const quoteRepo: QuoteRepo = {
   fetchFreeQuotesInfinite: async (search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit) => {
     try {
       const pageSize = limit || 10;
+      const departureQuery = db
+        .select({
+          id: quote_flights.quote_id,
+          airport_name: airport.airport_name,
+        })
+        .from(quote_flights)
+        .leftJoin(airport, eq(quote_flights.departing_airport_id, airport.id))
+        .orderBy(asc(quote_flights.departure_date_time))
+        .limit(1).as('departureQuery');
 
       const query = db
         .select({
@@ -3718,6 +3728,9 @@ export const quoteRepo: QuoteRepo = {
           price_per_person: quote.price_per_person,
           board_basis: board_basis.type,
           travel_date: quote.travel_date,
+          departure_airport: departureQuery.airport_name,
+          transfers: quote.transfer_type,
+          postCount: db.$count(travelDeal, eq(travelDeal.quote_id, quote.id))
         })
         .from(quote)
         .leftJoin(transaction, eq(quote.transaction_id, transaction.id))
@@ -3731,7 +3744,8 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
         .leftJoin(destination, eq(resorts.destination_id, destination.id))
-        .leftJoin(country, eq(destination.country_id, country.id));
+        .leftJoin(country, eq(destination.country_id, country.id))
+        .leftJoin(departureQuery, eq(quote.id, departureQuery.id))
 
       const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
 
@@ -3814,6 +3828,9 @@ export const quoteRepo: QuoteRepo = {
           data.holiday_destination;
         return {
           id: data.id,
+          departureAirport: data.departure_airport ?? 'N/A',
+          hasPost: data.postCount > 0,
+          luggageTransfers: data.transfers ?? 'N/A',
           travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : null,
           title: data.title,
           holiday_type: data.holiday_type,
@@ -4187,6 +4204,7 @@ export const quoteRepo: QuoteRepo = {
       console.log(error);
       throw new AppError('Something went wrong fetching travel deals', true, 500);
     }
-  }
+  },
+ 
 
 };

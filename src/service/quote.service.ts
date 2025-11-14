@@ -11,6 +11,11 @@ import { AuthRepo } from '../repository/auth.repo';
 import { ReferralRepo } from '../repository/referrals.repo';
 import { TransactionRepo } from '../repository/transaction.repo';
 import { transaction } from '@/schema/transactions-schema';
+import { AiService } from './ai.service';
+import { th } from 'zod/v4/locales';
+import { parsedInput } from '../lib/parsedInput';
+import { travelDealSchema } from '../types/modules/transaction';
+import { formatPost } from '../lib/formatPost';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -21,7 +26,9 @@ export const quoteService = (
   notificationProvider: NotificationProvider,
   authRepo: AuthRepo,
   referralRepo: ReferralRepo,
-  transactionRepo: TransactionRepo
+  transactionRepo: TransactionRepo,
+  aiService: ReturnType<typeof AiService> // ✅ inject here
+
 ) => {
   return {
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
@@ -313,6 +320,47 @@ export const quoteService = (
       cursor?: string,
       limit?: number) => {
       return await repo.fetchTravelDeals(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
+    },
+
+    generatePostContent: async (quoteDetails: string, quote_id: string) => {
+      if (!quoteDetails || typeof quoteDetails !== 'string') {
+        throw new AppError('Invalid quote details provided.', true, 400);
+      }
+      const parsedData = parsedInput(quoteDetails);
+
+      const validationResult = travelDealSchema.safeParse(parsedData);
+      if (!validationResult.success) {
+        const errors = validationResult.error
+        throw new AppError(`Invalid quote details: ${errors.message}`, true, 400);
+      }
+
+      const result = validationResult.data;
+      // Extract destination from title (everything before common separators like -, |, :)
+      const destination = result.title.split(/[-|:]/)[0].trim() || result.title;
+
+      // Generate subtitle if it's empty, and generate resort summary and hashtags in parallel
+      let subtitle = result.subtitle || "";
+
+      // Run AI calls in parallel for better performance
+      const [generatedSubtitle, resortSummary, hashtags] = await Promise.all([
+        subtitle ? Promise.resolve(subtitle) : aiService.generateSubtitle(result.title),
+        aiService.generateResortSummary(result.title),
+        aiService.generateHashtags(result.title, destination)
+      ]);
+
+      subtitle = generatedSubtitle;
+
+      // Format the post
+      const post = formatPost(result, subtitle, resortSummary, hashtags);
+
+      const dealToInsert = {
+        post,
+        subtitle,
+        resortSummary,
+        hashtags,
+        deal: result
+      }
+      return await repo.insertTravelDeal(dealToInsert, quote_id)
     }
   };
-};
+}

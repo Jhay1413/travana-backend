@@ -144,6 +144,9 @@ export const freeQuoteListQuerySchema = z.object({
   quote_status: z.string().nullable(),
   date_created: z.string(),
   price_per_person: z.number(),
+  departureAirport: z.string(),
+  luggageTransfers: z.string(),
+  hasPost: z.boolean().optional(),
 });
 export const quoteQueryResultSchema = z.object({});
 export const quoteCruiseQuerySchema = quoteBasedSchema.merge(cruiseFields);
