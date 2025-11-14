@@ -3756,23 +3756,25 @@ export const quoteRepo: QuoteRepo = {
         country_id ? eq(country.id, country_id) : undefined,
         min_price ? gte(quote.sales_price, min_price) : undefined,
         max_price ? lte(quote.sales_price, max_price) : undefined,
-        start_date ? gte(quote.date_created, new Date(start_date)) : undefined,
-        end_date ? lte(quote.date_created, new Date(end_date)) : undefined,
+        start_date ? gte(quote.travel_date, format(new Date(start_date), "yyyy-MM-dd")) : undefined,
+        end_date ? lte(quote.travel_date, format(new Date(end_date), "yyyy-MM-dd")) : undefined,
         cursor ? gt(quote.id, cursor) : undefined, // cursor-based pagination
       ].filter(Boolean);
 
       // ✅ Always include base conditions
       const baseConditions = [eq(quote_accomodation.is_primary, true), eq(quote.isQuoteCopy, false)];
+      const whereClause = filters.length
+        ? and(...baseConditions, ...filters)
+        : and(...baseConditions);
+      const primaryOrder = (start_date || end_date)
+        ? asc(quote.travel_date)        // sort by travel_date if filtering by date
+        : desc(quote.date_created);     // default sort
 
-      if (filters.length) {
-        query.where(and(...baseConditions, ...filters));
-      } else {
-        query.where(and(...baseConditions));
-      }
-      // Apply cursor-based pagination
-      query.orderBy(desc(quote.date_created), asc(quote.id)).limit(pageSize + 1);
-
-      const response = await query;
+      // Apply query with cursor-based pagination and tie-breaker
+      const response = await query
+        .where(whereClause)
+        .orderBy(primaryOrder, asc(quote.id)) // tie-breaker for consistent pagination
+        .limit(pageSize + 1);
 
 
       const accomIds = response
@@ -4015,172 +4017,176 @@ export const quoteRepo: QuoteRepo = {
     });
   },
   fetchTravelDeals: async (search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit) => {
+    try {
 
+      const query = db.select({
+        id: travelDeal.id,
+        hashtags: travelDeal.hashtags,
+        resortSummary: travelDeal.resortSummary,
+        subtitle: travelDeal.subtitle,
+        clientId: transaction.client_id,
+        quoteId: quote.id,
+        title: travelDeal.title,
+        lodge_name: lodges.lodge_name,
+        cottage_location: cottages.location,
+        cruise_name: quote_cruise.cruise_name,
+        accomodation_name: accomodation_list.name,
+        subTitle: travelDeal.subtitle,
+        travelDate: quote.travel_date,
+        nights: travelDeal.nights,
+        post: travelDeal.post,
+        boardBasis: travelDeal.boardBasis,
+        departureAirport: travelDeal.departureAirport,
+        luggageTransfers: travelDeal.luggageTransfers,
+        accomodation_id: quote_accomodation.accomodation_id,
+        price: travelDeal.price,
+      }).from(travelDeal)
+        .innerJoin(quote, eq(travelDeal.quote_id, quote.id))
+        .innerJoin(transaction, eq(quote.transaction_id, transaction.id))
+        .leftJoin(quote_accomodation, and(eq(quote_accomodation.quote_id, quote.id), eq(quote_accomodation.is_primary, true)))
+        .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
+        .leftJoin(lodges, eq(quote.lodge_id, lodges.id))
+        .leftJoin(cottages, eq(quote.cottage_id, cottages.id))
+        .leftJoin(quote_cruise, eq(quote_cruise.quote_id, quote.id))
+        .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
+        .leftJoin(destination, eq(resorts.destination_id, destination.id))
+        .leftJoin(country, eq(destination.country_id, country.id))
 
-    const query = db.select({
-      id: travelDeal.id,
-      hashtags: travelDeal.hashtags,
-      resortSummary: travelDeal.resortSummary,
-      subtitle: travelDeal.subtitle,
-      clientId: transaction.client_id,
-      quoteId: quote.id,
-      title: travelDeal.title,
-      lodge_name: lodges.lodge_name,
-      cottage_location: cottages.location,
-      cruise_name: quote_cruise.cruise_name,
-      accomodation_name: accomodation_list.name,
-      subTitle: travelDeal.subtitle,
-      travelDate: travelDeal.travelDate,
-      nights: travelDeal.nights,
-      post: travelDeal.post,
-      boardBasis: travelDeal.boardBasis,
-      departureAirport: travelDeal.departureAirport,
-      luggageTransfers: travelDeal.luggageTransfers,
-      accomodation_id: quote_accomodation.accomodation_id,
-      price: travelDeal.price,
-    }).from(travelDeal).innerJoin(quote, eq(travelDeal.quote_id, quote.id))
-      .innerJoin(transaction, eq(quote.transaction_id, transaction.id))
-      .leftJoin(quote_accomodation, and(eq(quote_accomodation.quote_id, quote.id), eq(quote_accomodation.is_primary, true)))
-      .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
-      .leftJoin(lodges, eq(quote.lodge_id, lodges.id))
-      .leftJoin(cottages, eq(quote.cottage_id, cottages.id))
-      .leftJoin(quote_cruise, eq(quote_cruise.quote_id, quote.id)).orderBy(desc(travelDeal.created_at))
-      .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
-      .leftJoin(destination, eq(resorts.destination_id, destination.id))
-      .leftJoin(country, eq(destination.country_id, country.id))
+      const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
 
-    const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
-
-    const searchOrs = words.length
-      ? words.map((word) =>
-        or(
-          ilike(quote.title, `%${word}%`),
-          ilike(lodges.lodge_name, `%${word}%`),
-          ilike(cottages.location, `%${word}%`),
-          ilike(quote_cruise.cruise_name, `%${word}%`),
-          ilike(destination.name, `%${word}%`),
-          ilike(country.country_name, `%${word}%`),
-          ilike(resorts.name, `%${word}%`),
-          ilike(accomodation_list.name, `%${word}%`)
+      const searchOrs = words.length
+        ? words.map((word) =>
+          or(
+            ilike(quote.title, `%${word}%`),
+            ilike(lodges.lodge_name, `%${word}%`),
+            ilike(cottages.location, `%${word}%`),
+            ilike(quote_cruise.cruise_name, `%${word}%`),
+            ilike(destination.name, `%${word}%`),
+            ilike(country.country_name, `%${word}%`),
+            ilike(resorts.name, `%${word}%`),
+            ilike(accomodation_list.name, `%${word}%`)
+          )
         )
-      )
-      : [];
+        : [];
 
-    const filters = [
-      ...searchOrs,
-      package_type_id ? eq(quote.holiday_type_id, package_type_id) : undefined,
-      country_id ? eq(country.id, country_id) : undefined,
-      min_price ? gte(quote.sales_price, min_price) : undefined,
-      max_price ? lte(quote.sales_price, max_price) : undefined,
-      start_date ? gte(quote.date_created, new Date(start_date)) : undefined,
-      end_date ? lte(quote.date_created, new Date(end_date)) : undefined,
-      cursor ? gt(quote.id, cursor) : undefined, // cursor-based pagination
-    ].filter(Boolean);
+      const filters = [
+        ...searchOrs,
+        package_type_id ? eq(quote.holiday_type_id, package_type_id) : undefined,
+        country_id ? eq(country.id, country_id) : undefined,
+        min_price ? gte(quote.sales_price, min_price) : undefined,
+        max_price ? lte(quote.sales_price, max_price) : undefined,
+        start_date ? gte(quote.travel_date, format(new Date(start_date), "yyyy-MM-dd")) : undefined,
+        end_date ? lte(quote.travel_date, format(new Date(end_date), "yyyy-MM-dd")) : undefined,
+        cursor ? gt(quote.id, cursor) : undefined, // cursor-based pagination
+      ].filter(Boolean);
 
-    const baseConditions = [eq(quote_accomodation.is_primary, true)];
+      const baseConditions = [eq(quote_accomodation.is_primary, true)];
 
-    if (filters.length) {
-      query.where(and(...baseConditions, ...filters));
-    } else {
-      query.where(and(...baseConditions));
-    }
+      const whereClause = filters.length
+        ? and(...baseConditions, ...filters)
+        : and(...baseConditions);
+      const order = (start_date || end_date)
+        ? asc(quote.travel_date)               // sort by travel_date when filtering by date
+        : desc(travelDeal.created_at);
 
-    const deals = await query;
+      const deals = await query.where(whereClause).orderBy(order);
 
+      // const response = await db.query.travelDeal.findMany({
+      //   with: {
+      //     quote: {
+      //       columns: {
+      //         id: true,
+      //       },
+      //       with: {
+      //         transaction: {
+      //           columns: {
+      //             client_id: true,
+      //           }
+      //         },
+      //         accomodation: {
+      //           where: (accom, { eq }) => eq(accom.is_primary, true),
+      //           with: {
+      //             board_basis: true,
+      //             accomodation: true,
+      //           }
+      //         },
+      //         lodge: {
+      //           with: {
 
+      //             park: true
+      //           }
+      //         },
+      //         cottage: true,
+      //         quote_cruise: true,
 
+      //       }
 
-    // const response = await db.query.travelDeal.findMany({
-    //   with: {
-    //     quote: {
-    //       columns: {
-    //         id: true,
-    //       },
-    //       with: {
-    //         transaction: {
-    //           columns: {
-    //             client_id: true,
-    //           }
-    //         },
-    //         accomodation: {
-    //           where: (accom, { eq }) => eq(accom.is_primary, true),
-    //           with: {
-    //             board_basis: true,
-    //             accomodation: true,
-    //           }
-    //         },
-    //         lodge: {
-    //           with: {
+      //     }
+      //   },
+      //   orderBy: (deal, { desc }) => [desc(deal.created_at)],
+      // });
 
-    //             park: true
-    //           }
-    //         },
-    //         cottage: true,
-    //         quote_cruise: true,
+      const accomIds = deals
+        .map(deal => deal.accomodation_id)
+        .filter((id): id is string => !!id); // filter out undefined
 
-    //       }
+      const allImages = await db.query.deal_images.findMany({
+        where: accomIds.length > 0 ? inArray(deal_images.owner_id, accomIds) : undefined,
+      });
 
-    //     }
-    //   },
-    //   orderBy: (deal, { desc }) => [desc(deal.created_at)],
-    // });
+      // Map images to their owner_id
+      const imagesMap = allImages.reduce<Record<string, string[]>>((acc, img) => {
+        if (!acc[img.owner_id]) acc[img.owner_id] = [];
 
-    const accomIds = deals
-      .map(deal => deal.accomodation_id)
-      .filter((id): id is string => !!id); // filter out undefined
+        const url = img.image_url ?? " ";
 
-    const allImages = await db.query.deal_images.findMany({
-      where: accomIds.length > 0 ? inArray(deal_images.owner_id, accomIds) : undefined,
-    });
+        if (img.isPrimary) {
+          // Put primary image at the front
+          acc[img.owner_id].unshift(url);
+        } else {
+          acc[img.owner_id].push(url);
+        }
 
-    // Map images to their owner_id
-    const imagesMap = allImages.reduce<Record<string, string[]>>((acc, img) => {
-      if (!acc[img.owner_id]) acc[img.owner_id] = [];
-
-      const url = img.image_url ?? " ";
-
-      if (img.isPrimary) {
-        // Put primary image at the front
-        acc[img.owner_id].unshift(url);
-      } else {
-        acc[img.owner_id].push(url);
-      }
-
-      return acc;
-    }, {});
+        return acc;
+      }, {});
 
 
-    // Attach images to each deal
-    return deals.map(deal => {
-      const accomId = deal.accomodation_id;
-      const destination =
-        deal.lodge_name ??
-        deal.cottage_location ??
-        deal.cruise_name ??
-        deal.accomodation_name
-      return {
-        id: deal.id,
-        post: deal.post || "N/A",
-        hashtags: deal.hashtags && deal.hashtags.length > 0
-          ? deal.hashtags.map(tag => `#${tag}`).join(', ')
-          : " ",
-        resortSummary: deal.resortSummary || "N/A",
-        subtitle: deal.subtitle || "N/A",
-        clientId: deal.clientId || "N/A",
-        quoteId: deal.quoteId || "N/A",
-        destination: destination || "No Destination",
-        deal: {
+      // Attach images to each deal
+      return deals.map(deal => {
+        const accomId = deal.accomodation_id;
+        const destination =
+          deal.lodge_name ??
+          deal.cottage_location ??
+          deal.cruise_name ??
+          deal.accomodation_name
+        return {
+          id: deal.id,
+          post: deal.post || "N/A",
+          hashtags: deal.hashtags && deal.hashtags.length > 0
+            ? deal.hashtags.map(tag => `#${tag}`).join(', ')
+            : " ",
+          resortSummary: deal.resortSummary || "N/A",
           subtitle: deal.subtitle || "N/A",
-          title: deal.title,
-          travelDate: deal.travelDate!,
-          nights: deal.nights.toString(),
-          boardBasis: deal.boardBasis ?? 'N/A',
-          departureAirport: deal.departureAirport ?? 'N/A',
-          luggageTransfers: deal.luggageTransfers ?? 'N/A',
-          price: deal.price ?? "0",
-        },
-        deal_images: accomId ? imagesMap[accomId] ?? [] : [],
-      };
-    });
+          clientId: deal.clientId || "N/A",
+          quoteId: deal.quoteId || "N/A",
+          destination: destination || "No Destination",
+          deal: {
+            subtitle: deal.subtitle || "N/A",
+            title: deal.title,
+            travelDate: deal.travelDate!,
+            nights: deal.nights.toString(),
+            boardBasis: deal.boardBasis ?? 'N/A',
+            departureAirport: deal.departureAirport ?? 'N/A',
+            luggageTransfers: deal.luggageTransfers ?? 'N/A',
+            price: deal.price ?? "0",
+          },
+          deal_images: accomId ? imagesMap[accomId] ?? [] : [],
+        };
+      });
+    } catch (error) {
+      console.log(error);
+      throw new AppError('Something went wrong fetching travel deals', true, 500);
+    }
   }
+
 };
