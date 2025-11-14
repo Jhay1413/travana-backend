@@ -2196,7 +2196,12 @@ export const quoteRepo: QuoteRepo = {
             },
           },
           passengers: true,
-          flights: true,
+          flights: {
+            with: {
+              departing_airport: true,
+              arrival_airport: true,
+            },
+          },
           transfers: true,
           car_hire: true,
           attraction_tickets: true,
@@ -2272,6 +2277,7 @@ export const quoteRepo: QuoteRepo = {
           passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
           flights: response.flights.map((data) => ({
             ...data,
+            departure_airport_name: data.departing_airport?.airport_name,
             commission: parseFloat(data.commission ?? '0'),
             cost: parseFloat(data.cost ?? '0'),
             departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
@@ -2370,6 +2376,7 @@ export const quoteRepo: QuoteRepo = {
           flights: response.flights.map((data) => ({
             ...data,
             commission: parseFloat(data.commission ?? '0'),
+            departure_airport_name: data.departing_airport?.airport_name,
             cost: parseFloat(data.cost ?? '0'),
             departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
             arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
@@ -2463,6 +2470,7 @@ export const quoteRepo: QuoteRepo = {
           passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
           flights: response.flights.map((data) => ({
             ...data,
+            departure_airport_name: data.departing_airport?.airport_name,
             commission: parseFloat(data.commission ?? '0'),
             cost: parseFloat(data.cost ?? '0'),
             departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,

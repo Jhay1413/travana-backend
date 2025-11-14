@@ -181,6 +181,7 @@ export const quote_mutate_schema = z.object({
         id: z.string().optional(),
         flight_number: z.nullable(z.string()).optional(),
         flight_ref: z.nullable(z.string()).optional(),
+        departure_airport_name: z.nullable(z.string()).optional(),
         departing_airport_id: z.string().trim().min(1, 'Required'),
         flight_type: z.string().trim().min(1, 'Required'),
         departure_date_time: z.string(),

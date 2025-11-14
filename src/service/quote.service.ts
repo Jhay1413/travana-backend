@@ -132,12 +132,45 @@ export const quoteService = (
     },
 
     duplicateQuote: async (data: z.infer<typeof quote_mutate_schema>) => {
-      const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
+      const holiday_types = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
+      let quote_id: string | undefined;
+      let transaction_id: string | undefined;
+      let quote_status: string = ""
+      let holiday_type = ""
 
-      if (holiday_type.name === 'Cruise Package ') return await repo.duplicateCruise(data);
+      if (holiday_types.name === 'Cruise Package ') {
+        const response = await repo.duplicateCruise(data);
 
-      return await repo.duplicateQuote(data);
+        quote_id = response.quote_id;
+        transaction_id = response.transaction_id;
+        quote_status = response.quote_status
+        holiday_type = response.holiday_type
+      }
+      else {
+        const response = await repo.duplicateQuote(data);
+        quote_id = response.quote_id;
+        transaction_id = response.transaction_id;
+        quote_status = response.quote_status
+        holiday_type = response.holiday_type
+      }
+
+      if (data.deal_images && data.deal_images.length > 0) {
+
+        if (data.holiday_type_name === 'Package Holiday' && data.accomodation_id) {
+          const imagesToInsert = data.deal_images.map(image => ({
+            owner_id: data.accomodation_id ?? " ",
+            image_url: image,
+            isPrimary: false,
+            owner_type: 'package_holiday' as const,
+          }))
+          await transactionRepo.insertDealImages(imagesToInsert);
+        }
+      }
+      if (data.travelDeal) {
+        await repo.insertTravelDeal(data.travelDeal, quote_id!);
+      }
+      return { quote_id, transaction_id, quote_status, holiday_type };
     },
 
     fetchQuoteSummaryByClient: async (client_id: string) => {
