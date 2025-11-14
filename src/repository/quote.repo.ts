@@ -3766,10 +3766,18 @@ export const quoteRepo: QuoteRepo = {
       });
       const imagesMap = allImages.reduce<Record<string, string[]>>((acc, img) => {
         if (!acc[img.owner_id]) acc[img.owner_id] = [];
-        acc[img.owner_id].push(img.image_url ?? " ");
+
+        const url = img.image_url ?? " ";
+
+        if (img.isPrimary) {
+          // Put primary image at the front
+          acc[img.owner_id].unshift(url);
+        } else {
+          acc[img.owner_id].push(url);
+        }
+
         return acc;
       }, {});
-
 
       const hasMore = response.length > pageSize;
       const data = hasMore ? response.slice(0, pageSize) : response;
@@ -4035,7 +4043,16 @@ export const quoteRepo: QuoteRepo = {
     // Map images to their owner_id
     const imagesMap = allImages.reduce<Record<string, string[]>>((acc, img) => {
       if (!acc[img.owner_id]) acc[img.owner_id] = [];
-      acc[img.owner_id].push(img.image_url ?? " ");
+
+      const url = img.image_url ?? " ";
+
+      if (img.isPrimary) {
+        // Put primary image at the front
+        acc[img.owner_id].unshift(url);
+      } else {
+        acc[img.owner_id].push(url);
+      }
+
       return acc;
     }, {});
 
