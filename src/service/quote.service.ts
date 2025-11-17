@@ -10,12 +10,11 @@ import { NotificationProvider } from '../provider/notification.provider';
 import { AuthRepo } from '../repository/auth.repo';
 import { ReferralRepo } from '../repository/referrals.repo';
 import { TransactionRepo } from '../repository/transaction.repo';
-import { transaction } from '@/schema/transactions-schema';
 import { AiService } from './ai.service';
-import { th } from 'zod/v4/locales';
 import { parsedInput } from '../lib/parsedInput';
 import { travelDealSchema } from '../types/modules/transaction';
 import { formatPost } from '../lib/formatPost';
+import { generateNextDealId } from '../lib/generateId';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -37,14 +36,21 @@ export const quoteService = (
       // if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
       let id: string | undefined;
+      let nextDealId: string | null = null;
       if (!data.client_id) throw new AppError('Client ID is required', true, 400);
 
 
+      const lastId = await repo.getLastId();
+
+      if (lastId) {
+        nextDealId = generateNextDealId(lastId || '');
+      }
+
       if (data.holiday_type_name === 'Cruise Package') {
-        const result = await repo.convertQuoteCruise(transaction_id, data);
+        const result = await repo.convertQuoteCruise(transaction_id, { ...data, deal_id: nextDealId });
         id = result.id;
       } else {
-        const result = await repo.convertQuote(transaction_id, data);
+        const result = await repo.convertQuote(transaction_id, { ...data, deal_id: nextDealId });
         id = result.id;
       }
 
@@ -78,16 +84,23 @@ export const quoteService = (
 
       let id: string | undefined;
       let transaction_id: string | undefined;
+      let nextDealId: string | null = null;
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
+
+      const lastId = await repo.getLastId();
+
+      if (lastId) {
+        nextDealId = generateNextDealId(lastId || '');
+      }
       if (holiday_type.name === 'Cruise Package') {
 
-        const result = await repo.insertCruise(data);
+        const result = await repo.insertCruise({ ...data, deal_id: nextDealId });
         id = result.quote_id;
         transaction_id = result.transaction_id;
       } else {
-        const result = await repo.insertQuote(data);
+        const result = await repo.insertQuote({ ...data, deal_id: nextDealId });
         id = result.quote_id;
         transaction_id = result.transaction_id;
       }
@@ -145,9 +158,17 @@ export const quoteService = (
       let transaction_id: string | undefined;
       let quote_status: string = ""
       let holiday_type = ""
+      let nextDealId: string | null = null;
 
+
+
+      const lastId = await repo.getLastId();
+
+      if (lastId) {
+        nextDealId = generateNextDealId(lastId || '');
+      }
       if (holiday_types.name === 'Cruise Package ') {
-        const response = await repo.duplicateCruise(data);
+        const response = await repo.duplicateCruise({ ...data, deal_id: nextDealId });
 
         quote_id = response.quote_id;
         transaction_id = response.transaction_id;
@@ -155,7 +176,7 @@ export const quoteService = (
         holiday_type = response.holiday_type
       }
       else {
-        const response = await repo.duplicateQuote(data);
+        const response = await repo.duplicateQuote({ ...data, deal_id: nextDealId });
         quote_id = response.quote_id;
         transaction_id = response.transaction_id;
         quote_status = response.quote_status

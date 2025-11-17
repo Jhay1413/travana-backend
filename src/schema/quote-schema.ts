@@ -25,6 +25,7 @@ export const quote = pgTable('quote_table', {
   transaction_id: uuid().references(() => transaction.id, {
     onDelete: 'cascade',
   }).notNull(),
+  deal_id: varchar(),
   holiday_type_id: uuid().references(() => package_type.id).notNull(),
   sales_price: numeric('sales_price', { precision: 10, scale: 2 }),
   package_commission: numeric('package_commission', { precision: 10, scale: 2 }),

@@ -146,6 +146,7 @@ export type QuoteRepo = {
   setPrimary: (primary_id: string, secondary_id: string, quote_status: string) => Promise<void>;
   fetchQuoteTitle: (client_id: string) => Promise<z.infer<typeof quoteTitleSchema>[]>;
   deleteQuote: (quote_id: string, deletionCode: string, deletedBy: string) => Promise<void>;
+  getLastId: () => Promise<string | null>;
 
   fetchFreeQuotesInfinite: (
     search?: string,
@@ -616,7 +617,7 @@ export const quoteRepo: QuoteRepo = {
             service_charge: data.service_charge?.toString() ?? '0',
             quote_type: 'primary',
             sales_price: data.sales_price?.toString() ?? '0',
-
+            deal_id: data.deal_id ?? null,
             package_commission: data.commission?.toString() ?? '0',
             num_of_nights: Number.isFinite(parseInt(data.no_of_nights ?? '0')) ? parseInt(data.no_of_nights ?? '0') : 0,
             transfer_type: data.transfer_type,
@@ -1040,6 +1041,7 @@ export const quoteRepo: QuoteRepo = {
             child: data.children ? data.children : 0,
             adult: data.adults ? data.adults : 0,
             date_expiry: date_expiry,
+            deal_id: data.deal_id ?? null,
             is_future_deal: data.is_future_deal,
             future_deal_date: data.is_future_deal ? data.future_deal_date : null,
           })
@@ -4056,6 +4058,7 @@ export const quoteRepo: QuoteRepo = {
         departureAirport: travelDeal.departureAirport,
         luggageTransfers: travelDeal.luggageTransfers,
         accomodation_id: quote_accomodation.accomodation_id,
+        deal_id: quote.deal_id,
         price: travelDeal.price,
       }).from(travelDeal)
         .innerJoin(quote, eq(travelDeal.quote_id, quote.id))
@@ -4187,6 +4190,7 @@ export const quoteRepo: QuoteRepo = {
           clientId: deal.clientId || "N/A",
           quoteId: deal.quoteId || "N/A",
           destination: destination || "No Destination",
+          deal_id: deal.deal_id || "N/A",
           deal: {
             subtitle: deal.subtitle || "N/A",
             title: deal.title,
@@ -4205,6 +4209,12 @@ export const quoteRepo: QuoteRepo = {
       throw new AppError('Something went wrong fetching travel deals', true, 500);
     }
   },
- 
+  getLastId: async () => {
+    const response = await db.query.quote.findMany({
+      orderBy: desc(quote.date_created),
+      limit: 1,
+    });
+    return response.length > 0 ? response[0].deal_id : null;
+  }
 
 };

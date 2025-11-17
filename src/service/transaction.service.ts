@@ -457,7 +457,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
           const result = fuse.search(data.accommodation);
           if (result.length > 0) {
             initialData.accomodation_id = result[0].item.id;
-            initialData.country = result[0].item.resorts?.destination?.country_id ?? "";
+            initialData.country = result[0].item.resorts?.destination?.country_id ?? "8O+                  ";
             initialData.destination = result[0].item.resorts?.destination_id ?? "";
             initialData.resort = result[0].item.resorts_id ?? "";
 

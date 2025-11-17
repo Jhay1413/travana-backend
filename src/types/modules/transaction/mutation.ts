@@ -94,6 +94,7 @@ export const travelDealType = z.nullable(z.object({
 }))
 export const quote_mutate_schema = z.object({
   quote_id: z.string().optional(),
+  deal_id: z.string().nullable().optional(),
   isQuoteCopy: z.boolean().optional(),
   isFreeQuote: z.boolean().optional(),
   lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
