@@ -439,6 +439,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
       const normalize = (s: string) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
       if (data.accommodation) {
         const fetchAccomodation = await repo.fetchAccomodationByName(data.accommodation);
+        console.log(fetchAccomodation)
         if (data.board_basis) {
           const fuse = new Fuse(board_basis, {
             keys: ['type'],
@@ -449,7 +450,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             initialData.main_board_basis_id = result[0].item.id;
           }
         }
-        if (fetchAccomodation && Array.isArray(fetchAccomodation)) {
+        if (fetchAccomodation && Array.isArray(fetchAccomodation) && fetchAccomodation.length > 0) {
           const fuse = new Fuse(fetchAccomodation, {
             keys: ['name'],
             threshold: 0.4,
