@@ -48,7 +48,7 @@ import {
 } from '../types/modules/quote/query';
 import { GeneratedPostResponse, quoteChild, quoteTitleSchema } from '../types/modules/transaction';
 import { quote_mutate_schema, travelDealType } from '../types/modules/transaction/mutation';
-import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne } from 'drizzle-orm';
+import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne, like } from 'drizzle-orm';
 import z from 'zod';
 import { dataValidator } from '../helpers/data-validator';
 import { airport } from '../schema/flights-schema';
@@ -4074,20 +4074,19 @@ export const quoteRepo: QuoteRepo = {
 
       const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
 
-      const searchOrs = words.length
-        ? words.map((word) =>
-          or(
-            ilike(quote.title, `%${word}%`),
-            ilike(lodges.lodge_name, `%${word}%`),
-            ilike(cottages.location, `%${word}%`),
-            ilike(quote_cruise.cruise_name, `%${word}%`),
-            ilike(destination.name, `%${word}%`),
-            ilike(country.country_name, `%${word}%`),
-            ilike(resorts.name, `%${word}%`),
-            ilike(accomodation_list.name, `%${word}%`)
-          )
+      const searchOrs = words.map((word) =>
+        or(
+          like(quote.title, `%${word}%`),
+          like(lodges.lodge_name, `%${word}%`),
+          like(cottages.location, `%${word}%`),
+          like(quote_cruise.cruise_name, `%${word}%`),
+          like(destination.name, `%${word}%`),
+          like(country.country_name, `%${word}%`),
+          like(resorts.name, `%${word}%`),
+          like(accomodation_list.name, `%${word}%`),
+          eq(quote.deal_id, word)
         )
-        : [];
+      );
 
       const filters = [
         ...searchOrs,

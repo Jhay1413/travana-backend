@@ -417,7 +417,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
 
       }
       const board_basis = await repo.fetchBoardBasis();
-      const airports = await repo.fetchAllAirports(undefined, undefined, 1000);
+      const airports = await repo.fetchAllAirports(undefined, undefined, 5000);
       const country = await repo.fetchCountry();
       const roomTypes = await repo.fetchRoomTypes();
 
