@@ -34,17 +34,16 @@ export const quoteService = (
       // const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
 
       // if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
-
+      console.log(transaction_id)
       let id: string | undefined;
-      let nextDealId: string | null = null;
       if (!data.client_id) throw new AppError('Client ID is required', true, 400);
 
 
       const lastId = await repo.getLastId();
 
-      if (lastId) {
-        nextDealId = generateNextDealId(lastId || '');
-      }
+      const nextDealId = generateNextDealId(lastId || '');
+
+
 
       if (data.holiday_type_name === 'Cruise Package') {
         const result = await repo.convertQuoteCruise(transaction_id, { ...data, deal_id: nextDealId });
@@ -53,7 +52,9 @@ export const quoteService = (
         const result = await repo.convertQuote(transaction_id, { ...data, deal_id: nextDealId });
         id = result.id;
       }
-
+      if (data.travelDeal) {
+        await repo.insertTravelDeal(data.travelDeal, id!);
+      }
       if (user_id === data.agent_id) return { id };
 
       const [user, client] = await Promise.all([userRepo.fetchUserById(user_id), clientRepo.fetchClientById(data.client_id)]);
@@ -84,16 +85,12 @@ export const quoteService = (
 
       let id: string | undefined;
       let transaction_id: string | undefined;
-      let nextDealId: string | null = null;
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
 
       const lastId = await repo.getLastId();
-
-      if (lastId) {
-        nextDealId = generateNextDealId(lastId || '');
-      }
+      const nextDealId = generateNextDealId(lastId || '');
       if (holiday_type.name === 'Cruise Package') {
 
         const result = await repo.insertCruise({ ...data, deal_id: nextDealId });
@@ -158,15 +155,12 @@ export const quoteService = (
       let transaction_id: string | undefined;
       let quote_status: string = ""
       let holiday_type = ""
-      let nextDealId: string | null = null;
 
 
 
       const lastId = await repo.getLastId();
 
-      if (lastId) {
-        nextDealId = generateNextDealId(lastId || '');
-      }
+      const nextDealId = generateNextDealId(lastId || '');
       if (holiday_types.name === 'Cruise Package ') {
         const response = await repo.duplicateCruise({ ...data, deal_id: nextDealId });
 

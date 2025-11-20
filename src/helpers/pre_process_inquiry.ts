@@ -24,7 +24,7 @@ export const pre_process_data = (data: z.infer<typeof enquiry_mutate_schema>, ty
       return {
         ...payload,
         country: data.country_id ? data.country_id[0] : undefined,
-        destination: data.destination ? data.destination : undefined,
+        destinations: data.destination ? data.destination[0] : undefined,
         resort: data.resorts ? data.resorts[0] : undefined,
         accomodation_id: data.accomodation ? data.accomodation[0] : undefined,
         main_board_basis_id: data.board_basis ? data.board_basis[0] : undefined,

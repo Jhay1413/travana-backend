@@ -1,4 +1,4 @@
-export const generateNextDealId = (lastId: string) => {
+export const generateNextDealId = (lastId?: string) => {
     const currentYear = new Date().getFullYear();
 
     if (!lastId) {

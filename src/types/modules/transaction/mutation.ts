@@ -43,7 +43,7 @@ export const enquiry_mutate_schema = z.object({
   is_future_deal: z.boolean(),
   future_deal_date: z.nullable(z.string().date()).optional(),
   date_expiry: z.nullable(z.string().date()).optional(),
-
+  destinations: z.string().nullable().optional(),
   referralId: z.nullable(z.string()).optional(),
   referrerId: z.nullable(z.string()).optional(),
   potentialCommission: z.nullable(z.number()).optional(),

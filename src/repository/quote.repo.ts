@@ -262,6 +262,7 @@ export const quoteRepo: QuoteRepo = {
             is_future_deal: data.is_future_deal,
             future_deal_date: data.future_deal_date,
             date_expiry: date_expiry,
+            deal_id: data.deal_id,
           })
           .returning({ id: quote.id });
 
@@ -448,6 +449,7 @@ export const quoteRepo: QuoteRepo = {
             is_future_deal: data.is_future_deal,
             future_deal_date: data.future_deal_date,
             date_expiry: date_expiry,
+            deal_id: data.deal_id,
           })
           .returning({ id: quote.id });
 
