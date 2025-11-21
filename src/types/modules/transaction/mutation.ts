@@ -128,7 +128,7 @@ export const quote_mutate_schema = z.object({
   children: z.number().optional(),
   infants: z.number().optional(),
   no_of_nights: z.nullable(z.string()).optional(),
-  transfer_type: z.string().optional(),
+  transfer_type: z.nullable(z.string()).optional(),
   check_in_date_time: z.string().optional(),
   is_future_deal: z.boolean(),
   future_deal_date: z.nullable(z.string().date()).optional(),

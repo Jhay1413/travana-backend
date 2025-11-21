@@ -602,10 +602,10 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               destination: resortAccomodation.resorts?.destination_id ?? "",
               resort: resortAccomodation.resorts_id ?? "",
               accomodation_id: resortAccomodation.id,
-              no_of_nights: hotel.no_of_nights,
+              no_of_nights: hotel.no_of_nights ?? "0",
               check_in_date_time: formatISO(parsed),
-              room_type: hotel.room_type,
-              board_basis_id: board_basis.find(bb => bb.type.toLowerCase() === hotel.board_basis.toLowerCase())?.id || "",
+              room_type: hotel.room_type ?? "N/A",
+              board_basis_id: board_basis.find(bb => bb.type.toLowerCase() === hotel.board_basis?.toLowerCase())?.id || "",
               cost: 0,
               commission: 0,
               is_included_in_package: false,
@@ -632,8 +632,6 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             commission: 0,
             is_included_in_package: false,
           }
-
-
           initialData.flights?.push(flightData);
         }
       }
