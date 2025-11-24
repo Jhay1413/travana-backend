@@ -353,5 +353,35 @@ export const requiredCruiseFields = quote_mutate_schema.merge(
   })
 );
 
+// Combined schema for the unified form with multiple itineraries and voyages
+export const cruiseFormSchema = z.object({
+  // Cruise Line
+  cruise_line_id: z.string().min(1, 'Cruise line is required'),
+  new_cruise_line_name: z.string().optional(),
 
+  // Cruise Ship
+  ship_id: z.string().min(1, 'Cruise ship is required'),
+  new_ship_name: z.string().optional(),
+
+  // Multiple Cruise Itineraries
+  itineraries: z
+    .array(
+      z.object({
+        id: z.string().optional(), // For existing itineraries
+        itinerary: z.string().min(1, 'Itinerary description is required'),
+        departure_port: z.string().min(1, 'Departure port is required'),
+        date: z.string().min(1, 'Date is required'),
+        voyages: z
+          .array(
+            z.object({
+              id: z.string().optional(), // For existing voyages
+              day_number: z.number().min(1, 'Day number must be at least 1'),
+              description: z.string().min(1, 'Description is required'),
+            })
+          )
+          .min(1, 'At least one voyage is required'),
+      })
+    )
+    .min(1, 'At least one itinerary is required'),
+});
 export type InquiryMutate = z.infer<typeof enquiry_mutate_schema>;

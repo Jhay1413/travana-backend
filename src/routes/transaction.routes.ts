@@ -124,6 +124,7 @@ router.get('/data-management/deletion-codes/:id', transactionController.fetchDel
 
 // Cruise Lines
 router.post('/data-management/cruise-lines', transactionController.insertCruiseLine);
+router.post('/data-management/cruise-data', transactionController.insertCruiseData);
 router.put('/data-management/cruise-lines/:id', transactionController.updateCruiseLine);
 router.get('/data-management/cruise-lines', transactionController.fetchAllCruiseLines);
 router.get('/data-management/cruise-lines/:id', transactionController.fetchCruiseLineById);

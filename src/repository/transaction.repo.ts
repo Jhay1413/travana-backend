@@ -45,6 +45,7 @@ import {
   accomodationQuerySchema,
   bookingPipelineSchema,
   cruiseDateQuerySchema,
+  cruiseFormSchema,
   destinationMutateSchema,
   enquiryPipelineSchema,
   noteMutateSchema,
@@ -379,8 +380,36 @@ export type TransactionRepo = {
   }[]) => Promise<void>;
   fetchDealImagesByOwnerId: (owner_id: string) => Promise<z.infer<typeof deal_images>[]>;
   setImageAsPrimary: (new_primary_id: string, old_primary_id?: string) => Promise<void>;
+  insertCruiseData: (data: z.infer<typeof cruiseFormSchema>) => Promise<void>;
 };
 export const transactionRepo: TransactionRepo = {
+  insertCruiseData: async (data) => {
+    await db.transaction(async (tx) => {
+      const itineraries = await tx.insert(cruise_itenary)
+        .values(
+          data.itineraries.map(itinerary => ({
+            ship_id: data.ship_id,
+            itenary: itinerary.itinerary,
+            departure_port: itinerary.departure_port,
+            date: itinerary.date,
+          }))
+        )
+        .returning({ id: cruise_itenary.id });
+
+      // Batch insert all voyages
+      const voyages = data.itineraries.flatMap((itinerary, index) =>
+        itinerary.voyages.map(voyage => ({
+          itinerary_id: itineraries[index].id,
+          day_number: voyage.day_number.toString(),
+          description: voyage.description,
+        }))
+      );
+
+      if (voyages.length > 0) {
+        await tx.insert(cruise_voyage).values(voyages);
+      }
+    });
+  },
   setImageAsPrimary: async (new_primary_id, old_primary_id) => {
     await db.transaction(async (tx) => {
 

@@ -15,7 +15,7 @@ export const cruise_ship = pgTable('ship_table', {
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
   name: varchar(),
-  cruise_line_id: uuid().references(() => cruise_line.id,{onDelete:'cascade'}),
+  cruise_line_id: uuid().references(() => cruise_line.id, { onDelete: 'cascade' }),
 });
 export const cruise_line_relation = relations(cruise_line, ({ one, many }) => ({
   cruise_ship: many(cruise_ship),
@@ -34,7 +34,7 @@ export const cruise_ship_relation = relations(cruise_ship, ({ one, many }) => ({
 
 export const cruise_itenary = pgTable('cruise_itenary_table', {
   id: uuid().defaultRandom().primaryKey(),
-  ship_id: uuid().references(() => cruise_ship.id ,{onDelete:'cascade'}),
+  ship_id: uuid().references(() => cruise_ship.id, { onDelete: 'cascade' }),
   itenary: varchar(),
   departure_port: varchar().notNull(),
   date: date().notNull(),
@@ -49,7 +49,7 @@ export const cruise_itenerary_relation = relations(cruise_itenary, ({ one, many 
 
 export const cruise_voyage = pgTable('cruise_voyage_table', {
   id: uuid().defaultRandom().primaryKey(),
-  itinerary_id: uuid().references(() => cruise_itenary.id,{onDelete:'cascade'}),
+  itinerary_id: uuid().references(() => cruise_itenary.id, { onDelete: 'cascade' }),
   day_number: numeric(),
   description: varchar(),
 });

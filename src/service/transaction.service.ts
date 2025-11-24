@@ -17,7 +17,7 @@ import {
 } from '../types/modules/data-management';
 import { airportMutationSchema } from '../types/modules/airports/mutation';
 import { countryMutateSchema } from '../types/modules/country/mutation';
-import { destinationMutateSchema, quote_mutate_schema } from '../types/modules/transaction/mutation';
+import { cruiseFormSchema, destinationMutateSchema, quote_mutate_schema } from '../types/modules/transaction/mutation';
 import { resortMutateSchema } from '../types/modules/transaction/mutation';
 import z, { check } from 'zod';
 import { StructuredScrapeDataSchema } from '@/types/modules/transaction';
@@ -27,6 +27,9 @@ import Fuse from 'fuse.js';
 
 export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, clientRepo: ClientRepo, notificationRepo: NotificationRepo, notificationProvider: NotificationProvider) => {
   return {
+    insertCruiseData:async(data:z.infer<typeof cruiseFormSchema>)=>{
+      return await repo.insertCruiseData(data);
+    },
     fetchRoomTypes: async () => {
       return await repo.fetchRoomTypes();
     },

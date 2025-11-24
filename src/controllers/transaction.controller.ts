@@ -9,6 +9,16 @@ import { Request, Response } from 'express';
 const service = transactionService(transactionRepo, userRepo, clientRepo, notificationRepo, notificationProvider);
 
 export const transactionController = {
+
+  insertCruiseData: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      const result = await service.insertCruiseData(data);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
   fetchRoomTypes: async (req: Request, res: Response) => {
     try {
       const roomTypes = await service.fetchRoomTypes();
@@ -61,7 +71,7 @@ export const transactionController = {
   },
   insertNote: async (req: Request, res: Response) => {
     try {
-      const { content, description,transaction_id, agent_id, parent_id } = req.body;
+      const { content, description, transaction_id, agent_id, parent_id } = req.body;
       await service.insertNote(content || description, transaction_id, agent_id, parent_id);
       res.status(200).json({ message: 'Note inserted' });
     } catch (error) {
