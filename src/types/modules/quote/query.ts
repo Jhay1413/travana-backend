@@ -44,8 +44,8 @@ export const quoteBasedSchema = z.object({
   id: z.string(),
   title: z.nullable(z.string()).optional(),
   holiday_type: z.string(),
-  clientName: z.string(),
-  clientId: z.string(),
+  clientName: z.nullable(z.string()).optional(),
+  clientId: z.nullable(z.string()).optional(),
   agentId: z.string().optional(),
   lead_source: z.nullable(z.string()).optional(),
   main_tour_operator: z.nullable(z.string()).optional(),
@@ -144,6 +144,9 @@ export const freeQuoteListQuerySchema = z.object({
   quote_status: z.string().nullable(),
   date_created: z.string(),
   price_per_person: z.number(),
+  departureAirport: z.string(),
+  luggageTransfers: z.string(),
+  hasPost: z.boolean().optional(),
 });
 export const quoteQueryResultSchema = z.object({});
 export const quoteCruiseQuerySchema = quoteBasedSchema.merge(cruiseFields);

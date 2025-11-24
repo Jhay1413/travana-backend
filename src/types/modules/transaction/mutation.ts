@@ -43,7 +43,7 @@ export const enquiry_mutate_schema = z.object({
   is_future_deal: z.boolean(),
   future_deal_date: z.nullable(z.string().date()).optional(),
   date_expiry: z.nullable(z.string().date()).optional(),
-
+  destinations: z.string().nullable().optional(),
   referralId: z.nullable(z.string()).optional(),
   referrerId: z.nullable(z.string()).optional(),
   potentialCommission: z.nullable(z.number()).optional(),
@@ -85,8 +85,18 @@ export const deal_images = z.object({
   owner_id: z.string(),
   isPrimary: z.boolean()
 })
+export const travelDealType = z.nullable(z.object({
+  post: z.string(),
+  subtitle: z.string(),
+  resortSummary: z.string(),
+  hashtags: z.string(),
+  deal: travelDealSchema,
+}))
 export const quote_mutate_schema = z.object({
   quote_id: z.string().optional(),
+  deal_id: z.string().nullable().optional(),
+  isQuoteCopy: z.boolean().optional(),
+  isFreeQuote: z.boolean().optional(),
   lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
   title: z.nullable(z.string()).optional(),
   quote_ref: z.nullable(z.string()).optional(),
@@ -113,12 +123,12 @@ export const quote_mutate_schema = z.object({
   quote_type: z.string().optional(),
   holiday_type: z.string(),
   agent_id: z.string().trim().min(1, 'Required'),
-  client_id: z.string().trim().min(1, 'Required'),
+  client_id: z.nullable(z.string()).optional(),
   adults: z.number().optional(),
   children: z.number().optional(),
   infants: z.number().optional(),
   no_of_nights: z.nullable(z.string()).optional(),
-  transfer_type: z.string().optional(),
+  transfer_type: z.nullable(z.string()).optional(),
   check_in_date_time: z.string().optional(),
   is_future_deal: z.boolean(),
   future_deal_date: z.nullable(z.string().date()).optional(),
@@ -179,6 +189,7 @@ export const quote_mutate_schema = z.object({
         id: z.string().optional(),
         flight_number: z.nullable(z.string()).optional(),
         flight_ref: z.nullable(z.string()).optional(),
+        departure_airport_name: z.nullable(z.string()).optional(),
         departing_airport_id: z.string().trim().min(1, 'Required'),
         flight_type: z.string().trim().min(1, 'Required'),
         departure_date_time: z.string(),
@@ -307,13 +318,7 @@ export const quote_mutate_schema = z.object({
   referralId: z.nullable(z.string()).optional(),
   referrerId: z.nullable(z.string()).optional(),
   potentialCommission: z.nullable(z.number()).optional(),
-  travelDeal: z.nullable(z.object({
-    post: z.string(),
-    subtitle: z.string(),
-    resortSummary: z.string(),
-    hashtags: z.string(),
-    deal: travelDealSchema,
-  })).optional(),
+  travelDeal: travelDealType.optional(),
 });
 
 export const requiredHolidayFields = quote_mutate_schema.merge(

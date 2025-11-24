@@ -2520,9 +2520,9 @@ export const transactionRepo: TransactionRepo = {
 
     const enquiryList = inquiries.map((data) => ({
       id: data.enquiry.id,
-      clientId: data.client_id,
-      clientName: `${data.client?.firstName} ${data.client?.surename}`,
-      phoneNumber: data.client?.phoneNumber,
+      clientId: data.client_id!,
+      clientName: data.client ? `${data.client?.firstName} ${data.client?.surename}` : "No name",
+      phoneNumber: data.client?.phoneNumber || 'No Phone Number',
       destination: data.enquiry.resortss?.length
         ? data.enquiry.resortss.map((item) => item.resorts?.name).join(', ')
         : data.enquiry.destination?.length
@@ -2592,7 +2592,7 @@ export const transactionRepo: TransactionRepo = {
       .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
       .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
       .leftJoin(destination, eq(resorts.destination_id, destination.id))
-      .where(and(eq(transaction.status, 'on_quote'), eq(quote.quote_type, 'primary'), eq(transaction.user_id, agent_id)))
+      .where(and(eq(quote.isFreeQuote, false), eq(quote.quote_type, 'primary'), eq(transaction.user_id, agent_id)))
       .groupBy(
         quote.id,
         quote.transaction_id,
@@ -2616,7 +2616,7 @@ export const transactionRepo: TransactionRepo = {
 
     const quoteList = quotes.map((data) => ({
       id: data.id,
-      clientId: data.client_id,
+      clientId: data.client_id!,
       clientName: data.clientName as string,
       phoneNumber: data.clientPhoneNumber,
       title: data.title,
@@ -2634,7 +2634,7 @@ export const transactionRepo: TransactionRepo = {
         transaction_id: booking.transaction_id,
         clientName: sql`${clientTable.firstName} || ' ' || ${clientTable.surename}`,
         clientPhoneNumber: clientTable.phoneNumber,
-        client_id: transaction.client_id,
+        client_id: transaction.client_id!,
         no_of_nights: booking.num_of_nights,
         title: booking.title,
         board_basis: board_basis.type,
@@ -2707,7 +2707,7 @@ export const transactionRepo: TransactionRepo = {
 
     const bookingList = bookings.map((data) => ({
       id: data.id,
-      clientId: data.client_id,
+      clientId: data.client_id!,
       clientName: data.clientName as string,
       phoneNumber: data.clientPhoneNumber,
       title: data.title,
@@ -3755,7 +3755,7 @@ export const transactionRepo: TransactionRepo = {
       );
     } else {
       quoteQuery.where(
-        and(eq(transaction.status, 'on_quote'), eq(quote.is_future_deal, false), eq(quote.is_active, true), lt(quote.date_expiry, new Date()))
+        and(eq(quote.isFreeQuote, false), eq(transaction.status, 'on_quote'), eq(quote.is_future_deal, false), eq(quote.is_active, true), lt(quote.date_expiry, new Date()))
       );
     }
 
@@ -3775,7 +3775,7 @@ export const transactionRepo: TransactionRepo = {
             quote_status: item.quote_status as string,
             no_of_nights: item.no_of_nights.toString(),
             travel_date: new Date(item.travel_date!).toISOString(),
-            client_id: item.client_id,
+            client_id: item.client_id!,
             agent_id: item.agent_id,
             holiday_type: item.holiday_type as string,
           };
@@ -3938,6 +3938,7 @@ export const transactionRepo: TransactionRepo = {
           eq(transaction.status, 'on_quote'),
           eq(quote.is_future_deal, false),
           eq(quote.is_active, true),
+          eq(quote.isFreeQuote, false),
           status === 'EXPIRED'
             ? lt(quote.date_expiry, new Date())
             : eq(
@@ -4036,7 +4037,7 @@ export const transactionRepo: TransactionRepo = {
             quote_status: item.quote_status as string,
             no_of_nights: item.no_of_nights.toString(),
             travel_date: new Date(item.travel_date!).toISOString(),
-            client_id: item.client_id,
+            client_id: item.client_id!,
             agent_id: item.agent_id,
             holiday_type: item.holiday_type as string,
           };
@@ -4089,6 +4090,7 @@ export const transactionRepo: TransactionRepo = {
       .innerJoin(transaction, eq(quote.transaction_id, transaction.id))
       .where(
         and(
+          eq(quote.isFreeQuote, false),
           eq(quote.is_active, true),
           eq(quote.is_future_deal, false),
           eq(

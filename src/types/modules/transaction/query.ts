@@ -238,11 +238,10 @@ export const cruiseDateQuerySchema = z.object({
   ),
 });
 //Qoute types
-
-// ✅ Reusable sub-schemas
+//Qoute types
 export const FlightSchema = z.object({
-  flight_number: z.string(),
-  flight_ref: z.string(),
+  flight_number: z.nullable(z.string()),
+  flight_ref: z.nullable(z.string()),
   departing_airport: z.string(),
   flight_type: z.string(),
   departure_date_time: z.string(), // You can add .datetime() if ISO is guaranteed
@@ -255,43 +254,43 @@ export const HotelSchema = z.object({
   destination: z.string(),
   resort: z.string(),
   accommodation: z.string(),
-  no_of_nights: z.string(),
+  no_of_nights: z.nullable(z.string()),
   check_in_date_time: z.string(),
-  room_type: z.string(),
-  board_basis: z.string(),
-  stay_type: z.string(),
-  tour_operator: z.string(),
+  room_type: z.nullable(z.string()),
+  board_basis: z.nullable(z.string()),
+  stay_type: z.nullable(z.string()),
+  tour_operator: z.nullable(z.string()),
   cost: z.string(),
-  hotel_description: z.string(),
+  hotel_description: z.nullable(z.string()),
   hotel_images: z.array(z.string()),
-  room_description: z.string(),
+  room_description: z.nullable(z.string()),
   room_images: z.array(z.string())
 });
+
 
 // ✅ Generic Record<string, string> array schema
 export const StringRecordArray = z.array(z.record(z.string(), z.string()));
 
-// ✅ Main structured schema
 export const StructuredScrapeDataSchema = z.object({
   travel_date: z.string(),
-  tour_operator: z.string(),
+  tour_operator: z.nullable(z.string()),
   sales_price: z.string(),
   adults: z.number(),
   children: z.number(),
   infants: z.number(),
   no_of_nights: z.string(),
-  transfer_type: z.string(),
+  transfer_type: z.nullable(z.string()),
   check_in_date_time: z.string(),
-  departure_airport: z.string(),
-  arrival_airport: z.string(),
+  departure_airport: z.nullable(z.string()),
+  arrival_airport: z.nullable(z.string()),
   country: z.string(),
   destination: z.string(),
   resort: z.string(),
   accommodation: z.string(),
-  board_basis: z.string(),
-  room_type: z.string(),
-  room_description: z.string(),
-  hotel_description: z.string(),
+  board_basis: z.nullable(z.string()),
+  room_type: z.nullable(z.string()),
+  room_description: z.nullable(z.string()),
+  hotel_description: z.nullable(z.string()),
   hotel_images: z.array(z.string()),
   room_images: z.array(z.string()),
   flights: z.array(FlightSchema),
@@ -300,7 +299,7 @@ export const StructuredScrapeDataSchema = z.object({
   attraction_tickets: StringRecordArray,
   car_hire: StringRecordArray,
   airport_parking: StringRecordArray,
-  lounge_pass: StringRecordArray,
+  lounge_pass: StringRecordArray
 });
 
 
@@ -326,6 +325,7 @@ export interface GeneratedPostResponse {
   post: string;
   subtitle: string;
   clientId?: string;
+  deal_id?: string | null;
   quoteId?: string;
   resortSummary: string;
   hashtags: string;

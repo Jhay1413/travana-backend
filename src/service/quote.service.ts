@@ -10,7 +10,11 @@ import { NotificationProvider } from '../provider/notification.provider';
 import { AuthRepo } from '../repository/auth.repo';
 import { ReferralRepo } from '../repository/referrals.repo';
 import { TransactionRepo } from '../repository/transaction.repo';
-import { transaction } from '@/schema/transactions-schema';
+import { AiService } from './ai.service';
+import { parsedInput } from '../lib/parsedInput';
+import { travelDealSchema } from '../types/modules/transaction';
+import { formatPost } from '../lib/formatPost';
+import { generateNextDealId } from '../lib/generateId';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -21,24 +25,36 @@ export const quoteService = (
   notificationProvider: NotificationProvider,
   authRepo: AuthRepo,
   referralRepo: ReferralRepo,
-  transactionRepo: TransactionRepo
+  transactionRepo: TransactionRepo,
+  aiService: ReturnType<typeof AiService> // ✅ inject here
+
 ) => {
   return {
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
       // const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
 
       // if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
-
+      console.log(transaction_id)
       let id: string | undefined;
+      if (!data.client_id) throw new AppError('Client ID is required', true, 400);
+
+
+      const lastId = await repo.getLastId();
+
+      const nextDealId = generateNextDealId(lastId || '');
+
+
 
       if (data.holiday_type_name === 'Cruise Package') {
-        const result = await repo.convertQuoteCruise(transaction_id, data);
+        const result = await repo.convertQuoteCruise(transaction_id, { ...data, deal_id: nextDealId });
         id = result.id;
       } else {
-        const result = await repo.convertQuote(transaction_id, data);
+        const result = await repo.convertQuote(transaction_id, { ...data, deal_id: nextDealId });
         id = result.id;
       }
-
+      if (data.travelDeal) {
+        await repo.insertTravelDeal(data.travelDeal, id!);
+      }
       if (user_id === data.agent_id) return { id };
 
       const [user, client] = await Promise.all([userRepo.fetchUserById(user_id), clientRepo.fetchClientById(data.client_id)]);
@@ -72,13 +88,16 @@ export const quoteService = (
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
 
+
+      const lastId = await repo.getLastId();
+      const nextDealId = generateNextDealId(lastId || '');
       if (holiday_type.name === 'Cruise Package') {
 
-        const result = await repo.insertCruise(data);
+        const result = await repo.insertCruise({ ...data, deal_id: nextDealId });
         id = result.quote_id;
         transaction_id = result.transaction_id;
       } else {
-        const result = await repo.insertQuote(data);
+        const result = await repo.insertQuote({ ...data, deal_id: nextDealId });
         id = result.quote_id;
         transaction_id = result.transaction_id;
       }
@@ -98,7 +117,10 @@ export const quoteService = (
         }
 
       }
-
+      if (data.travelDeal) {
+        await repo.insertTravelDeal(data.travelDeal, id!);
+      }
+      if (!data.client_id) return { id, transaction_id };
 
       const referrer = await referralRepo.fetchReferrerByClientId(data.client_id);
       if (transaction_id && referrer && referrer.referrerId) {
@@ -121,20 +143,56 @@ export const quoteService = (
           await referralRepo.insertReferral(transaction_id, referrer.referrerId, referrer.percentageCommission?.toString() ?? '0');
         }
       }
-      if (data.travelDeal) {
-        await repo.insertTravelDeal(data.travelDeal, id!);
-      }
+
 
       return { id, transaction_id };
     },
 
     duplicateQuote: async (data: z.infer<typeof quote_mutate_schema>) => {
-      const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
+      const holiday_types = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
+      let quote_id: string | undefined;
+      let transaction_id: string | undefined;
+      let quote_status: string = ""
+      let holiday_type = ""
 
-      if (holiday_type.name === 'Cruise Package ') return await repo.duplicateCruise(data);
 
-      return await repo.duplicateQuote(data);
+
+      const lastId = await repo.getLastId();
+
+      const nextDealId = generateNextDealId(lastId || '');
+      if (holiday_types.name === 'Cruise Package ') {
+        const response = await repo.duplicateCruise({ ...data, deal_id: nextDealId });
+
+        quote_id = response.quote_id;
+        transaction_id = response.transaction_id;
+        quote_status = response.quote_status
+        holiday_type = response.holiday_type
+      }
+      else {
+        const response = await repo.duplicateQuote({ ...data, deal_id: nextDealId });
+        quote_id = response.quote_id;
+        transaction_id = response.transaction_id;
+        quote_status = response.quote_status
+        holiday_type = response.holiday_type
+      }
+
+      if (data.deal_images && data.deal_images.length > 0) {
+
+        if (data.holiday_type_name === 'Package Holiday' && data.accomodation_id) {
+          const imagesToInsert = data.deal_images.map(image => ({
+            owner_id: data.accomodation_id ?? " ",
+            image_url: image,
+            isPrimary: false,
+            owner_type: 'package_holiday' as const,
+          }))
+          await transactionRepo.insertDealImages(imagesToInsert);
+        }
+      }
+      if (data.travelDeal) {
+        await repo.insertTravelDeal(data.travelDeal, quote_id!);
+      }
+      return { quote_id, transaction_id, quote_status, holiday_type };
     },
 
     fetchQuoteSummaryByClient: async (client_id: string) => {
@@ -267,8 +325,57 @@ export const quoteService = (
     unsetFutureDealDate: async (id: string, status?: string) => {
       return await repo.unsetFutureDealDate(id, status);
     },
-    fetchTravelDeals: async () => {
-      return await repo.fetchTravelDeals();
+    fetchTravelDeals: async (search?: string,
+      country_id?: string,
+      package_type_id?: string,
+      min_price?: string,
+      max_price?: string,
+      start_date?: string,
+      end_date?: string,
+      cursor?: string,
+      limit?: number) => {
+      return await repo.fetchTravelDeals(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
+    },
+
+    generatePostContent: async (quoteDetails: string, quote_id: string) => {
+      if (!quoteDetails || typeof quoteDetails !== 'string') {
+        throw new AppError('Invalid quote details provided.', true, 400);
+      }
+      const parsedData = parsedInput(quoteDetails);
+
+      const validationResult = travelDealSchema.safeParse(parsedData);
+      if (!validationResult.success) {
+        const errors = validationResult.error
+        throw new AppError(`Invalid quote details: ${errors.message}`, true, 400);
+      }
+
+      const result = validationResult.data;
+      // Extract destination from title (everything before common separators like -, |, :)
+      const destination = result.title.split(/[-|:]/)[0].trim() || result.title;
+
+      // Generate subtitle if it's empty, and generate resort summary and hashtags in parallel
+      let subtitle = result.subtitle || "";
+
+      // Run AI calls in parallel for better performance
+      const [generatedSubtitle, resortSummary, hashtags] = await Promise.all([
+        subtitle ? Promise.resolve(subtitle) : aiService.generateSubtitle(result.title),
+        aiService.generateResortSummary(result.title),
+        aiService.generateHashtags(result.title, destination)
+      ]);
+
+      subtitle = generatedSubtitle;
+
+      // Format the post
+      const post = formatPost(result, subtitle, resortSummary, hashtags);
+
+      const dealToInsert = {
+        post,
+        subtitle,
+        resortSummary,
+        hashtags,
+        deal: result
+      }
+      return await repo.insertTravelDeal(dealToInsert, quote_id)
     }
   };
-};
+}

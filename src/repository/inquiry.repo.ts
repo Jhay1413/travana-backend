@@ -882,6 +882,21 @@ export const inquiryRepo: InquiryRepo = {
   },
   fetchInquiryToConvert: async (inquiryId: string) => {
     try {
+
+
+      const accomodation_data = await db.select({
+        resorts_id: resorts.id,
+        destination_id: destination.id,
+        country_id: country.id,
+        enquiry_id: enquiry_resorts.enquiry_id,
+      }).from(enquiry_resorts)
+        .leftJoin(resorts, eq(resorts.id, enquiry_resorts.resorts_id))
+        .leftJoin(destination, eq(destination.id, resorts.destination_id))
+        .leftJoin(country, eq(country.id, destination.country_id))
+        .where(eq(enquiry_resorts.enquiry_id, inquiryId))
+        .limit(1);
+
+        console.log('accomodation_data', accomodation_data);
       const response = await db
         .select({
           id: enquiry_table.id,
@@ -914,12 +929,8 @@ export const inquiryRepo: InquiryRepo = {
           is_future_deal: enquiry_table.is_future_deal,
           future_deal_date: enquiry_table.future_deal_date,
           date_expiry: enquiry_table.date_expiry,
-          destination: destination.id,
-          resorts: resorts.id,
-          accomodation: accomodation_list.id,
           departure_airport: airport.id,
 
-          country_id: destination.country_id,
           accomodation_type_id: enquiry_table.accomodation_type_id,
           client_name: sql<string>`${clientTable.firstName} || ' ' || ${clientTable.surename}`,
           lead_source: transaction.lead_source,
@@ -940,17 +951,11 @@ export const inquiryRepo: InquiryRepo = {
         .leftJoin(port, eq(port.id, enquiry_departure_port.port_id))
         .leftJoin(enquiry_cruise_destination, eq(enquiry_cruise_destination.enquiry_id, enquiry_table.id))
         .leftJoin(cruise_destination, eq(cruise_destination.id, enquiry_cruise_destination.cruise_destination_id))
-        .leftJoin(enquiry_destination, eq(enquiry_destination.enquiry_id, enquiry_table.id))
-        .leftJoin(destination, eq(destination.id, enquiry_destination.destination_id))
-        .leftJoin(country, eq(country.id, destination.country_id))
-        .leftJoin(enquiry_resorts, eq(enquiry_resorts.enquiry_id, enquiry_table.id))
-        .leftJoin(resorts, eq(resorts.id, enquiry_resorts.resorts_id))
-        .leftJoin(enquiry_accomodation, eq(enquiry_accomodation.enquiry_id, enquiry_table.id))
-        .leftJoin(accomodation_list, eq(accomodation_list.id, enquiry_accomodation.accomodation_id))
         .leftJoin(enquiry_departure_airport, eq(enquiry_departure_airport.enquiry_id, enquiry_table.id))
         .leftJoin(airport, eq(airport.id, enquiry_departure_airport.airport_id))
-
         .where(eq(enquiry_table.id, inquiryId));
+
+
       if (response.length === 0) throw new AppError('Enquiry not found', true, 404);
       const groupedResults = response.reduce((acc, curr) => {
         const { id, ...rest } = curr; // Destructure to separate id from the rest of the object
@@ -988,8 +993,8 @@ export const inquiryRepo: InquiryRepo = {
             departure_airport: [],
           };
         }
-        if (curr.country_id && acc[id].country_id && !acc[id].country_id.some((item) => item === curr.country_id)) {
-          acc[id].country_id.push(curr.country_id);
+        if (accomodation_data.length > 0 && accomodation_data[0].country_id && acc[id].country_id && !acc[id].country_id.some((item) => item === accomodation_data[0].country_id)) {
+          acc[id].country_id.push(accomodation_data[0].country_id);
         }
         if (curr.cruise_line && acc[id].cruise_line && !acc[id].cruise_line.some((item) => item === curr.cruise_line)) {
           acc[id].cruise_line.push(curr.cruise_line);
@@ -1003,15 +1008,15 @@ export const inquiryRepo: InquiryRepo = {
         if (curr.cruise_destination && acc[id].cruise_destination && !acc[id].cruise_destination.some((item) => item === curr.cruise_destination)) {
           acc[id].cruise_destination.push(curr.cruise_destination);
         }
-        if (curr.destination && acc[id].destination && !acc[id].destination.some((item) => item === curr.destination)) {
-          acc[id].destination.push(curr.destination);
+        if (accomodation_data.length > 0 && accomodation_data[0].destination_id && acc[id].destination && !acc[id].destination.some((item) => item === accomodation_data[0].destination_id)) {
+          acc[id].destination.push(accomodation_data[0].destination_id);
         }
-        if (curr.resorts && acc[id].resorts && !acc[id].resorts.some((item) => item === curr.resorts)) {
-          acc[id].resorts.push(curr.resorts);
+        if (accomodation_data.length > 0 && accomodation_data[0].resorts_id && acc[id].resorts && !acc[id].resorts.some((item) => item === accomodation_data[0].resorts_id)) {
+          acc[id].resorts.push(accomodation_data[0].resorts_id);
         }
-        if (curr.accomodation && acc[id].accomodation && !acc[id].accomodation.some((item) => item === curr.accomodation)) {
-          acc[id].accomodation.push(curr.accomodation);
-        }
+        // if (accomodation_data.length > 0 && accomodation_data[0].accomodation_id && acc[id].accomodation && !acc[id].accomodation.some((item) => item === accomodation_data[0].accomodation_id)) {
+        //   acc[id].accomodation.push(accomodation_data[0].accomodation_id);
+        // }
         if (curr.departure_airport && acc[id].departure_airport && !acc[id].departure_airport.some((item) => item === curr.departure_airport)) {
           acc[id].departure_airport.push(curr.departure_airport);
         }

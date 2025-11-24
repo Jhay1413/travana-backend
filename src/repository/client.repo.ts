@@ -200,6 +200,7 @@ export const clientRepo: ClientRepo = {
         // Create a map for quick lookup
         const map = new Map<string, (typeof res)[0]>();
         res.forEach((row) => {
+          if (row.clientId === null) return;
           if (!map.has(row.clientId) || (map.get(row.clientId)?.bookingDate || 0) < (row.bookingDate || 0)) {
             map.set(row.clientId, row);
           }

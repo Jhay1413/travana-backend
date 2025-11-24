@@ -1,0 +1,1 @@
+ALTER TABLE "quote_table" ADD COLUMN "isFreeQuote" boolean DEFAULT false;

@@ -9,8 +9,9 @@ import { authRepo } from '../repository/auth.repo';
 import { referralRepo } from '../repository/referrals.repo';
 import { Request, Response } from 'express';
 import { transactionRepo } from '../repository/transaction.repo';
-
-const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo);
+import { AiService } from '../service/ai.service';
+export const aiService = AiService(); // singleton instance
+const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService);
 
 export const quoteController = {
   convertQuote: async (req: Request, res: Response) => {
@@ -209,7 +210,7 @@ export const quoteController = {
         cursor,
         num_limit
       );
-      res.status(200).json( quote );
+      res.status(200).json(quote);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
@@ -246,9 +247,44 @@ export const quoteController = {
   },
   fetchTravelDeals: async (req: Request, res: Response) => {
     try {
-      const deals = await service.fetchTravelDeals();
+      const { search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit } = req.query as {
+        search?: string;
+        country_id?: string;
+        package_type_id?: string;
+        min_price?: string;
+        max_price?: string;
+        start_date?: string;
+        end_date?: string;
+        cursor?: string;
+        limit?: string;
+      };
+      const num_limit = limit ? Number(limit) : 10;
+      const deals = await service.fetchTravelDeals(search,
+        country_id,
+        package_type_id,
+        min_price,
+        max_price,
+        start_date,
+        end_date,
+        cursor,
+        num_limit);
       res.status(200).json(deals);
     } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  generatePostContent: async (req: Request, res: Response) => {
+    try {
+      const { quoteDetails } = req.body;
+      const { id } = req.params;
+      const postContent = await service.generatePostContent(quoteDetails, id);
+      res.status(200).json({
+        message: 'Post content generated successfully',
+        postContent
+      });
+    } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },

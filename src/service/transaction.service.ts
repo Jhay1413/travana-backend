@@ -417,7 +417,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
 
       }
       const board_basis = await repo.fetchBoardBasis();
-      const airports = await repo.fetchAllAirports(undefined, undefined, 1000);
+      const airports = await repo.fetchAllAirports(undefined, undefined, 5000);
       const country = await repo.fetchCountry();
       const roomTypes = await repo.fetchRoomTypes();
 
@@ -439,6 +439,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
       const normalize = (s: string) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
       if (data.accommodation) {
         const fetchAccomodation = await repo.fetchAccomodationByName(data.accommodation);
+        console.log(fetchAccomodation)
         if (data.board_basis) {
           const fuse = new Fuse(board_basis, {
             keys: ['type'],
@@ -449,7 +450,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             initialData.main_board_basis_id = result[0].item.id;
           }
         }
-        if (fetchAccomodation && Array.isArray(fetchAccomodation)) {
+        if (fetchAccomodation && Array.isArray(fetchAccomodation) && fetchAccomodation.length > 0) {
           const fuse = new Fuse(fetchAccomodation, {
             keys: ['name'],
             threshold: 0.4,
@@ -457,7 +458,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
           const result = fuse.search(data.accommodation);
           if (result.length > 0) {
             initialData.accomodation_id = result[0].item.id;
-            initialData.country = result[0].item.resorts?.destination?.country_id ?? "";
+            initialData.country = result[0].item.resorts?.destination?.country_id ?? "8O+                  ";
             initialData.destination = result[0].item.resorts?.destination_id ?? "";
             initialData.resort = result[0].item.resorts_id ?? "";
 
@@ -472,111 +473,112 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             }
 
           }
-          else {
-            let countryId: string | undefined;
-            let destinationId: string | undefined;
-            let resortId: string | undefined;
 
-            let resortName = data.resort?.split(',')[0].trim() || '';
-            let destinationName = data.destination?.split(',')[0].trim() || '';
+        }
+        else {
+          let countryId: string | undefined;
+          let destinationId: string | undefined;
+          let resortId: string | undefined;
 
-            if (!resortName) resortName = data.accommodation;
-            if (!destinationName) destinationName = data.country;
+          let resortName = data.resort?.split(',')[0].trim() || '';
+          let destinationName = data.destination?.split(',')[0].trim() || '';
 
-            // Prepare empty placeholders
-            let existingResort = {} as { id: string; name: string; destination_id: string; country_id: string };
-            let existingDestination = {} as { id: string; name: string; country_id: string };
-            let existingCountry = {} as { id: string; country_name: string; country_code: string };
+          if (!resortName) resortName = data.accommodation;
+          if (!destinationName) destinationName = data.country;
 
-            const fetchResort = await repo.fetchResortByName(resortName);
-            const fetchDestination = await repo.fetchDestinationByName(destinationName);
+          // Prepare empty placeholders
+          let existingResort = {} as { id: string; name: string; destination_id: string; country_id: string };
+          let existingDestination = {} as { id: string; name: string; country_id: string };
+          let existingCountry = {} as { id: string; country_name: string; country_code: string };
 
-            // ✅ Resort check
-            if (Array.isArray(fetchResort) && fetchResort.length > 0) {
-              const fuse = new Fuse(fetchResort, { keys: ['name'], threshold: 0.4 });
-              const result = fuse.search(resortName);
-              if (result.length > 0) {
-                existingResort = result[0].item;
-                resortId = existingResort.id;
-                destinationId = existingResort.destination_id;
-                countryId = existingResort.country_id;
-              }
+          const fetchResort = await repo.fetchResortByName(resortName);
+          const fetchDestination = await repo.fetchDestinationByName(destinationName);
+
+          // ✅ Resort check
+          if (Array.isArray(fetchResort) && fetchResort.length > 0) {
+            const fuse = new Fuse(fetchResort, { keys: ['name'], threshold: 0.4 });
+            const result = fuse.search(resortName);
+            if (result.length > 0) {
+              existingResort = result[0].item;
+              resortId = existingResort.id;
+              destinationId = existingResort.destination_id;
+              countryId = existingResort.country_id;
             }
+          }
 
-            // ✅ Destination check
-            if (Object.keys(existingResort).length === 0 && Array.isArray(fetchDestination) && fetchDestination.length > 0) {
-              const fuse = new Fuse(fetchDestination, { keys: ['name'], threshold: 0.4 });
-              const result = fuse.search(destinationName);
-              if (result.length > 0) {
-                existingDestination = result[0].item;
-                destinationId = existingDestination.id;
-                countryId = existingDestination.country_id;
-              }
+          // ✅ Destination check
+          if (Object.keys(existingResort).length === 0 && Array.isArray(fetchDestination) && fetchDestination.length > 0) {
+            const fuse = new Fuse(fetchDestination, { keys: ['name'], threshold: 0.4 });
+            const result = fuse.search(destinationName);
+            if (result.length > 0) {
+              existingDestination = result[0].item;
+              destinationId = existingDestination.id;
+              countryId = existingDestination.country_id;
             }
+          }
 
-            // ✅ Country check
-            if (Object.keys(existingDestination).length === 0 && Object.keys(existingResort).length === 0) {
-              const scrapeCountry = country.find(c => normalize(c.country_name) === normalize(data.country));
-              if (scrapeCountry) {
-                existingCountry = {
-                  id: scrapeCountry.id,
-                  country_name: scrapeCountry.country_name,
-                  country_code: scrapeCountry.country_code ?? 'N/A',
-                };
-                countryId = scrapeCountry.id;
-              } else {
-                const insertedCountry = await repo.insertCountry(data.country, 'N/A');
-                existingCountry = {
-                  id: insertedCountry.id,
-                  country_name: data.country,
-                  country_code: "N/A",
-                };
-                countryId = insertedCountry.id;
-              }
+          // ✅ Country check
+          if (Object.keys(existingDestination).length === 0 && Object.keys(existingResort).length === 0) {
+            const scrapeCountry = country.find(c => normalize(c.country_name) === normalize(data.country));
+            if (scrapeCountry) {
+              existingCountry = {
+                id: scrapeCountry.id,
+                country_name: scrapeCountry.country_name,
+                country_code: scrapeCountry.country_code ?? 'N/A',
+              };
+              countryId = scrapeCountry.id;
+            } else {
+              const insertedCountry = await repo.insertCountry(data.country, 'N/A');
+              existingCountry = {
+                id: insertedCountry.id,
+                country_name: data.country,
+                country_code: "N/A",
+              };
+              countryId = insertedCountry.id;
             }
+          }
 
-            // ✅ Now handle inserts for missing hierarchy
-            if (Object.keys(existingResort).length === 0) {
-              // If destination is missing, insert it
-              if (Object.keys(existingDestination).length === 0) {
-                const newDest = await repo.insertDestination({
-                  name: destinationName,
-                  country_id: countryId!,
-                });
-                existingDestination = {
-                  id: newDest.id,
-                  name: destinationName,
-                  country_id: countryId!,
-
-                };
-                destinationId = newDest.id;
-              }
-
-              // Then insert the resort
-              const newResort = await repo.insertResort({
-                name: resortName,
-                destination_id: destinationId!,
+          // ✅ Now handle inserts for missing hierarchy
+          if (Object.keys(existingResort).length === 0) {
+            // If destination is missing, insert it
+            if (Object.keys(existingDestination).length === 0) {
+              const newDest = await repo.insertDestination({
+                name: destinationName,
                 country_id: countryId!,
               });
-              existingResort = {
-                id: newResort.id, name: resortName, destination_id: destinationId!, country_id: countryId!
+              existingDestination = {
+                id: newDest.id,
+                name: destinationName,
+                country_id: countryId!,
+
               };
-              resortId = newResort.id;
+              destinationId = newDest.id;
             }
 
-            // ✅ Always insert accommodation at the end
-            const insertedAccommodation = await repo.insertAccomodation({
-              resort_id: resortId!,
-              name: data.accommodation,
-              type_id: null,
-              description: data.hotel_description || null,
+            // Then insert the resort
+            const newResort = await repo.insertResort({
+              name: resortName,
+              destination_id: destinationId!,
+              country_id: countryId!,
             });
-
-            initialData.accomodation_id = insertedAccommodation.id;
-            initialData.country = countryId!;
-            initialData.destination = destinationId!;
-            initialData.resort = resortId!;
+            existingResort = {
+              id: newResort.id, name: resortName, destination_id: destinationId!, country_id: countryId!
+            };
+            resortId = newResort.id;
           }
+
+          // ✅ Always insert accommodation at the end
+          const insertedAccommodation = await repo.insertAccomodation({
+            resort_id: resortId!,
+            name: data.accommodation,
+            type_id: null,
+            description: data.hotel_description || null,
+          });
+
+          initialData.accomodation_id = insertedAccommodation.id;
+          initialData.country = countryId!;
+          initialData.destination = destinationId!;
+          initialData.resort = resortId!;
         }
       }
 
@@ -600,10 +602,10 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               destination: resortAccomodation.resorts?.destination_id ?? "",
               resort: resortAccomodation.resorts_id ?? "",
               accomodation_id: resortAccomodation.id,
-              no_of_nights: hotel.no_of_nights,
+              no_of_nights: hotel.no_of_nights ?? "0",
               check_in_date_time: formatISO(parsed),
-              room_type: hotel.room_type,
-              board_basis_id: board_basis.find(bb => bb.type.toLowerCase() === hotel.board_basis.toLowerCase())?.id || "",
+              room_type: hotel.room_type ?? "N/A",
+              board_basis_id: board_basis.find(bb => bb.type.toLowerCase() === hotel.board_basis?.toLowerCase())?.id || "",
               cost: 0,
               commission: 0,
               is_included_in_package: false,
@@ -630,8 +632,6 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
             commission: 0,
             is_included_in_package: false,
           }
-
-
           initialData.flights?.push(flightData);
         }
       }

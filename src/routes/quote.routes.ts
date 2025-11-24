@@ -25,6 +25,7 @@ router.put('/:id/primary', quoteController.setPrimary);
 router.put('/:id/expiry', quoteController.updateQuoteExpiry);
 router.put('/:id/future-deal', quoteController.setFutureDealDate);
 router.put('/:id/unset-future-deal', quoteController.unsetFutureDealDate);
+router.put('/:id/generate-post', quoteController.generatePostContent);
 
 // Quote deletion
 router.delete('/:id', quoteController.deleteQuote);
