@@ -229,7 +229,7 @@ export const quoteService = (
       const holiday_type = await repo.fetchHolidayTypeByQuoteId(quote_id);
       if (!holiday_type) throw new AppError('No holiday type found', true, 400);
 
-      if (holiday_type === 'Cruise Package ') return await repo.updateCruise(data, quote_id);
+      if (holiday_type === 'Cruise Package') return await repo.updateCruise(data, quote_id);
 
       return await repo.updateQuote(data, quote_id);
     },

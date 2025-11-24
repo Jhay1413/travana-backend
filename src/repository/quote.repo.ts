@@ -2938,7 +2938,7 @@ export const quoteRepo: QuoteRepo = {
             .insert(quote_cruise_item_extra)
             .values(data.quote_cruise_extra.map((item) => ({ cruise_extra_id: item, quote_cruise_id: data.quote_cruise_id })));
         }
-
+        console.log(data.cruise_ship,"<--- cruise ship");
         await tx.update(quote_cruise).set({
           cruise_date: data.cruise_date ? data.cruise_date : null,
           cabin_type: data.cabin_type,
