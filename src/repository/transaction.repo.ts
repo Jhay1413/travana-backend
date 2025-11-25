@@ -1643,12 +1643,15 @@ export const transactionRepo: TransactionRepo = {
       columns: {
         id: true,
         country_name: true,
+        country_code: true,
       },
       ...(whereClause ? { where: whereClause } : {}),
     });
+    console.log(response)
     return response.map((data) => ({
       id: data.id,
       country_name: data.country_name ?? '',
+      country_code: data.country_code ?? '',
     }));
   },
   fetchAccomodation: async (search, resort_ids, selectedIds) => {
