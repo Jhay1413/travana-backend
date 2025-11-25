@@ -30,7 +30,7 @@ export const bookingService = (
       const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
       if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
       let id: string | undefined;
-      if (holiday_type.name === 'Cruise Package ') {
+      if (holiday_type.name === 'Cruise Package') {
         const result = await repo.convertCruise(transaction_id, data);
         id = result.id;
       } else {
