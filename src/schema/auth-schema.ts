@@ -13,6 +13,7 @@ import { ticket } from './ticket-schema';
 import { ticket_reply } from './ticket-schema';
 import { chatMessage, chatMessageRead } from './chat-schema';
 import { chatParticipant } from './chat-schema';
+import { quote } from './quote-schema';
 
 
 export const user = pgTable("user", {
@@ -128,7 +129,7 @@ export const userRelation = relations(user, ({ many }) => ({
   referralsMade: many(referral),
   clients: many(clientTable),
 
-
+  deletedByQuotes: many(quote, { relationName: 'deleted_by_user_v2' }),
   transaction: many(transaction),
   notes: many(notes),
   assigned_task: many(task, { relationName: 'user_assigned' }),

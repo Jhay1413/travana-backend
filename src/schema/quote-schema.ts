@@ -6,6 +6,7 @@ import { airport } from './flights-schema';
 import { booking } from './booking-schema';
 import { usersTable } from './user-schema';
 import { array } from 'zod';
+import { user } from './auth-schema';
 
 export const quoteStatusEnum = pgEnum('quote_status', [
   'NEW_LEAD',
@@ -55,12 +56,19 @@ export const quote = pgTable('quote_table', {
   is_active: boolean().default(true),
   deletion_code: varchar(),
   deleted_by: uuid().references(() => usersTable.id),
+  deleted_by_v2:text().references(() => user.id),
   deleted_at: timestamp({ precision: 0, withTimezone: true }),
   quote_ref: varchar(),
   isQuoteCopy: boolean().default(false),
   isFreeQuote: boolean().default(false),
 });
 export const quote_relation = relations(quote, ({ one, many }) => ({
+
+  deleted_by_user_v2: one(user, {
+    fields: [quote.deleted_by_v2],
+    references: [user.id],
+    
+  }),
   quote_cruise: one(quote_cruise, {
     fields: [quote.id],
     references: [quote_cruise.quote_id],

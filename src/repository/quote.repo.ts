@@ -3687,7 +3687,7 @@ export const quoteRepo: QuoteRepo = {
         .set({
           is_active: false,
           deletion_code: deletionCode,
-          deleted_by: deletedBy,
+          deleted_by_v2: deletedBy,
           deleted_at: now,
         })
         .where(eq(quote.id, quote_id));

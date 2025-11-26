@@ -1,0 +1,2 @@
+ALTER TABLE "quote_table" ADD COLUMN "deleted_by_v2" text;--> statement-breakpoint
+ALTER TABLE "quote_table" ADD CONSTRAINT "quote_table_deleted_by_v2_user_id_fk" FOREIGN KEY ("deleted_by_v2") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;
