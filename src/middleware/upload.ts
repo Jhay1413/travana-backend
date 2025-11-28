@@ -27,6 +27,8 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
     'application/zip',
     'application/x-rar-compressed',
     'application/x-7z-compressed',
+    'application/x-zip-compressed',
+    'application/octet-stream',   // ⚠️ many browsers upload .zip as this!
 
     // JSON/Text
     'application/json',
