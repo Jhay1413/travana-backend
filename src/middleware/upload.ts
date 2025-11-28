@@ -49,7 +49,7 @@ const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCa
 // File filter for tickets - allows various file types
 const ticketFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
   // Allowed file types for tickets
-  const allowedMimeTypes = [
+ const allowedMimeTypes = [
     // Images
     'image/jpeg',
     'image/png',
@@ -69,6 +69,8 @@ const ticketFileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFi
     'application/zip',
     'application/x-rar-compressed',
     'application/x-7z-compressed',
+    'application/x-zip-compressed',
+    'application/octet-stream',   // ⚠️ many browsers upload .zip as this!
 
     // JSON/Text
     'application/json',
