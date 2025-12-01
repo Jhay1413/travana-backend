@@ -2147,7 +2147,7 @@ export const bookingRepo: BookingRepo = {
       .set({
         is_active: false,
         deletion_code: deletion_code,
-        deleted_by: deleted_by,
+        deleted_by_user: deleted_by,
         deleted_at: now,
       })
       .where(eq(booking.id, booking_id));

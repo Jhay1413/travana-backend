@@ -388,7 +388,7 @@ export const ticketsRepo: TicketsRepo = {
         const response = await db.query.ticket_reply.findMany({
             where: eq(ticket_reply.ticket_id, id),
             with: {
-                agent: true,
+                user: true,
                 files: true,
             },
             orderBy: (reply, { asc }) => [asc(reply.created_at)],
@@ -399,16 +399,17 @@ export const ticketsRepo: TicketsRepo = {
             ticket_id: data.ticket_id ?? '',
             reply: data.reply ?? '',
             agent_id: data.agent_id ?? undefined,
+            
             created_at: data.created_at?.toString() ?? '',
             updated_at: data.updated_at?.toString() ?? '',
-            agent: data.agent
+            agent: data.user
                 ? {
-                    id: data.agent.id,
-                    firstName: data.agent.firstName ?? '',
-                    lastName: data.agent.lastName ?? '',
-                    email: data.agent.email ?? '',
-                    phone: data.agent.phoneNumber ?? '',
-                    role: data.agent.role ?? '',
+                    id: data.user.id,
+                    firstName: data.user.firstName ?? '',
+                    lastName: data.user.lastName ?? '',
+                    email: data.user.email ?? '',
+                    phone: data.user.phoneNumber ?? '',
+                    role: data.user.role ?? '',
                     created_at: '',
                     updated_at: '',
                 }
