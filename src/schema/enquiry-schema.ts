@@ -6,6 +6,7 @@ import { accomodation_list, accomodation_type, board_basis, destination, package
 import { cruise_destination, cruise_line, port } from './cruise-schema';
 import { airport } from './flights-schema';
 import { notes } from './note-schema';
+import { passengers } from './quote-schema';
 
 
 export const enquiryStatusEnum = pgEnum('enquiry_status', [
@@ -57,6 +58,7 @@ export const enquiry_table = pgTable('enquiry_table', {
   deleted_at: timestamp({ precision: 0, withTimezone: true }),
 });
 export const enquiry_relations = relations(enquiry_table, ({ one, many }) => ({
+
   transaction: one(transaction, {
     fields: [enquiry_table.transaction_id],
     references: [transaction.id],
@@ -77,6 +79,7 @@ export const enquiry_relations = relations(enquiry_table, ({ one, many }) => ({
   resortss: many(enquiry_resorts),
   accomodation: many(enquiry_accomodation),
   departure_airport: many(enquiry_departure_airport),
+  passengers: many(enquiry_passenger),
 }));
 
 export const enquiry_departure_port = pgTable('enquiry_departure_port', {
@@ -207,6 +210,25 @@ export const enquiry_accomodation_relations = relations(enquiry_accomodation, ({
   }),
   enquiry: one(enquiry_table, {
     fields: [enquiry_accomodation.enquiry_id],
+    references: [enquiry_table.id],
+  }),
+}));
+
+
+export const enquiry_passenger = pgTable('enquiry_passenger', {
+  id: uuid()
+    .default(sql`gen_random_uuid()`)
+    .primaryKey(),
+  enquiry_id: uuid().references(() => enquiry_table.id, {
+    onDelete: 'cascade',
+  }),
+  type: varchar(), // e.g., 'ADULT', 'CHILD', 'INFANT'
+  age: integer(),
+});
+
+export const enquiry_passenger_relations = relations(enquiry_passenger, ({ one, many }) => ({
+  enquiry: one(enquiry_table, {
+    fields: [enquiry_passenger.enquiry_id],
     references: [enquiry_table.id],
   }),
 }));

@@ -47,6 +47,10 @@ export const enquiry_mutate_schema = z.object({
   referralId: z.nullable(z.string()).optional(),
   referrerId: z.nullable(z.string()).optional(),
   potentialCommission: z.nullable(z.number()).optional(),
+  passengers:z.array(z.object({
+    age: z.number().optional(),
+    type: z.enum(['adult', 'child', 'infant']).optional(),
+  })).optional(),
 });
 export const noteMutateSchema = z.object({
   description: z.string(),

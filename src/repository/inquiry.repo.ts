@@ -8,6 +8,7 @@ import {
   enquiry_departure_airport,
   enquiry_departure_port,
   enquiry_destination,
+  enquiry_passenger,
   enquiry_resorts,
   enquiry_table,
 } from '../schema/enquiry-schema';
@@ -291,6 +292,15 @@ export const inquiryRepo: InquiryRepo = {
 
         const enquiry_id = enquiry.id;
 
+
+        if (data.passengers && data.passengers.length > 0) {
+          const passengersPayload = data.passengers.map((passenger) => ({
+            age: passenger.age,
+            type: passenger.type,
+            enquiry_id: enquiry_id,
+          }));
+          await tx.insert(enquiry_passenger).values(passengersPayload);
+        }
         //Insert Cruise line
         if (data.cruise_line && data.cruise_line.length) {
           const cruiseLinePayload = data.cruise_line.map((id) => ({
@@ -896,7 +906,7 @@ export const inquiryRepo: InquiryRepo = {
         .where(eq(enquiry_resorts.enquiry_id, inquiryId))
         .limit(1);
 
-        console.log('accomodation_data', accomodation_data);
+      console.log('accomodation_data', accomodation_data);
       const response = await db
         .select({
           id: enquiry_table.id,
