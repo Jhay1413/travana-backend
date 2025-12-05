@@ -299,7 +299,12 @@ export const StructuredScrapeDataSchema = z.object({
   attraction_tickets: StringRecordArray,
   car_hire: StringRecordArray,
   airport_parking: StringRecordArray,
-  lounge_pass: StringRecordArray
+  lounge_pass: StringRecordArray,
+  lodge_images: z.array(z.string()).optional(),
+  lodge_code: z.string().optional(),
+  lodge_description: z.string().optional(),
+  lodge_id:z.string().optional(),
+  lodge_park_name:z.string().optional(),
 });
 
 

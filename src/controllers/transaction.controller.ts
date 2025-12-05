@@ -229,8 +229,8 @@ export const transactionController = {
   },
   fetchLodges: async (req: Request, res: Response) => {
     try {
-      const { search } = req.query as { search: string };
-      const lodges = await service.fetchLodges(search ?? undefined);
+      const { search,selected_id } = req.query as { search: string; selected_id: string };
+      const lodges = await service.fetchLodges(search ?? undefined, selected_id ?? undefined);
       res.status(200).json(lodges);
     } catch (error) {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });

@@ -133,7 +133,9 @@ export type TransactionRepo = {
   fetchTourOperator: (search?: string, selectedIds?: string[]) => Promise<z.infer<typeof tourOperatorQuerySchema>[]>;
   fetchPackageType: () => Promise<{ id: string; name: string }[]>;
 
-  fetchLodges: (search?: string) => Promise<z.infer<typeof lodgeQuerySchema>[]>;
+  fetchLodges: (search?: string, selectedId?: string) => Promise<z.infer<typeof lodgeQuerySchema>[]>;
+  fetchLodgesByCode: (code: string) => Promise<z.infer<typeof lodgeQuerySchema> | null>;
+  fetchParkByCode: (code: string) => Promise<{ id: string; name: string } | null>;
   fetchCruiseDate: (date: string, ship_id: string) => Promise<z.infer<typeof cruiseDateQuerySchema>[]>;
   fetchCruises: () => Promise<{ id: string; name: string }[]>;
   fetchShips: (
@@ -206,7 +208,7 @@ export type TransactionRepo = {
   }>
   insertAccomodation: (data: { resort_id: string, name: string, type_id: string | null, description?: string | null }) => Promise<{ id: string }>
   insertCountry: (name: string, code: string) => Promise<{ id: string }>
-  insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<void>
+  insertLodge: (data: z.infer<typeof lodgeMutateSchema>) => Promise<{ id: string, pets: number }>
   insertTourOperator: (data: z.infer<typeof tour_operator_mutate_schema>) => Promise<void>
 
   updateTourOperator: (id: string, data: z.infer<typeof tour_operator_mutate_schema>) => Promise<void>
@@ -274,7 +276,7 @@ export type TransactionRepo = {
 
   // Parks endpoints
   fetchAllParks: () => Promise<{ id: string; name: string }[]>;
-
+  insertPark: (data: { name: string, code: string }) => Promise<{ id: string, name: string }>;
   // Deletion Codes endpoints
   generateDeletionCodes: (data: { numberOfCodes: number }) => Promise<void>;
   insertDeletionCode: (data: { code: string }) => Promise<void>;
@@ -381,8 +383,18 @@ export type TransactionRepo = {
   fetchDealImagesByOwnerId: (owner_id: string) => Promise<z.infer<typeof deal_images>[]>;
   setImageAsPrimary: (new_primary_id: string, old_primary_id?: string) => Promise<void>;
   insertCruiseData: (data: z.infer<typeof cruiseFormSchema>) => Promise<void>;
+  fetchHolidayTypeById: (id: string) => Promise<{ id: string; name: string }>;
 };
 export const transactionRepo: TransactionRepo = {
+  fetchHolidayTypeById: async (id) => {
+    const response = await db.query.package_type.findFirst({
+      where: eq(package_type.id, id),
+    });
+    if (response) {
+      return { id: response.id, name: response.name };
+    }
+    return { id: '', name: '' };
+  },
   insertCruiseData: async (data) => {
     await db.transaction(async (tx) => {
       const itineraries = await tx.insert(cruise_itenary)
@@ -739,7 +751,27 @@ export const transactionRepo: TransactionRepo = {
   },
 
   insertLodge: async (data) => {
-    await db.insert(lodges).values(data);
+    const response = await db.insert(lodges).values({
+      park_id: data.park_id,
+      lodge_name: data.lodge_name,
+      lodge_code: data.lodge_code.toUpperCase(),
+      image: data.image,
+      adults: data.adults,
+      children: data.children,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      pets: data.pets,
+      sleeps: data.sleeps,
+      infants: data.infants,
+
+    }).returning({
+      id: lodges.id,
+      pets: lodges.pets,
+    });
+    return {
+      id: response[0].id,
+      pets: response[0].pets ?? 0,
+    };
   },
 
   insertTourOperator: async (data) => {
@@ -1905,11 +1937,43 @@ export const transactionRepo: TransactionRepo = {
     });
     return response;
   },
-  fetchLodges: async (search) => {
-    const conditions = [search ? or(ilike(lodges.lodge_name, `%${search}%`), ilike(lodges.lodge_code, `%${search}%`)) : undefined].filter(Boolean);
+  insertPark: async (data) => {
+    const response = await db.insert(park).values({
+      name: data.name,
+      code: data.code.toUpperCase(),
+    }).returning({ id: park.id, name: park.name });
 
-    const whereClause = nestedBuilder(conditions);
-    const response = await db.query.lodges.findMany({
+    return { id: response[0].id, name: response[0].name ?? '' };
+
+  },
+  fetchParkByCode: async (code) => {
+    const response = await db.query.park.findFirst({
+      where: eq(park.code, code.toUpperCase()),
+      columns: {
+        id: true,
+        name: true,
+        city: true,
+        location: true,
+        county: true,
+        code: true,
+        description: true,
+      },
+    });
+    if (!response) {
+      return null;
+    }
+    return {
+      ...response,
+      name: response.name ?? '',
+      city: response.city ?? '',
+      location: response.location ?? '',
+      county: response.county ?? '',
+      code: response.code ?? '',
+      description: response.description ?? '',
+    }
+  },
+  fetchLodgesByCode: async (code) => {
+    const response = await db.query.lodges.findFirst({
       columns: {
         id: true,
         lodge_name: true,
@@ -1924,6 +1988,111 @@ export const transactionRepo: TransactionRepo = {
         infants: true,
         park_id: true,
       },
+      where: eq(lodges.lodge_code, code.toUpperCase()),
+      with: {
+        park: {
+          columns: {
+            id: true,
+            name: true,
+            city: true,
+            location: true,
+            county: true,
+            code: true,
+            description: true,
+          },
+        },
+      },
+    });
+
+    if (!response) {
+      return null
+    }
+    return {
+      id: response.id,
+      lodge_name: response.lodge_name ?? '',
+      lodge_code: response.lodge_code ?? '',
+      image: response.image ?? '',
+      adults: response.adults ?? 0,
+      children: response.children ?? 0,
+      bedrooms: response.bedrooms ?? 0,
+      bathrooms: response.bathrooms ?? 0,
+      pets: response.pets ?? 0,
+      sleeps: response.sleeps ?? 0,
+      infants: response.infants ?? 0,
+      park: response.park
+        ? {
+          id: response.park.id,
+          name: response.park.name ?? '',
+          city: response.park.city ?? '',
+          location: response.park.location ?? '',
+          county: response.park.county ?? '',
+          code: response.park.code ?? '',
+          description: response.park.description ?? '',
+        }
+        : null,
+    };
+  },
+  fetchLodges: async (search, selectedId) => {
+
+    // If selectedId exists, fetch exactly ONE lodge
+    if (selectedId) {
+      const lodge = await db.query.lodges.findFirst({
+        where: eq(lodges.id, selectedId),
+        with: {
+          park: {
+            columns: {
+              id: true,
+              name: true,
+              city: true,
+              location: true,
+              county: true,
+              code: true,
+              description: true,
+            },
+          },
+        },
+      });
+
+      // return an array with 1 object (or empty array if not found)
+      return lodge ? [{
+        id: lodge.id,
+        lodge_name: lodge.lodge_name ?? '',
+        lodge_code: lodge.lodge_code ?? '',
+        image: lodge.image ?? '',
+        adults: lodge.adults ?? 0,
+        children: lodge.children ?? 0,
+        bedrooms: lodge.bedrooms ?? 0,
+        bathrooms: lodge.bathrooms ?? 0,
+        pets: lodge.pets ?? 0,
+        sleeps: lodge.sleeps ?? 0,
+        infants: lodge.infants ?? 0,
+        park: lodge.park
+          ? {
+            id: lodge.park.id,
+            name: lodge.park.name ?? '',
+            city: lodge.park.city ?? '',
+            location: lodge.park.location ?? '',
+            county: lodge.park.county ?? '',
+            code: lodge.park.code ?? '',
+            description: lodge.park.description ?? '',
+          }
+          : null,
+      }] : [];
+    }
+
+    // Otherwise run normal search
+    const conditions = [
+      search
+        ? or(
+          ilike(lodges.lodge_name, `%${search}%`),
+          ilike(lodges.lodge_code, `%${search}%`)
+        )
+        : undefined,
+    ].filter(Boolean);
+
+    const whereClause = nestedBuilder(conditions);
+
+    const response = await db.query.lodges.findMany({
       where: whereClause,
       with: {
         park: {
@@ -1940,6 +2109,7 @@ export const transactionRepo: TransactionRepo = {
       },
       limit: 40,
     });
+
     return response.map((data) => ({
       id: data.id,
       lodge_name: data.lodge_name ?? '',
