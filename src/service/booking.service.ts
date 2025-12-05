@@ -82,6 +82,16 @@ export const bookingService = (
 
 
           }))
+
+          await transactionRepo.insertDealImages(imagesToInsert);
+        }
+        else if (data.lodge_id) {
+          const imagesToInsert = data.deal_images.map(image => ({
+            owner_id: data.lodge_id ?? " ",
+            image_url: image,
+            isPrimary: false,
+            owner_type: 'hot_tub_break' as const,
+          }))
           await transactionRepo.insertDealImages(imagesToInsert);
         }
 
@@ -182,6 +192,10 @@ export const bookingService = (
 
         return { ...response, deal_images: dealImages };
       }
+      else if (response.holiday_type === 'Hot Tub Break' && response.lodge_id) {
+        const dealImages = await transactionRepo.fetchDealImagesByOwnerId(response.lodge_id || '');
+        return { ...response, deal_images: dealImages };
+      }
       return response;
 
     },
@@ -236,7 +250,7 @@ export const bookingService = (
     updateForwardAdjustment: async (id: string, adjustment: number) => {
       return await repo.updateForwardAdjustment(id, adjustment);
     },
-    getBookingByPeriod: async (periodId:string) => {
+    getBookingByPeriod: async (periodId: string) => {
       const bookings = await repo.getBookingByPeriod(periodId);
       return bookings;
     }

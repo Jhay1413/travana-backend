@@ -2181,7 +2181,7 @@ export const bookingRepo: BookingRepo = {
       .innerJoin(package_type, eq(booking.holiday_type_id, package_type.id))
       .where(eq(booking.id, booking_id))
       .limit(1);
-
+      console.log('result', result);
     const groupByFields = [
       booking.id,
       agentTable.firstName,
@@ -2667,13 +2667,33 @@ export const bookingRepo: BookingRepo = {
     };
 
     if (result.length > 0 && result[0].name === 'Hot Tub Break') {
-      return dataValidator(bookingHotTubQuerySchema, payload);
+      const data = dataValidator(bookingHotTubQuerySchema, payload);
+
+      return {
+        ...data,
+        holiday_type: 'Hot Tub Break',
+      }
     } else if (result.length > 0 && result[0].name === 'Package Holiday') {
-      return dataValidator(bookingQuerySchema, payload);
+      const data = dataValidator(bookingQuerySchema, payload);
+
+      return {
+        ...data,
+        holiday_type: 'Package Holiday',
+      }
     } else if (result.length > 0 && result[0].name === 'Cruise Package') {
-      return dataValidator(bookingCruiseQuerySchema, payload);
+      const data = dataValidator(bookingCruiseQuerySchema, payload);
+
+      return {
+        ...data,
+        holiday_type: 'Cruise Package',
+      }
     } else {
-      return dataValidator(bookingQuerySchema, payload);
+      const data = dataValidator(bookingQuerySchema, payload);
+
+      return {
+        ...data,
+        holiday_type: 'Others',
+      }
     }
   },
   restore: async (booking_id) => {

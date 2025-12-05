@@ -94,7 +94,7 @@ export const bookingQuerySchema = z.object({
   car_hire: z.array(car_hire).optional(),
   airport_parking: z.array(airport_parking).optional(),
   lounge_pass: z.array(lounge_pass).optional(),
-  transfer_type: z.string(),
+  transfer_type: z.nullable(z.string()).optional(),
   adults: z.number().optional(),
   children: z.number().optional(),
   infants: z.number().optional(),
@@ -124,11 +124,28 @@ export const bookingQuerySchema = z.object({
   finalCommission: z.nullable(z.number()).optional(),
   lead_source: z.nullable(z.string()).optional(),
 });
-export const bookingCruiseQuerySchema = bookingQuerySchema.merge(cruiseFields);
+export const bookingPackageHolidayQuerySchema = bookingQuerySchema.extend({
+  holiday_type: z.literal('Package Holiday'),
+});
 
-export const bookingHotTubQuerySchema = bookingQuerySchema.merge(hotTubFields);
+export const bookingCruiseQuerySchema = bookingQuerySchema.merge(cruiseFields).extend({
+  holiday_type: z.literal('Cruise Package'),
+});
 
-export const unifiedBookingSchema = z.union([bookingCruiseQuerySchema, bookingHotTubQuerySchema, bookingQuerySchema]);
+export const bookingHotTubQuerySchema = bookingQuerySchema.merge(hotTubFields).extend({
+  holiday_type: z.literal('Hot Tub Break'),
+});
+
+export const bookingOthersQuerySchema = bookingQuerySchema.extend({
+  holiday_type: z.literal('Others'),
+});
+
+export const unifiedBookingSchema = z.discriminatedUnion('holiday_type', [
+  bookingPackageHolidayQuerySchema,
+  bookingCruiseQuerySchema,
+  bookingHotTubQuerySchema,
+  bookingOthersQuerySchema,
+]);
 
 export const historicalBookingQuerySchema = z.object({
   id: z.string(),

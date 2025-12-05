@@ -197,6 +197,15 @@ export const quoteService = (
           }))
           await transactionRepo.insertDealImages(imagesToInsert);
         }
+        else if (data.lodge_id) {
+          const imagesToInsert = data.deal_images.map(image => ({
+            owner_id: data.lodge_id ?? " ",
+            image_url: image,
+            isPrimary: false,
+            owner_type: 'hot_tub_break' as const,
+          }))
+          await transactionRepo.insertDealImages(imagesToInsert);
+        }
       }
       if (data.travelDeal) {
         await repo.insertTravelDeal(data.travelDeal, quote_id!);

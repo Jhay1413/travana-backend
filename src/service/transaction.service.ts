@@ -686,6 +686,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
                 location: `${data.destination}, ${data.country}`,
               });
             }
+            await repo.updateParkLocation(park.id, `${data.destination}, ${data.country}`);
             park_name = park.name;
             park_id = park.id;
           }

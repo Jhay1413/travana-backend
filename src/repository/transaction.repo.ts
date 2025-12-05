@@ -136,6 +136,7 @@ export type TransactionRepo = {
   fetchLodges: (search?: string, selectedId?: string) => Promise<z.infer<typeof lodgeQuerySchema>[]>;
   fetchLodgesByCode: (code: string) => Promise<z.infer<typeof lodgeQuerySchema> | null>;
   fetchParkByCode: (code: string) => Promise<{ id: string; name: string } | null>;
+  updateParkLocation: (park_id: string, location: string) => Promise<void>;
   fetchCruiseDate: (date: string, ship_id: string) => Promise<z.infer<typeof cruiseDateQuerySchema>[]>;
   fetchCruises: () => Promise<{ id: string; name: string }[]>;
   fetchShips: (
@@ -386,6 +387,10 @@ export type TransactionRepo = {
   fetchHolidayTypeById: (id: string) => Promise<{ id: string; name: string }>;
 };
 export const transactionRepo: TransactionRepo = {
+
+  updateParkLocation: async (park_id, location) => {
+    await db.update(park).set({ location: location }).where(eq(park.id, park_id));
+  },
   fetchHolidayTypeById: async (id) => {
     const response = await db.query.package_type.findFirst({
       where: eq(package_type.id, id),
