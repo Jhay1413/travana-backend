@@ -1941,6 +1941,7 @@ export const transactionRepo: TransactionRepo = {
     const response = await db.insert(park).values({
       name: data.name,
       code: data.code.toUpperCase(),
+      location: data.location,
     }).returning({ id: park.id, name: park.name });
 
     return { id: response[0].id, name: response[0].name ?? '' };
