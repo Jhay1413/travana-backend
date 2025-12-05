@@ -2177,13 +2177,30 @@ export const quoteRepo: QuoteRepo = {
       };
 
       if (result.length > 0 && result[0].name === 'Hot Tub Break') {
-        return dataValidator(quoteHotTubQuerySchema, payload);
+        const data = dataValidator(quoteHotTubQuerySchema, payload);
+
+        return {
+          ...data,
+          holiday_type: 'Hot Tub Break' as const,
+        }
       } else if (result.length > 0 && result[0].name === 'Package Holiday') {
-        return dataValidator(quotePackageHolidayQuerySchema, payload);
+        const data = dataValidator(quotePackageHolidayQuerySchema, payload);
+        return {
+          ...data,
+          holiday_type: 'Package Holiday' as const,
+        }
       } else if (result.length > 0 && result[0].name === 'Cruise Package') {
-        return dataValidator(quoteCruiseQuerySchema, payload);
+        const data = dataValidator(quoteCruiseQuerySchema, payload);
+        return {
+          ...data,
+          holiday_type: 'Cruise Package' as const,
+        }
       } else {
-        return dataValidator(quoteBasedSchema, payload);
+        const data = dataValidator(quoteBasedSchema, payload);
+        return {
+          ...data,
+          holiday_type: 'Others' as const,
+        }
       }
     } catch (error) {
       console.log(error);
@@ -2938,7 +2955,7 @@ export const quoteRepo: QuoteRepo = {
             .insert(quote_cruise_item_extra)
             .values(data.quote_cruise_extra.map((item) => ({ cruise_extra_id: item, quote_cruise_id: data.quote_cruise_id })));
         }
-        console.log(data.cruise_ship,"<--- cruise ship");
+        console.log(data.cruise_ship, "<--- cruise ship");
         await tx.update(quote_cruise).set({
           cruise_date: data.cruise_date ? data.cruise_date : null,
           cabin_type: data.cabin_type,

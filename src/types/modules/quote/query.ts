@@ -13,6 +13,7 @@ import {
   transfers,
 } from '../shared';
 import { deal_images } from '../transaction';
+import { quote } from '@/schema/quote-schema';
 
 export const quoteQuerySummarySchema = z.object({
   id: z.string(),
@@ -149,23 +150,41 @@ export const freeQuoteListQuerySchema = z.object({
   hasPost: z.boolean().optional(),
 });
 export const quoteQueryResultSchema = z.object({});
-export const quoteCruiseQuerySchema = quoteBasedSchema.merge(cruiseFields);
-
-export const quoteHotTubQuerySchema = quoteBasedSchema.merge(hotTubFields);
-export const quotePackageHolidayQuerySchema = quoteBasedSchema;
 
 export const mergeAllType = quoteBasedSchema.merge(cruiseFields).merge(hotTubFields);
 
-export const unionAllType = z.union([quotePackageHolidayQuerySchema, quoteHotTubQuerySchema, quoteCruiseQuerySchema]);
 
+export const quotePackageHolidayQuerySchema = quoteBasedSchema.extend({
+  holiday_type: z.literal('Package Holiday'),
+});
+
+export const quoteHotTubQuerySchema = quoteBasedSchema.merge(hotTubFields).extend({
+  holiday_type: z.literal('Hot Tub Break'),
+});
+
+export const quoteCruiseQuerySchema = quoteBasedSchema.merge(cruiseFields).extend({
+  holiday_type: z.literal('Cruise Package'),
+});
+export const quoteOthersSchema = quoteBasedSchema.extend({
+  holiday_type: z.literal('Others'),
+});
+export const unionAllType = z.discriminatedUnion('holiday_type', [
+  quotePackageHolidayQuerySchema,
+  quoteHotTubQuerySchema,
+  quoteCruiseQuerySchema,
+  quoteOthersSchema,
+]);
 const quoteSchemasWithChildren = [
   quotePackageHolidayQuerySchema.extend({
-    child_quotes: unionAllType.array().optional(), // use non-recursive base
+    child_quotes: unionAllType.array().optional(),
   }),
   quoteHotTubQuerySchema.extend({
     child_quotes: unionAllType.array().optional(),
   }),
   quoteCruiseQuerySchema.extend({
+    child_quotes: unionAllType.array().optional(),
+  }),
+  quoteOthersSchema.extend({
     child_quotes: unionAllType.array().optional(),
   }),
 ] as const;

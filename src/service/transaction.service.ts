@@ -683,6 +683,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               park = await repo.insertPark({
                 name: data.lodge_park_name ?? 'Unknown',
                 code: data.lodge_id,
+                location: `${data.destination}, ${data.country}`,
               });
             }
             park_name = park.name;

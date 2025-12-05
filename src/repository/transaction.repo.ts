@@ -276,7 +276,7 @@ export type TransactionRepo = {
 
   // Parks endpoints
   fetchAllParks: () => Promise<{ id: string; name: string }[]>;
-  insertPark: (data: { name: string, code: string }) => Promise<{ id: string, name: string }>;
+  insertPark: (data: { name: string, code: string,location:string }) => Promise<{ id: string, name: string }>;
   // Deletion Codes endpoints
   generateDeletionCodes: (data: { numberOfCodes: number }) => Promise<void>;
   insertDeletionCode: (data: { code: string }) => Promise<void>;
