@@ -2050,7 +2050,7 @@ export const quoteRepo: QuoteRepo = {
         voyages: Array.from(new Map((data?.voyages ?? []).filter((v: any) => v?.id).map((v: any) => [v.id, { ...v, id: v.id }])).values()),
 
         passengers: Array.from(
-          new Map((data?.passengers ?? []).filter((p: any) => p?.id).map((p: any) => [p.id, { ...p, age: parseInt(p.age) }])).values()
+          new Map((data?.passengers ?? []).filter((p: any) => p?.id).map((p: any) => [p.id, { ...p, type: p.type ? p.type : "adult", age: parseInt(p.age) }])).values()
         ),
         referrals: referrals,
 
