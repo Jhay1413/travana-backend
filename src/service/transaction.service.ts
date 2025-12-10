@@ -394,7 +394,8 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
     },
     structuredScrapeData: async (data: z.infer<typeof StructuredScrapeDataSchema>, agentId: string, clientId: string, package_type_id: string) => {
 
-      const parsed = parse(data.check_in_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+      const parsed = parse(data.check_in_date_time, "dd-MM-yyyy'T'HH:mm:ss", new Date());
+      // For "27-12-2025"  
       const parsedTravelDate = parse(data.travel_date, "dd-MM-yyyy", new Date());
 
 
@@ -622,8 +623,9 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         }
         if (data.flights && data.flights.length > 0) {
           for (const flight of data.flights) {
-            const parsedDeparture = parse(flight.departure_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
-            const parsedArrival = parse(flight.arrival_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+            const parsedDeparture = parse(flight.departure_date_time, "dd-MM-yyyy'T'HH:mm:ss", new Date());
+            const parsedArrival = parse(flight.arrival_date_time, "dd-MM-yyyy'T'HH:mm:ss", new Date());
+
 
             const departing_airport = airports.data.find(ap => ap.airport_code.toLowerCase() === flight.departing_airport.toLowerCase());
             const flightData = {
