@@ -22,7 +22,7 @@ import { resortMutateSchema } from '../types/modules/transaction/mutation';
 import z, { check } from 'zod';
 import { StructuredScrapeDataSchema } from '@/types/modules/transaction';
 import { board_basis, park, room_type } from '@/schema/transactions-schema';
-import { differenceInCalendarDays, formatISO, parse, startOfDay } from 'date-fns';
+import { differenceInCalendarDays, format, formatISO, parse, startOfDay } from 'date-fns';
 import Fuse from 'fuse.js';
 
 export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, clientRepo: ClientRepo, notificationRepo: NotificationRepo, notificationProvider: NotificationProvider) => {
@@ -401,7 +401,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
 
       if (data.tour_operator !== "Hoseasons") {
         const initialData: z.infer<typeof quote_mutate_schema> = {
-          travel_date: formatISO(parsedTravelDate),
+          travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
           agent_id: agentId,
           client_id: clientId,
           holiday_type: package_type_id,
@@ -413,8 +413,8 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
           country: "",
           destination: "",
           resort: "",
-          no_of_nights: "",
-          check_in_date_time: formatISO(parsed),
+          no_of_nights: data.no_of_nights,
+          check_in_date_time: format(parsed, "dd-MM-yyyy HH:mm:ss"),
           is_future_deal: false,
           flights: [],
           hotels: [],
@@ -593,7 +593,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
           for (const hotel of data.hotels.slice(1)) {
             const fetchAccomodation = await repo.fetchAccomodationByName(hotel.accommodation);
 
-            const parsed = parse(hotel.check_in_date_time, "dd-MM-yyyy'T'HH:mm:ssX", new Date());
+            const parsed = parse(data.check_in_date_time, "dd-MM-yyyy'T'HH:mm:ss", new Date());
             if (fetchAccomodation) {
               const fuse = new Fuse(fetchAccomodation, {
                 keys: ['name'],
@@ -633,8 +633,8 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               departure_airport_name: departing_airport?.airport_name || "",
               departing_airport_id: departing_airport?.id || "",
               arrival_airport_id: airports.data.find(ap => ap.airport_code.toLowerCase() === flight.arrival_airport.toLowerCase())?.id || "",
-              departure_date_time: formatISO(parsedDeparture),
-              arrival_date_time: formatISO(parsedArrival),
+              departure_date_time: format(parsedDeparture, "dd-MM-yyyy HH:mm:ss"),
+              arrival_date_time: format(parsedArrival, "dd-MM-yyyy HH:mm:ss"),
               flight_type: flight.flight_type === "Outbound" ? "Outbound" : "Inbound",
               cost: 0,
               commission: 0,
@@ -645,10 +645,17 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         }
         const returnFlight = initialData.flights?.find(f => f.flight_type === "Inbound");
         if (returnFlight) {
-          const checkInDate = startOfDay(parsed)
-          const departDate = startOfDay(new Date(returnFlight.departure_date_time))
-          const numberOfDays = differenceInCalendarDays(departDate, checkInDate)
-          initialData.no_of_nights = numberOfDays.toString()
+          const checkInDate = startOfDay(parsed);
+
+          // parse the return flight departure date (custom format)
+          const departDateParsed = parse(
+            returnFlight.departure_date_time,
+            'dd-MM-yyyy HH:mm:ss',
+            new Date()
+          );
+          const departDate = startOfDay(departDateParsed);
+          const numberOfDays = differenceInCalendarDays(departDate, checkInDate);
+          initialData.no_of_nights = data.no_of_nights ? data.no_of_nights : numberOfDays.toString();
         }
         return initialData;
       }
