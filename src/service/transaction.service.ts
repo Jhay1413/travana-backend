@@ -661,7 +661,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
       }
       else if (data.tour_operator === "Hoseasons") {
         const initialData: z.infer<typeof quote_mutate_schema> = {
-          travel_date: formatISO(parsedTravelDate),
+          travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
           agent_id: agentId,
           client_id: clientId,
           holiday_type: package_type_id,
