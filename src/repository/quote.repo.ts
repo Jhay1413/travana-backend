@@ -35,7 +35,7 @@ import {
   tour_operator,
   deal_images,
 } from '../schema/transactions-schema';
-import { format, sub } from 'date-fns';
+import { format, parse, sub } from 'date-fns';
 import {
   freeQuoteListQuerySchema,
   quoteBasedSchema,
@@ -2260,12 +2260,18 @@ export const quoteRepo: QuoteRepo = {
         throw new Error('Holiday type not found');
       }
       if (holiday.name === 'Package Holiday') {
+
+
+
         const primary_accomodation = response.accomodation.find((accomodation) => accomodation.is_primary === true);
+        // For "27-12-2025"  
+        const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
+        console.log('Parsed Travel Date:', response.travel_date, parsedTravelDate);
         const payload_to_validate = {
           quote_id: response.id,
           transaction_id: response.transaction_id,
           lead_source: response.transaction?.lead_source,
-          travel_date: response.travel_date ? response.travel_date : null,
+          travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
           main_tour_operator_id: response.main_tour_operator_id,
           sales_price: parseFloat(response.sales_price ?? '0'),
           commission: parseFloat(response.package_commission ?? '0'),
@@ -2280,7 +2286,7 @@ export const quoteRepo: QuoteRepo = {
           is_future_deal: response.is_future_deal,
           future_deal_date: response.future_deal_date,
           date_expiry: response.date_expiry ? format(response.date_expiry, 'yyyy-MM-dd') : null,
-          check_in_date_time: primary_accomodation?.check_in_date_time ? new Date(primary_accomodation?.check_in_date_time).toISOString() : null,
+          check_in_date_time: primary_accomodation?.check_in_date_time ? format(primary_accomodation.check_in_date_time, "dd-MM-yyyy HH:mm:ss") : null,
           title: response.title,
           quote_ref: response.quote_ref,
           country: primary_accomodation?.accomodation?.resorts?.destination?.country_id,
@@ -2297,14 +2303,18 @@ export const quoteRepo: QuoteRepo = {
           children: response.child ? response.child : 0,
           infants: response.infant ? response.infant : 0,
           passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
-          flights: response.flights.map((data) => ({
-            ...data,
-            departure_airport_name: data.departing_airport?.airport_name,
-            commission: parseFloat(data.commission ?? '0'),
-            cost: parseFloat(data.cost ?? '0'),
-            departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
-            arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
-          })),
+          flights: response.flights.map((data) => {
+
+            console.log(data.departure_date_time, 'Original Departure Date Time');
+            return {
+              ...data,
+              departure_airport_name: data.departing_airport?.airport_name,
+              commission: parseFloat(data.commission ?? '0'),
+              cost: parseFloat(data.cost ?? '0'),
+              departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+              arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+            }
+          }),
           transfers: response.transfers.map((data) => ({
             ...data,
             commission: parseFloat(data.commission ?? '0'),
@@ -2357,11 +2367,12 @@ export const quoteRepo: QuoteRepo = {
         }
         return validate_date.data;
       } else if (holiday.name === 'Hot Tub Break') {
+        const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
         const payload_to_validate = {
           quote_id: response.id,
           transaction_id: response.transaction_id,
           lead_source: response.transaction?.lead_source,
-          travel_date: response.travel_date ? response.travel_date : null,
+          travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
           main_tour_operator_id: response.main_tour_operator_id,
           sales_price: parseFloat(response.sales_price ?? '0'),
           commission: parseFloat(response.package_commission ?? '0'),
@@ -2400,8 +2411,8 @@ export const quoteRepo: QuoteRepo = {
             commission: parseFloat(data.commission ?? '0'),
             departure_airport_name: data.departing_airport?.airport_name,
             cost: parseFloat(data.cost ?? '0'),
-            departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
-            arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
+            departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+            arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
           })),
           transfers: response.transfers.map((data) => ({
             ...data,
@@ -2460,11 +2471,13 @@ export const quoteRepo: QuoteRepo = {
         }
         return validate_date.data;
       } else {
+        const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
         const payload_to_validate = {
+
           quote_id: response.id,
           transaction_id: response.transaction_id,
           lead_source: response.transaction?.lead_source,
-          travel_date: response.travel_date ? response.travel_date : null,
+          travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
           main_tour_operator_id: response.main_tour_operator_id,
           sales_price: parseFloat(response.sales_price ?? '0'),
           commission: parseFloat(response.package_commission ?? '0'),
@@ -2495,8 +2508,8 @@ export const quoteRepo: QuoteRepo = {
             departure_airport_name: data.departing_airport?.airport_name,
             commission: parseFloat(data.commission ?? '0'),
             cost: parseFloat(data.cost ?? '0'),
-            departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
-            arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
+            departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+            arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
           })),
           transfers: response.transfers.map((data) => ({
             ...data,
@@ -2640,10 +2653,12 @@ export const quoteRepo: QuoteRepo = {
         throw new Error('Quote not found');
       }
 
+      const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
+
       const payload_to_validate = {
         quote_id: response.id,
         transaction_id: response.transaction_id,
-        travel_date: response.travel_date ? response.travel_date : null,
+        travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
         lead_source: response.transaction?.lead_source,
         main_tour_operator_id: response.main_tour_operator_id,
         sales_price: parseFloat(response.sales_price ?? '0'),
@@ -2699,8 +2714,8 @@ export const quoteRepo: QuoteRepo = {
           ...data,
           commission: parseFloat(data.commission ?? '0'),
           cost: parseFloat(data.cost ?? '0'),
-          departure_date_time: data.departure_date_time ? new Date(data.departure_date_time).toISOString() : null,
-          arrival_date_time: data.arrival_date_time ? new Date(data.arrival_date_time).toISOString() : null,
+          departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+          arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
         })),
         transfers: response.transfers.map((data) => ({
           ...data,

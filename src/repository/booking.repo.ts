@@ -46,7 +46,7 @@ import {
   bookingHotTubQuerySchema,
   forwardsBookingList,
 } from '../types/modules/booking';
-import { endOfYear, format, startOfYear } from 'date-fns';
+import { endOfYear, format, parse, startOfYear } from 'date-fns';
 import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne, SQL, count } from 'drizzle-orm';
 import z from 'zod';
 import { dataValidator } from '../helpers/data-validator';
@@ -985,7 +985,10 @@ export const bookingRepo: BookingRepo = {
       where: eq(package_type.id, response?.holiday_type_id!),
     });
     if (holiday?.name === 'Package Holiday') {
+
       const primary_accomodation = response?.accomodation.find((accomodation) => accomodation.is_primary === true);
+
+      const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
       const payload_to_validate = {
         transaction_id: response?.transaction_id,
         hays_ref: response?.hays_ref,
@@ -993,7 +996,7 @@ export const bookingRepo: BookingRepo = {
         booking_status: response?.booking_status,
         lead_source: response?.transaction.lead_source,
         title: response?.title,
-        travel_date: new Date(response?.travel_date!).toISOString(),
+        travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
         main_tour_operator_id: response?.main_tour_operator_id,
         sales_price: parseFloat(response?.sales_price ?? '0'),
         commission: parseFloat(response?.package_commission ?? '0'),
@@ -1003,7 +1006,7 @@ export const bookingRepo: BookingRepo = {
         transfer_type: response?.transfer_type,
         agent_id: response?.transaction.user_id,
         client_id: response?.transaction.client_id,
-        check_in_date_time: new Date(primary_accomodation?.check_in_date_time!).toISOString(),
+        check_in_date_time: primary_accomodation?.check_in_date_time ? format(primary_accomodation.check_in_date_time, "dd-MM-yyyy HH:mm:ss") : null,
         no_of_nights: primary_accomodation?.no_of_nights.toString() || "0",
         country: primary_accomodation?.accomodation?.resorts?.destination?.country_id,
         destination: primary_accomodation?.accomodation?.resorts?.destination_id,
@@ -1016,14 +1019,17 @@ export const bookingRepo: BookingRepo = {
         children: response?.child ? response?.child : 0,
         infants: response?.infant ? response?.infant : 0,
         passengers: response?.passengers.map((data) => ({ ...data, age: data.age })),
-        flights: response?.flights.map((data) => ({
-          ...data,
+        flights: response?.flights.map((data) => {
+          console.log(data.departure_date_time);
+          return {
+            ...data,
 
-          commission: parseFloat(data.commission ?? '0'),
-          cost: parseFloat(data.cost ?? '0'),
-          departure_date_time: new Date(data.departure_date_time!).toISOString(),
-          arrival_date_time: new Date(data.arrival_date_time!).toISOString(),
-        })),
+            commission: parseFloat(data.commission ?? '0'),
+            cost: parseFloat(data.cost ?? '0'),
+            departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+            arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+          }
+        }),
         transfers: response?.transfers.map((data) => ({
           ...data,
           commission: parseFloat(data.commission ?? '0'),
@@ -1068,6 +1074,7 @@ export const bookingRepo: BookingRepo = {
       }
       return validate_date.data;
     } else if (holiday?.name === 'Hot Tub Break') {
+      const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
       const payload_to_validate = {
         transaction_id: response?.transaction_id,
         hays_ref: response?.hays_ref,
@@ -1075,7 +1082,7 @@ export const bookingRepo: BookingRepo = {
         booking_status: response?.booking_status,
         lead_source: response?.transaction.lead_source,
         title: response?.title,
-        travel_date: new Date(response?.travel_date!).toISOString(),
+        travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
         main_tour_operator_id: response?.main_tour_operator_id,
         sales_price: parseFloat(response?.sales_price ?? '0'),
         commission: parseFloat(response?.package_commission ?? '0'),
@@ -1103,8 +1110,8 @@ export const bookingRepo: BookingRepo = {
           ...data,
           commission: parseFloat(data.commission ?? '0'),
           cost: parseFloat(data.cost ?? '0'),
-          departure_date_time: new Date(data.departure_date_time!).toISOString(),
-          arrival_date_time: new Date(data.arrival_date_time!).toISOString(),
+          departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+          arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
         })),
         transfers: response?.transfers.map((data) => ({
           ...data,
@@ -1152,6 +1159,7 @@ export const bookingRepo: BookingRepo = {
       }
       return validate_date.data;
     } else {
+      const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
       const payload_to_validate = {
         transaction_id: response?.transaction_id,
         hays_ref: response?.hays_ref,
@@ -1159,7 +1167,7 @@ export const bookingRepo: BookingRepo = {
         booking_status: response?.booking_status,
         lead_source: response?.transaction.lead_source,
         title: response?.title,
-        travel_date: new Date(response?.travel_date!).toISOString(),
+        travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
         main_tour_operator_id: response?.main_tour_operator_id,
         sales_price: parseFloat(response?.sales_price ?? '0'),
         commission: parseFloat(response?.package_commission ?? '0'),
@@ -1180,8 +1188,8 @@ export const bookingRepo: BookingRepo = {
           ...data,
           commission: parseFloat(data.commission ?? '0'),
           cost: parseFloat(data.cost ?? '0'),
-          departure_date_time: new Date(data.departure_date_time!).toISOString(),
-          arrival_date_time: new Date(data.arrival_date_time!).toISOString(),
+          departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+          arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
         })),
         transfers: response?.transfers.map((data) => ({
           ...data,
@@ -1228,6 +1236,7 @@ export const bookingRepo: BookingRepo = {
     }
   },
   fetchCruiseToUpdate: async (booking_id: string) => {
+    console.log("FETCHING CRUISE TO UPDATE:", booking_id);
     const response = await db.query.booking.findFirst({
       where: eq(booking.id, booking_id),
 
@@ -1300,9 +1309,9 @@ export const bookingRepo: BookingRepo = {
         },
       },
     });
-
+    const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
     const payload_to_validate = {
-      travel_date: response?.travel_date,
+      travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
       main_tour_operator_id: response?.main_tour_operator_id,
       sales_price: parseFloat(response?.sales_price ?? '0'),
       commission: parseFloat(response?.package_commission ?? '0'),
@@ -1350,13 +1359,18 @@ export const bookingRepo: BookingRepo = {
       booking_cruise_extra: response?.booking_cruise.cruise_extra.map((data) => data.cruise_extra_id),
       pre_cruise_stay: response?.booking_cruise.pre_cruise_stay?.toString(),
       post_cruise_stay: response?.booking_cruise.post_cruise_stay?.toString(),
-      flights: response?.flights.map((data) => ({
-        ...data,
-        departure_date_time: new Date(data.departure_date_time!).toISOString(),
-        arrival_date_time: new Date(data.arrival_date_time!).toISOString(),
-        commission: parseFloat(data.commission ?? '0'),
-        cost: parseFloat(data.cost ?? '0'),
-      })),
+      flights: response?.flights.map((data) => {
+
+        console.log(data.departure_date_time, "asdasdasdasdasdsa");
+
+        return {
+          ...data,
+          departure_date_time: data.departure_date_time ? format(data.departure_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+          arrival_date_time: data.arrival_date_time ? format(data.arrival_date_time, "dd-MM-yyyy HH:mm:ss") : null,
+          commission: parseFloat(data.commission ?? '0'),
+          cost: parseFloat(data.cost ?? '0'),
+        }
+      }),
       transfers: response?.transfers.map((data) => ({
         ...data,
         drop_off_time: new Date(data.drop_off_time!).toISOString(),

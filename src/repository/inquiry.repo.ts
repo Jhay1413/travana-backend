@@ -26,7 +26,7 @@ import {
 } from '../schema/transactions-schema';
 import { enquiry_mutate_schema, enquiryQuerySchema, InquiryMutate } from '../types/modules/transaction';
 import { and, desc, eq, sql } from 'drizzle-orm';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { clientTable } from '../schema/client-schema';
 import { user } from '../schema/auth-schema';
 import { cruise_destination, cruise_line, port } from '../schema/cruise-schema';
@@ -969,6 +969,10 @@ export const inquiryRepo: InquiryRepo = {
       if (response.length === 0) throw new AppError('Enquiry not found', true, 404);
       const groupedResults = response.reduce((acc, curr) => {
         const { id, ...rest } = curr; // Destructure to separate id from the rest of the object
+
+        // For "27-12-2025"  
+        const parsedTravelDate = parse(rest.travel_date!, "yyyy-MM-dd", new Date());
+        console.log('parsedTravelDate', rest.travel_date, parsedTravelDate);
         if (!acc[id]) {
           acc[id] = {
             ...rest,
@@ -976,8 +980,8 @@ export const inquiryRepo: InquiryRepo = {
             is_future_deal: rest.is_future_deal ? rest.is_future_deal : false,
             holiday_type_id: rest.holiday_type_id ? rest.holiday_type_id : '',
             holiday_type_name: rest.holiday_type_name ? rest.holiday_type_name : '',
-            date_expiry: rest.date_expiry ? format(rest.date_expiry, 'yyyy-MM-dd') : new Date().toISOString(),
-            travel_date: rest.travel_date ? format(rest.travel_date, 'yyyy-MM-dd') : new Date().toISOString(),
+            date_expiry: rest.date_expiry ? format(rest.date_expiry, "dd-MM-yyyy HH:mm:ss") : new Date().toISOString(),
+            travel_date: rest.travel_date ? format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss") : new Date().toISOString(),
             no_of_nights: rest.no_of_nights ? rest.no_of_nights.toString() : '0',
             budget: rest.budget ? parseInt(rest.budget) : 0,
             lead_source: rest.lead_source ? rest.lead_source : 'SHOP',
