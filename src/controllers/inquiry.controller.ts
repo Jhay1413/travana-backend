@@ -9,7 +9,7 @@ const service = inquiryService(inquiryRepo,referralRepo,authRepo);
 export const inquiryController = {
   deleteInquiry: async (req: Request, res: Response) => {
     try {
-      const { deletionCode, deletedBy } = req.body;
+      const { deletionCode, deletedBy } = req.query as { deletionCode: string; deletedBy: string };
       const { id } = req.params;
       await service.softDeleteInquiry(id, deletionCode, deletedBy);
       res.status(200).json({ message: 'Inquiry deleted' });

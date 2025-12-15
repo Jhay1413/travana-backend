@@ -121,17 +121,17 @@ const setupEventHandlers = () => {
         });
 
         // Handle joining a room
-        socket.on('join_room', async (data: { roomId: string }) => {
+        socket.on('join_room', async (data: { roomId: string,participantsId: string[] }) => {
             try {
+                console.log('Join room request received:', data);
                 const userSocket = connectedUsers.get(socket.id);
                 if (!userSocket) {
                     socket.emit('error', { message: 'User not authenticated' });
                     return;
                 }
-
                 const { roomId } = data;
-
                 // Check if user is a participant
+                
 
                 const participant = await chatInstance.checkUserInRoom(userSocket.userId, roomId);
 

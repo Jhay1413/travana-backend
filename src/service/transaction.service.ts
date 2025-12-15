@@ -418,6 +418,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
           is_future_deal: false,
           flights: [],
           hotels: [],
+          pets: 0,
           main_board_basis_id: "",
           accomodation_id: "",
           deal_images: data.hotel_images
@@ -672,6 +673,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
           transfer_type: data.transfer_type,
           no_of_nights: data.no_of_nights,
           is_future_deal: false,
+          pets: data.pets || 0,
           flights: [],
           hotels: [],
           deal_images: data.lodge_images
@@ -714,13 +716,11 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
               infants: 0,
             })
             lodge_id = response.id;
-            pets = response.pets || 0;
 
           }
           initialData.holiday_type = holiday_type.id;
           initialData.holiday_type_name = holiday_type.name;
           initialData.lodge_park_name = park_name;
-          initialData.pets = pets;
           initialData.lodge_id = lodge ? lodge.id : lodge_id;
         }
         return initialData;

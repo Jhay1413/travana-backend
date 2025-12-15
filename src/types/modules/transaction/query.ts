@@ -305,6 +305,7 @@ export const StructuredScrapeDataSchema = z.object({
   lodge_description: z.string().optional(),
   lodge_id:z.string().optional(),
   lodge_park_name:z.string().optional(),
+  pets:z.number().optional(),
 });
 
 
