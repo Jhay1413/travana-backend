@@ -40,6 +40,7 @@ export const enquiry_table = pgTable('enquiry_table', {
   accom_min_star_rating: varchar(),
   no_of_nights: integer(),
   budget: numeric(),
+  max_budget: numeric().default('0.00'),
   budget_type: budgetTypeEnum().default('PACKAGE'),
   no_of_guests: integer(),
   no_of_pets: integer(),

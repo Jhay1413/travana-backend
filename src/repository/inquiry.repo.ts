@@ -277,6 +277,7 @@ export const inquiryRepo: InquiryRepo = {
             weekend_lodge: data.weekend_lodge,
             no_of_nights: parseInt(data.no_of_nights || '0'),
             budget: data.budget.toString(),
+            max_budget: data.max_budget?.toString() || '0',
             no_of_guests: data.no_of_guests,
             no_of_pets: data.no_of_pets,
             pre_cruise_stay: data.pre_cruise_stay,
@@ -419,6 +420,7 @@ export const inquiryRepo: InquiryRepo = {
             accom_min_star_rating: data.accom_min_star_rating,
             weekend_lodge: data.weekend_lodge,
             no_of_nights: parseInt(data.no_of_nights || '0'),
+            max_budget: data.max_budget?.toString() || '0',
             budget: data.budget.toString(),
             no_of_guests: data.no_of_guests,
             no_of_pets: data.no_of_pets,
@@ -770,6 +772,7 @@ export const inquiryRepo: InquiryRepo = {
           weekend_lodge: enquiry_table.weekend_lodge,
           no_of_nights: enquiry_table.no_of_nights,
           budget: enquiry_table.budget,
+          max_budget: enquiry_table.max_budget,
           no_of_guests: enquiry_table.no_of_guests,
           no_of_pets: enquiry_table.no_of_pets,
           pre_cruise_stay: enquiry_table.pre_cruise_stay,
@@ -827,6 +830,7 @@ export const inquiryRepo: InquiryRepo = {
             date_expiry: rest.date_expiry ? format(rest.date_expiry, 'yyyy-MM-dd') : new Date().toISOString(),
             travel_date: rest.travel_date ? format(rest.travel_date, 'yyyy-MM-dd') : new Date().toISOString(),
             no_of_nights: rest.no_of_nights ? rest.no_of_nights.toString() : '0',
+            max_budget: rest.max_budget ? parseInt(rest.max_budget) : 0,
             budget: rest.budget ? parseInt(rest.budget) : 0,
             lead_source: rest.lead_source ? rest.lead_source : 'SHOP',
             client_id: rest.client_id ? rest.client_id : '',
@@ -927,6 +931,7 @@ export const inquiryRepo: InquiryRepo = {
           weekend_lodge: enquiry_table.weekend_lodge,
           no_of_nights: enquiry_table.no_of_nights,
           budget: enquiry_table.budget,
+          max_budget: enquiry_table.max_budget,
           no_of_guests: enquiry_table.no_of_guests,
           no_of_pets: enquiry_table.no_of_pets,
           pre_cruise_stay: enquiry_table.pre_cruise_stay,
@@ -983,6 +988,7 @@ export const inquiryRepo: InquiryRepo = {
             date_expiry: rest.date_expiry ? format(rest.date_expiry, "dd-MM-yyyy HH:mm:ss") : new Date().toISOString(),
             travel_date: rest.travel_date ? format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss") : new Date().toISOString(),
             no_of_nights: rest.no_of_nights ? rest.no_of_nights.toString() : '0',
+            max_budget: rest.max_budget ? parseInt(rest.max_budget) : 0,
             budget: rest.budget ? parseInt(rest.budget) : 0,
             lead_source: rest.lead_source ? rest.lead_source : 'SHOP',
             client_id: rest.client_id ? rest.client_id : '',
@@ -1323,6 +1329,7 @@ export const inquiryRepo: InquiryRepo = {
   },
   setFutureDealDate: async (inquiryId: string, futureDealDate: string) => {
     try {
+      console.log('futureDealDate', futureDealDate);
       await db
         .update(enquiry_table)
         .set({

@@ -329,7 +329,7 @@ export type TransactionRepo = {
   // Cruise Destination endpoints
   insertCruiseDestination: (data: z.infer<typeof cruise_destination_mutate_schema>) => Promise<void>;
   updateCruiseDestination: (id: string, data: z.infer<typeof cruise_destination_mutate_schema>) => Promise<void>;
-  fetchAllCruiseDestinations: (search?: string, page?: number, limit?: number) => Promise<{
+  fetchAllCruiseDestinations: (selectedIds?:string[],search?: string, page?: number, limit?: number) => Promise<{
     data: z.infer<typeof cruise_destination_query_schema>[];
     pagination: {
       page: number;
@@ -1281,15 +1281,18 @@ export const transactionRepo: TransactionRepo = {
   updateCruiseDestination: async (id, data) => {
     await db.update(cruise_destination).set(data).where(eq(cruise_destination.id, id));
   },
-  fetchAllCruiseDestinations: async (search, page = 1, limit = 10) => {
-    const conditions = [search ? ilike(cruise_destination.name, `%${search}%`) : undefined].filter(Boolean);
+  fetchAllCruiseDestinations: async (selectedIds=[],search, page = 1, limit = 10) => {
+    const conditions = [
+      search ? ilike(cruise_destination.name, `%${search}%`) : undefined,
+      selectedIds?.length ? inArray(cruise_destination.id, selectedIds) : undefined,
+    ].filter(Boolean);
     const offset = (page - 1) * limit;
 
     // Get total count for pagination
     const totalCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(cruise_destination)
-      .where(conditions.length > 0 ? conditions[0] : undefined)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
       .then(result => result[0]?.count || 0);
 
     const response = await db.query.cruise_destination.findMany({
@@ -1297,7 +1300,7 @@ export const transactionRepo: TransactionRepo = {
         id: true,
         name: true,
       },
-      ...(conditions.length > 0 ? { where: conditions[0] } : {}),
+      ...(conditions.length > 0 ? { where: and(...conditions) } : {}),
       limit,
       offset,
     });
@@ -1538,6 +1541,11 @@ export const transactionRepo: TransactionRepo = {
             selectedIds?.length ? inArray(destination.id, selectedIds) : undefined
           )
         )
+      )
+      .orderBy(
+        search
+          ? desc(sql`CASE WHEN ${destination.name} ILIKE ${`${search}%`} THEN 1 ELSE 0 END`)
+          : asc(destination.name)
       );
 
     return response.map((data) => ({
@@ -1821,6 +1829,9 @@ export const transactionRepo: TransactionRepo = {
         },
       },
       ...(whereClause ? { where: whereClause } : {}),
+      orderBy: search
+        ? desc(sql`CASE WHEN ${resorts.name} ILIKE ${`${search}%`} THEN 1 ELSE 0 END`)
+        : asc(resorts.name),
       limit: 100, // Apply `where` only if it exists
     });
     return response.map((data) => ({

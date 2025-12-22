@@ -108,13 +108,13 @@ export const inquiryController = {
   updateFutureDealDate: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { futureDealDate } = req.body;
+      const { future_deal_date } = req.body;
       
-      if (futureDealDate === null || futureDealDate === undefined) {
+      if (future_deal_date === null || future_deal_date === undefined) {
         await service.unsetFutureDealDate(id);
         res.status(200).json({ message: 'Future deal date unset' });
       } else {
-        await service.setFutureDealDate(id, futureDealDate);
+        await service.setFutureDealDate(id, future_deal_date);
         res.status(200).json({ message: 'Future deal date set' });
       }
     } catch (error) {

@@ -1,0 +1,1 @@
+ALTER TABLE "enquiry_table" ADD COLUMN "max_budget" numeric DEFAULT '0.00';

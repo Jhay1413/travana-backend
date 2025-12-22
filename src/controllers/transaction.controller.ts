@@ -1025,10 +1025,11 @@ export const transactionController = {
   },
   fetchAllCruiseDestinations: async (req: Request, res: Response) => {
     try {
-      const { search, page, limit } = req.query as { search: string; page: string; limit: string };
+      const { search, page, limit , selectedIds} = req.query as { search: string; page: string; limit: string; selectedIds: string };
       const intPage = page ? Number(page) : undefined;
       const intLimit = limit ? Number(limit) : undefined;
-      const cruiseDestinations = await service.fetchAllCruiseDestinations(search, intPage, intLimit);
+      const selectedIdsArray = selectedIds ? selectedIds.split(',') : undefined;
+      const cruiseDestinations = await service.fetchAllCruiseDestinations(selectedIdsArray, search, intPage, intLimit);
       res.status(200).json(cruiseDestinations);
     } catch (error) {
       console.log(error);

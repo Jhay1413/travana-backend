@@ -138,6 +138,7 @@ export const bookingService = (
           unread_notif
         );
       }
+      return { id};
     },
     fetchBookingSummaryByAgent: async (agent_id: string, type: string, agentIdToFetch?: string, isFetchAll?: boolean | null) => {
       return await repo.fetchBookingSummaryByAgent(agent_id, type, isFetchAll, agentIdToFetch);

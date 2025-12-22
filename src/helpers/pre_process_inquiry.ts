@@ -15,6 +15,7 @@ export const pre_process_data = (data: z.infer<typeof enquiry_mutate_schema>, ty
       infants: data.infants,
       main_tour_operator_id: undefined,
       no_of_nights: data.no_of_nights ?? '0',
+      max_budget: data.max_budget,
       budget: data.budget,
       is_future_deal: data.is_future_deal,
       future_deal_date: data.future_deal_date,

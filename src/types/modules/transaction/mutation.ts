@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { clientMutationSchema } from '../client';
 import { travelDealSchema } from './query';
+import { max } from 'drizzle-orm';
 
 export const enquiry_mutate_schema = z.object({
   id: z.nullable(z.string()).optional(),
@@ -23,6 +24,7 @@ export const enquiry_mutate_schema = z.object({
   weekend_lodge: z.nullable(z.string()).optional(),
   no_of_nights: z.nullable(z.string()),
   budget: z.number(),
+  max_budget: z.number(),
   budget_type: z.nullable(z.enum(['PER_PERSON', 'PACKAGE'])).optional(),
   no_of_guests: z.number().optional(),
   no_of_pets: z.number().optional(),

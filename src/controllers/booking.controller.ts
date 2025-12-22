@@ -31,7 +31,10 @@ export const bookingController = {
     try {
       const data = req.body;
       const booking = await service.insert(data);
-      res.status(201).json(booking);
+      res.status(201).json({
+        bookingId: booking.id,
+        message: 'Booking created successfully',
+      });
     } catch (error) {
       console.log(error)
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });

@@ -353,8 +353,8 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
     updateCruiseDestination: async (id: string, data: z.infer<typeof cruise_destination_mutate_schema>) => {
       return await repo.updateCruiseDestination(id, data);
     },
-    fetchAllCruiseDestinations: async (search?: string, page?: number, limit?: number) => {
-      return await repo.fetchAllCruiseDestinations(search, page, limit);
+    fetchAllCruiseDestinations: async (selectedIds?: string[], search?: string, page?: number, limit?: number) => {
+      return await repo.fetchAllCruiseDestinations(selectedIds, search, page, limit);
     },
     fetchCruiseDestinationById: async (id: string) => {
       return await repo.fetchCruiseDestinationById(id);
