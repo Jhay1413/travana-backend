@@ -46,7 +46,7 @@ import {
   bookingHotTubQuerySchema,
   forwardsBookingList,
 } from '../types/modules/booking';
-import { endOfYear, format, parse, startOfYear } from 'date-fns';
+import { endOfMonth, endOfYear, format, parse, parseISO, startOfYear } from 'date-fns';
 import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne, SQL, count } from 'drizzle-orm';
 import z from 'zod';
 import { dataValidator } from '../helpers/data-validator';
@@ -2865,24 +2865,59 @@ export const bookingRepo: BookingRepo = {
 
     // Add first 2 months of next year
     const nextYear = new Date(currentDate.getFullYear() + 1, 0, 1); // January 1st of next year
-    const nextYearEnd = new Date(currentDate.getFullYear() + 1, 1, 28); // End of February next year (28th to handle leap years)
+    const nextYearStartIso = nextYear.toISOString().split('T')[0];
+    const nextYearEnd = endOfMonth(new Date(currentDate.getFullYear() + 1, 1, 1)); // End of February next year (handles leap years)
+    const nextYearEndIso = nextYearEnd.toISOString().split('T')[0];
+    const startYearIso = startYear.toISOString().split('T')[0];
+    const endYearIso = endYear.toISOString().split('T')[0];
 
     const response = await db
       .select({
         id: booking.id,
         travel_date: booking.travel_date,
         booking_commission: sql<string>`
-              COALESCE(flight_comm.total, 0)
-              + COALESCE(parking_comm.total, 0)
-              + COALESCE(lounge_comm.total, 0)
-              + COALESCE(attraction_comm.total, 0)
-              + COALESCE(car_comm.total, 0)
-              + COALESCE(transfer_comm.total, 0)
-              + COALESCE(accom_comm.total, 0)
-              + booking_table.package_commission
-              - COALESCE(referral_comm.total * (${booking.package_commission} / 100), 0)
+              (
+                COALESCE(flight_comm.total, 0)
+                + COALESCE(parking_comm.total, 0)
+                + COALESCE(lounge_comm.total, 0)
+                + COALESCE(attraction_comm.total, 0)
+                + COALESCE(car_comm.total, 0)
+                + COALESCE(transfer_comm.total, 0)
+                + COALESCE(accom_comm.total, 0)
+                + booking_table.package_commission
+              )
+              - COALESCE(
+                (
+                  (
+                    COALESCE(flight_comm.total, 0)
+                    + COALESCE(parking_comm.total, 0)
+                    + COALESCE(lounge_comm.total, 0)
+                    + COALESCE(attraction_comm.total, 0)
+                    + COALESCE(car_comm.total, 0)
+                    + COALESCE(transfer_comm.total, 0)
+                    + COALESCE(accom_comm.total, 0)
+                    + booking_table.package_commission
+                  ) * (referral_comm.total / 100)
+                ),
+                0
+              )
               `.as('booking_commission'),
-        referral_commission: sql<string>`COALESCE(referral_comm.total * (${booking.package_commission} / 100), 0)
+        referral_commission: sql<string>`
+              COALESCE(
+                (
+                  (
+                    COALESCE(flight_comm.total, 0)
+                    + COALESCE(parking_comm.total, 0)
+                    + COALESCE(lounge_comm.total, 0)
+                    + COALESCE(attraction_comm.total, 0)
+                    + COALESCE(car_comm.total, 0)
+                    + COALESCE(transfer_comm.total, 0)
+                    + COALESCE(accom_comm.total, 0)
+                    + booking_table.package_commission
+                  ) * (referral_comm.total / 100)
+                ),
+                0
+              )
               `.as('referral_commission'),
       })
       .from(booking)
@@ -2981,11 +3016,12 @@ export const bookingRepo: BookingRepo = {
       .where(
         and(
           eq(booking.is_active, true),
+          eq(transaction.status, 'on_booking'),
           or(
             // Current year bookings
-            and(gte(booking.travel_date, startYear.toISOString().split('T')[0]), lte(booking.travel_date, endYear.toISOString().split('T')[0])),
+            and(gte(booking.travel_date, startYearIso), lte(booking.travel_date, endYearIso)),
             // First 2 months of next year
-            and(gte(booking.travel_date, nextYear.toISOString()), lte(booking.travel_date, nextYearEnd.toISOString()))
+            and(gte(booking.travel_date, nextYearStartIso), lte(booking.travel_date, nextYearEndIso))
           )
         )
       );
@@ -3002,12 +3038,12 @@ export const bookingRepo: BookingRepo = {
           eq(historicalBooking.cancelled, false),
           or(
             and(
-              gte(historicalBooking.departure_date, startYear.toISOString().split('T')[0]),
-              lte(historicalBooking.departure_date, endYear.toISOString().split('T')[0])
+              gte(historicalBooking.departure_date, startYearIso),
+              lte(historicalBooking.departure_date, endYearIso)
             ),
             and(
-              gte(historicalBooking.departure_date, nextYear.toISOString().split('T')[0]),
-              lte(historicalBooking.departure_date, nextYearEnd.toISOString().split('T')[0])
+              gte(historicalBooking.departure_date, nextYearStartIso),
+              lte(historicalBooking.departure_date, nextYearEndIso)
             )
           )
         )
@@ -3019,23 +3055,38 @@ export const bookingRepo: BookingRepo = {
 
     type BookingWithSource = (typeof response)[0] & { source_type: string };
 
+
     const responseIds = new Set(response.map(b => b.id));
+    const historicalMarchBookings = historical_data.filter((booking) => {
+      if (!booking.travel_date) return false;
+
+      const travelDate = typeof booking.travel_date === 'object' && booking.travel_date !== null && 'getTime' in booking.travel_date
+        ? booking.travel_date as Date
+        : parseISO(String(booking.travel_date));
+
+      // March is month index 2 (0-based)
+      return travelDate.getMonth() === 2;
+    });
+    console.log('historical_march_bookings', historicalMarchBookings);
     const monthlyData = [...response, ...historical_data].reduce((acc, booking) => {
+      
       if (booking.travel_date) {
-        const travelDate = new Date(booking.travel_date);
+        // Avoid JS "YYYY-MM-DD" parsing timezone shifts by using parseISO for date strings.
+        const travelDate = typeof booking.travel_date === 'object' && booking.travel_date !== null && 'getTime' in booking.travel_date
+          ? booking.travel_date as Date
+          : parseISO(String(booking.travel_date));
 
         // Calculate recognition month based on travel_date - 8 weeks
         const recognitionDate = new Date(travelDate);
         recognitionDate.setDate(recognitionDate.getDate() - 56); // 8 weeks before
 
-        const month = recognitionDate.getMonth() + 1;
-        const year = recognitionDate.getFullYear();
-        const currentYear = new Date().getFullYear();
-
-        let monthKey = month;
-        if (year === currentYear + 1) {
-          monthKey = month + 12;
+        // Only report recognition months within the current year window
+        if (recognitionDate < startYear || recognitionDate > endYear) {
+          return acc;
         }
+
+        const month = recognitionDate.getMonth() + 1;
+        const monthKey = month;
 
         if (!acc[monthKey]) {
           acc[monthKey] = [];
@@ -3054,8 +3105,6 @@ export const bookingRepo: BookingRepo = {
       }
       return acc;
     }, {} as Record<number, BookingWithSource[]>);
-
-    console.log('monthlyData', monthlyData[8]);
 
     // Create array of objects with month names and total commissions (14 months total)
     const monthNames = [
@@ -3102,26 +3151,28 @@ export const bookingRepo: BookingRepo = {
         target: 15000,
       };
     });
-    console.log('monthlyCommissions', monthlyCommissions);
     await Promise.all(
       monthlyCommissions.map(async (monthData) => {
 
         if (monthData.monthNumber > 12) return
         // Upsert monthly commission data
         await db.insert(forwardsReport).values({
-          year: new Date().getFullYear(),
+          year: currentDate.getFullYear(),
           month: monthData.monthNumber,
           monthName: monthData.month,
           target: "15000",
 
-          company_commission: monthData.travanaCommission.toString(),
+          deal_ids: monthData.deal_ids,
+          historical_ids: monthData.historical_ids,
+          // Store gross commission in forwards_report, so net can be derived as (gross - agent_commission)
+          company_commission: (monthData.travanaCommission + monthData.referralCommission).toString(),
           agent_commission: monthData.referralCommission.toString(),
         }).onConflictDoUpdate({
           target: [forwardsReport.year, forwardsReport.month],
           set: {
             deal_ids: monthData.deal_ids,
             historical_ids: monthData.historical_ids,
-            company_commission: monthData.travanaCommission.toString(),
+            company_commission: (monthData.travanaCommission + monthData.referralCommission).toString(),
             agent_commission: monthData.referralCommission.toString(),
           }
         })
