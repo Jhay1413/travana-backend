@@ -194,7 +194,9 @@ export const bookingController = {
   },
   fetchForwardCommission: async (req: Request, res: Response) => {
     try {
-      const booking = await service.fetchForwardCommission();
+      const {selectedYear} = req.query;
+      const year = selectedYear ? Number(selectedYear) : undefined;
+      const booking = await service.fetchForwardCommission(year);
       res.status(200).json(booking);
     } catch (error) {
       console.log(error)
@@ -203,7 +205,12 @@ export const bookingController = {
   },
   generateForwardsReport: async (req: Request, res: Response) => {
     try {
-      await service.generateForwardsReport();
+      const {year} = req.body;
+      console.log(req.body)
+      const parsedYear = year ? year: undefined;
+
+      console.log('Generating forwards report for year:', parsedYear);
+      await service.generateForwardsReport(parsedYear);
       res.status(200).json({ message: 'Forwards report generated successfully' });
     } catch (error) {
       console.log(error)

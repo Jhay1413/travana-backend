@@ -117,8 +117,8 @@ export type BookingRepo = {
   }>;
   fetchHistoricalBookings: (id: string) => Promise<any[]>;
   fetchHistoricalBookingById: (id: string) => Promise<any>;
-  generateForwardsReport: () => Promise<void>;
-  fetchForwardCommission: () => Promise<z.infer<typeof forwardsSchema>[]>;
+  generateForwardsReport: (selectedYear?: number) => Promise<void>;
+  fetchForwardCommission: (year?: number) => Promise<z.infer<typeof forwardsSchema>[]>;
   updateForwardAdjustment: (id: string, adjustment: number) => Promise<void>;
 };
 
@@ -2834,11 +2834,11 @@ export const bookingRepo: BookingRepo = {
       seniors: bookings?.seniors ? parseInt(bookings.seniors) : 0,
     };
   },
-  fetchForwardCommission: async () => {
+  fetchForwardCommission: async (year) => {
 
     const commissions = await db.query.forwardsReport.findMany(
       {
-        where: eq(forwardsReport.year, new Date().getFullYear()),
+        where: eq(forwardsReport.year, year ?? new Date().getFullYear()),
         orderBy: asc(forwardsReport.month)
       }
     );
@@ -2858,15 +2858,16 @@ export const bookingRepo: BookingRepo = {
       }
     });
   },
-  generateForwardsReport: async () => {
-    const currentDate = new Date();
+  generateForwardsReport: async (selectedYear) => {
+    const year = selectedYear ?? new Date().getFullYear();
+    const currentDate = new Date(year, 0, 1);
     const startYear = startOfYear(currentDate);
     const endYear = endOfYear(currentDate);
 
-    // Add first 2 months of next year
-    const nextYear = new Date(currentDate.getFullYear() + 1, 0, 1); // January 1st of next year
+    // Add first 2 months of next year relative to selected year
+    const nextYear = new Date(year + 1, 0, 1); // January 1st of next year
     const nextYearStartIso = nextYear.toISOString().split('T')[0];
-    const nextYearEnd = endOfMonth(new Date(currentDate.getFullYear() + 1, 1, 1)); // End of February next year (handles leap years)
+    const nextYearEnd = endOfMonth(new Date(year + 1, 1, 1)); // End of February next year
     const nextYearEndIso = nextYearEnd.toISOString().split('T')[0];
     const startYearIso = startYear.toISOString().split('T')[0];
     const endYearIso = endYear.toISOString().split('T')[0];
@@ -3067,7 +3068,6 @@ export const bookingRepo: BookingRepo = {
       // March is month index 2 (0-based)
       return travelDate.getMonth() === 2;
     });
-    console.log('historical_march_bookings', historicalMarchBookings);
     const monthlyData = [...response, ...historical_data].reduce((acc, booking) => {
       
       if (booking.travel_date) {
@@ -3157,7 +3157,7 @@ export const bookingRepo: BookingRepo = {
         if (monthData.monthNumber > 12) return
         // Upsert monthly commission data
         await db.insert(forwardsReport).values({
-          year: currentDate.getFullYear(),
+          year: year,
           month: monthData.monthNumber,
           monthName: monthData.month,
           target: "15000",

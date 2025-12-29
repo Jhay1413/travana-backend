@@ -242,11 +242,11 @@ export const bookingService = (
         passegners: booking.passegners ? Number(booking.passegners) : null,
       };
     },
-    fetchForwardCommission: async () => {
-      return await repo.fetchForwardCommission();
+    fetchForwardCommission: async (year?: number) => {
+      return await repo.fetchForwardCommission(year);
     },
-    generateForwardsReport: async () => {
-      return await repo.generateForwardsReport();
+    generateForwardsReport: async (selectedYear?:number) => {
+      return await repo.generateForwardsReport(selectedYear);
     },
     updateForwardAdjustment: async (id: string, adjustment: number) => {
       return await repo.updateForwardAdjustment(id, adjustment);
