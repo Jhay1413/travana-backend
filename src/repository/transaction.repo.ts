@@ -1520,33 +1520,44 @@ export const transactionRepo: TransactionRepo = {
       .where(eq(task.transaction_id, transactionId));
   },
   fetchDestination: async (country_ids, selectedIds, search) => {
-    const response = await db
+    const baseQuery = db
       .select({
         id: destination.id,
         name: destination.name,
-
         country_id: destination.country_id,
         country: {
           id: country.id,
-          country_name: country.country_name, // Use actual column name from your schema
+          country_name: country.country_name,
         },
       })
       .from(destination)
-      .innerJoin(country, eq(destination.country_id, country.id))
-      .where(
-        or(
-          search ? or(ilike(destination.name, `%${search}%`), ilike(country.country_name, `%${search}%`)) : undefined,
-          or(
-            country_ids?.length ? inArray(destination.country_id, country_ids) : undefined,
-            selectedIds?.length ? inArray(destination.id, selectedIds) : undefined
-          )
-        )
-      )
-      .orderBy(
-        search
-          ? desc(sql`CASE WHEN ${destination.name} ILIKE ${`${search}%`} THEN 1 ELSE 0 END`)
-          : asc(destination.name)
-      );
+      .innerJoin(country, eq(destination.country_id, country.id));
+
+    // Build conditions array depending on inputs; include search with country_ids when provided
+    const rawConditions: (unknown | undefined)[] = [];
+
+    if (country_ids?.length) {
+      rawConditions.push(inArray(destination.country_id, country_ids));
+      if (search) rawConditions.push(or(ilike(destination.name, `%${search}%`), ilike(country.country_name, `%${search}%`)));
+      if (selectedIds?.length) rawConditions.push(inArray(destination.id, selectedIds));
+    } else {
+      if (search) rawConditions.push(or(ilike(destination.name, `%${search}%`), ilike(country.country_name, `%${search}%`)));
+      if (selectedIds?.length) rawConditions.push(inArray(destination.id, selectedIds));
+    }
+
+    // Keep the typed array as `unknown[]` and filter out falsy entries
+    const conditions = rawConditions.filter(Boolean) as unknown[];
+
+    const whereClause = nestedBuilder(conditions);
+
+    // Use search-ranking whenever `search` is provided; otherwise sort by name
+    const orderByClause = search
+      ? desc(sql`CASE WHEN ${destination.name} ILIKE ${`${search}%`} THEN 1 ELSE 0 END`)
+      : asc(destination.name);
+
+    const response = whereClause
+      ? await baseQuery.where(whereClause).orderBy(orderByClause)
+      : await baseQuery.orderBy(orderByClause);
 
     return response.map((data) => ({
       id: data.id,
@@ -1700,24 +1711,24 @@ export const transactionRepo: TransactionRepo = {
     }));
   },
   fetchAccomodation: async (search, resort_ids, selectedIds) => {
+    // When `resort_ids` are provided, always restrict to those resorts
+    // and AND the search filter (if present) so results remain within the resorts.
     let whereClause: any = undefined;
 
-    if (search && resort_ids?.length) {
-      // If both search and resort_ids are provided, use AND logic
-      whereClause = and(ilike(accomodation_list.name, `%${search}%`), inArray(accomodation_list.resorts_id, resort_ids));
-    } else if (search) {
-      // Only search term
-      whereClause = ilike(accomodation_list.name, `%${search}%`);
-    } else if (resort_ids?.length) {
-      // Only resort_ids
+    if (resort_ids?.length) {
       whereClause = inArray(accomodation_list.resorts_id, resort_ids);
-    }
-
-    // Add selectedIds condition if provided
-    if (selectedIds?.length) {
-      if (whereClause) {
+      if (search) {
+        whereClause = and(whereClause, ilike(accomodation_list.name, `%${search}%`));
+      }
+      if (selectedIds?.length) {
         whereClause = and(whereClause, inArray(accomodation_list.id, selectedIds));
-      } else {
+      }
+    } else {
+      if (search && selectedIds?.length) {
+        whereClause = and(ilike(accomodation_list.name, `%${search}%`), inArray(accomodation_list.id, selectedIds));
+      } else if (search) {
+        whereClause = ilike(accomodation_list.name, `%${search}%`);
+      } else if (selectedIds?.length) {
         whereClause = inArray(accomodation_list.id, selectedIds);
       }
     }
@@ -1768,6 +1779,7 @@ export const transactionRepo: TransactionRepo = {
         : undefined,
       limit: 100,
     });
+
     return response.map((data) => ({
       id: data.id,
       name: data.name ?? '',
@@ -1797,14 +1809,25 @@ export const transactionRepo: TransactionRepo = {
   },
   fetchResorts: async (search, destinationIds, selectedIds) => {
 
+    // Build conditions array so search is combined with destination filter when provided
+    const rawConditions: (unknown | undefined)[] = [];
 
-    const conditions = [
-      search && ilike(resorts.name, `%${search}%`),
-      destinationIds?.length && inArray(resorts.destination_id, destinationIds),
-      selectedIds?.length && inArray(resorts.id, selectedIds),
-    ].filter(Boolean);
+    if (destinationIds?.length) {
+      rawConditions.push(inArray(resorts.destination_id, destinationIds));
+      if (search) rawConditions.push(ilike(resorts.name, `%${search}%`));
+      if (selectedIds?.length) rawConditions.push(inArray(resorts.id, selectedIds));
+    } else {
+      if (search) rawConditions.push(ilike(resorts.name, `%${search}%`));
+      if (selectedIds?.length) rawConditions.push(inArray(resorts.id, selectedIds));
+    }
 
+    const conditions = rawConditions.filter(Boolean) as unknown[];
     const whereClause = nestedBuilder(conditions);
+
+    const orderByClause = search
+      ? desc(sql`CASE WHEN ${resorts.name} ILIKE ${`${search}%`} THEN 1 ELSE 0 END`)
+      : asc(resorts.name);
+
     const response = await db.query.resorts.findMany({
       columns: {
         id: true,
@@ -1829,11 +1852,10 @@ export const transactionRepo: TransactionRepo = {
         },
       },
       ...(whereClause ? { where: whereClause } : {}),
-      orderBy: search
-        ? desc(sql`CASE WHEN ${resorts.name} ILIKE ${`${search}%`} THEN 1 ELSE 0 END`)
-        : asc(resorts.name),
+      orderBy: orderByClause,
       limit: 100, // Apply `where` only if it exists
     });
+
     return response.map((data) => ({
       id: data.id,
       name: data.name ?? '',
