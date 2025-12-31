@@ -1623,12 +1623,39 @@ export const transactionRepo: TransactionRepo = {
     };
   },
   fetchAirport: async (search, selectedIds) => {
-    const conditions = [
-      search ? or(ilike(airport.airport_name, `%${search}%`), ilike(airport.airport_code, `%${search}%`)) : undefined,
-      selectedIds && selectedIds?.length ? inArray(airport.id, selectedIds) : undefined,
-    ].filter(Boolean);
 
+    // Default airports to include when no explicit search is provided
+    const defaultNames = [
+      'Newcastle',
+      'Leeds',
+      'Manchester',
+      'Edinburgh',
+      'Teesside',
+      'London Gatwick',
+      'London Heathrow',
+    ];
+
+    const rawConditions: (unknown | undefined)[] = [];
+
+    if (search) {
+      rawConditions.push(or(ilike(airport.airport_name, `%${search}%`), ilike(airport.airport_code, `%${search}%`)));
+    } else {
+      // When no search provided, match any of the default names
+      const nameClauses = defaultNames.map((n) => ilike(airport.airport_name, `%${n}%`));
+      if (nameClauses.length === 1) {
+        rawConditions.push(nameClauses[0]);
+      } else if (nameClauses.length > 1) {
+        rawConditions.push(or(...(nameClauses as any)));
+      }
+    }
+
+    if (selectedIds && selectedIds.length) {
+      rawConditions.push(inArray(airport.id, selectedIds));
+    }
+
+    const conditions = rawConditions.filter(Boolean) as unknown[];
     const whereClause = nestedBuilder(conditions);
+
     const response = await db.query.airport.findMany({
       columns: {
         id: true,
