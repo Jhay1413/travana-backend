@@ -3,6 +3,7 @@ import { S3Service } from "../lib/s3";
 import { TicketsRepo } from "../repository/tickets.repo";
 import { ticketMutationSchema, ticketReplyMutationSchema, TicketsFilters } from "../types/modules/ticket";
 import z from "zod";
+import { emitTicketCreated, emitTicketAssigned, emitTicketStatusUpdated, emitTicketReplyAdded } from "../lib/socket-handler";
 
 
 export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
@@ -36,7 +37,17 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
                 })) : [],
             };
 
-            return await repo.insertTicket({ ...ticket_data });
+            const ticketId = await repo.insertTicket({ ...ticket_data });
+
+            // Emit WebSocket notification
+            emitTicketCreated({
+                ticketId: ticketId,
+                agentId: data.agent_id || '',
+                subject: data.subject,
+                createdBy: data.created_by || '',
+            });
+
+            return ticketId;
         },
         fetchTickets: async (filters: TicketsFilters) => {
             return await repo.fetchTickets(filters);
@@ -66,14 +77,48 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
         deleteTicket: async (id: string) => {
             return await repo.deleteTicket(id);
         },
-        updateTicketStatus: async (id: string, status: string) => {
-            return await repo.updateTicketStatus(id, status);
+        updateTicketStatus: async (id: string, status: string, updatedBy?: string) => {
+            // Get ticket details first to get agent and creator info
+            const ticketDetails = await repo.fetchTickeyById(id);
+            
+            await repo.updateTicketStatus(id, status);
+
+            // Emit WebSocket notification
+            emitTicketStatusUpdated({
+                ticketId: id,
+                status: status,
+                updatedBy: updatedBy || 'system',
+                agentId: ticketDetails.agent_id || undefined,
+                createdBy: ticketDetails.created_by || undefined,
+            });
         },
-        assignTicket: async (id: string, agent_id: string) => {
-            return await repo.assignTicket(id, agent_id);
+        assignTicket: async (id: string, agent_id: string, assignedBy?: string) => {
+            await repo.assignTicket(id, agent_id);
+
+            // Emit WebSocket notification
+            emitTicketAssigned({
+                ticketId: id,
+                agentId: agent_id,
+                assignedBy: assignedBy || 'system',
+            });
         },
         insertTicketReply: async (id: string, data: z.infer<typeof ticketReplyMutationSchema>) => {
-            return await repo.insertTicketReply(id, data);
+            const replyId = await repo.insertTicketReply(id, data);
+
+            // Get ticket details to notify relevant parties
+            const ticketDetails = await repo.fetchTickeyById(id);
+
+            // Emit WebSocket notification
+            emitTicketReplyAdded({
+                ticketId: id,
+                replyId: replyId,
+                agentId: ticketDetails.agent_id || '',
+                content: data.reply,
+                createdBy: ticketDetails.created_by || undefined,
+                repliedBy: data.agent_id || '',
+            });
+
+            return replyId;
         },
         insertTicketReplyFile: async (data: {
             agent_id: string;
@@ -105,7 +150,23 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
                     file_size: file.file_size.toString(),
                 })) : [],
             };
-            return await repo.insertTicketReplyFile(reply_data);
+            
+            const replyId = await repo.insertTicketReplyFile(reply_data);
+
+            // Get ticket details to notify relevant parties
+            const ticketDetails = await repo.fetchTickeyById(data.ticket_id);
+
+            // Emit WebSocket notification
+            emitTicketReplyAdded({
+                ticketId: data.ticket_id,
+                replyId: replyId,
+                agentId: ticketDetails.agent_id || '',
+                content: data.reply,
+                createdBy: ticketDetails.created_by || undefined,
+                repliedBy: data.agent_id,
+            });
+
+            return replyId;
         },
         fetchTicketReplies: async (id: string) => {
             const response = await repo.fetchTicketReplies(id);

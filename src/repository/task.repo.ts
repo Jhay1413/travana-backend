@@ -25,7 +25,7 @@ export type TaskRepo = {
         status?: string,
         dueFilter?: string,
         type?: string,
-        curosr?: string,
+        cursor?: string,
         limit?: number,
     }) => Promise<{
         data: z.infer<typeof taskQuerySchema>[],
@@ -248,8 +248,8 @@ export const taskRepo: TaskRepo = {
             }
 
             // Add cursor condition for pagination
-            if (filters.curosr) {
-                conditions.push(lt(task.created_at, new Date(filters.curosr)));
+            if (filters.cursor) {
+                conditions.push(lt(task.created_at, new Date(filters.cursor)));
             }
 
             return conditions.length > 0 ? and(...conditions) : undefined;

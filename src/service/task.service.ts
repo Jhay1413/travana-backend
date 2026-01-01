@@ -29,8 +29,13 @@ export const taskService = (taskRepo: TaskRepo) => {
             status?: string,
             dueFilter?: string,
             type?: string,
+            cursor?: string,
+            limit?: string,
         }) => {
-            return await taskRepo.fetchCreatedTaskInfinite(filters);
+            return await taskRepo.fetchCreatedTaskInfinite({
+                ...filters,
+                limit: filters.limit ? parseInt(filters.limit) : undefined,
+            });
         },
         updateTaskStatus: async (id: string, status: string) => {
             return await taskRepo.updateTaskStatus(id, status);

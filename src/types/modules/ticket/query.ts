@@ -20,6 +20,7 @@ export const ticketQuerySchema = z.object({
     title: z.string().nullable().optional(),
   }),
   category: z.string(),
+  priority: z.string(),
   updatedAt: z.string(),
   assignedTo: z.string(),
   status: z.string(),
@@ -33,6 +34,9 @@ export const ticketQuerySchema = z.object({
   isLocked: z.boolean(),
   createdAt: z.string(),
   created_by_name: z.string(),
+  client_id: z.string().nullable().optional(),
+  agent_id: z.string().nullable().optional(),
+  created_by: z.string().nullable().optional(),
   files: z
     .array(
       z.object({

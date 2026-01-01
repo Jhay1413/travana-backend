@@ -90,7 +90,10 @@ const setupEventHandlers = () => {
                     rooms: roomIds,
                 });
 
-                // Join user to their rooms
+                // Join user to their personal room for targeted notifications
+                socket.join(`user:${userId}`);
+
+                // Join user to their chat rooms
                 roomIds.forEach(roomId => {
                     socket.join(roomId);
                 });
@@ -474,29 +477,89 @@ export const broadcastToAll = (event: string, data: any) => {
 // Get socket instance (for advanced usage)
 export const getSocketInstance = () => io;
 
+// Emit to specific user(s)
+export const emitToUser = (userId: string | string[], event: string, data: any) => {
+    if (!io) return;
+    
+    const userIds = Array.isArray(userId) ? userId : [userId];
+    userIds.forEach(id => {
+        if (id) {
+            io.to(`user:${id}`).emit(event, data);
+        }
+    });
+};
+
 // Utility functions to emit ticket events from other parts of the application
 export const emitTicketCreated = (data: { ticketId: string; agentId: string; subject: string; createdBy: string }) => {
-    if (io) {
-        io.emit('new_ticket', data);
+    if (!io) return;
+    
+    const recipients: string[] = [];
+    
+    // Notify assigned agent
+    if (data.agentId) {
+        recipients.push(data.agentId);
     }
+    
+    // Notify creator
+    if (data.createdBy && data.createdBy !== data.agentId) {
+        recipients.push(data.createdBy);
+    }
+    
+    // Emit to specific users
+    recipients.forEach(userId => {
+        io.to(`user:${userId}`).emit('new_ticket', data);
+    });
 };
 
 export const emitTicketAssigned = (data: { ticketId: string; agentId: string; assignedBy: string }) => {
-    if (io) {
-        io.emit('ticket_assigned', data);
+    if (!io) return;
+    
+    // Notify the assigned agent
+    if (data.agentId) {
+        io.to(`user:${data.agentId}`).emit('ticket_assigned', data);
     }
 };
 
-export const emitTicketStatusUpdated = (data: { ticketId: string; status: string; updatedBy: string }) => {
-    if (io) {
-        io.emit('ticket_status_updated', data);
+export const emitTicketStatusUpdated = (data: { ticketId: string; status: string; updatedBy: string; agentId?: string; createdBy?: string }) => {
+    if (!io) return;
+    
+    const recipients: string[] = [];
+    
+    // Notify assigned agent
+    if (data.agentId) {
+        recipients.push(data.agentId);
     }
+    
+    // Notify creator
+    if (data.createdBy && data.createdBy !== data.updatedBy) {
+        recipients.push(data.createdBy);
+    }
+    
+    // Emit to specific users
+    recipients.forEach(userId => {
+        io.to(`user:${userId}`).emit('ticket_status_updated', data);
+    });
 };
 
-export const emitTicketReplyAdded = (data: { ticketId: string; replyId: string; agentId: string; content: string }) => {
-    if (io) {
-        io.emit('ticket_reply_added', data);
+export const emitTicketReplyAdded = (data: { ticketId: string; replyId: string; agentId: string; content: string; createdBy?: string; repliedBy: string }) => {
+    if (!io) return;
+    
+    const recipients: string[] = [];
+    
+    // Notify assigned agent (if reply is not from agent)
+    if (data.agentId && data.agentId !== data.repliedBy) {
+        recipients.push(data.agentId);
     }
+    
+    // Notify ticket creator (if reply is not from creator)
+    if (data.createdBy && data.createdBy !== data.repliedBy) {
+        recipients.push(data.createdBy);
+    }
+    
+    // Emit to specific users
+    recipients.forEach(userId => {
+        io.to(`user:${userId}`).emit('ticket_reply_added', data);
+    });
 };
 export const emitMessageRead = (data: { messageId: string[]; userId: string; roomId: string }) => {
     if (io) {

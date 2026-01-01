@@ -2,6 +2,8 @@ import { TicketService } from "../service/ticket.service";
 import { ticketsRepo } from "../repository/tickets.repo";
 import { s3Service } from "../lib/s3";
 import { Request, Response } from "express";
+import { auth } from "../lib/auth";
+import { fromNodeHeaders } from "better-auth/node";
 
 const service = TicketService(ticketsRepo, s3Service);
 
@@ -66,7 +68,13 @@ export const ticketController = {
         try {
             const { id } = req.params;
             const { status } = req.body;
-            const ticket = await service.updateTicketStatus(id, status);
+            
+            const session = await auth.api.getSession({
+                headers: fromNodeHeaders(req.headers)
+            });
+            
+            const updatedBy = session?.user?.id || 'system';
+            const ticket = await service.updateTicketStatus(id, status, updatedBy);
             res.status(200).json(ticket);
         } catch (error) {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
@@ -76,7 +84,13 @@ export const ticketController = {
         try {
             const { id } = req.params;
             const { agent_id } = req.body;
-            const ticket = await service.assignTicket(id, agent_id);
+            
+            const session = await auth.api.getSession({
+                headers: fromNodeHeaders(req.headers)
+            });
+            
+            const assignedBy = session?.user?.id || 'system';
+            const ticket = await service.assignTicket(id, agent_id, assignedBy);
             res.status(200).json(ticket);
         } catch (error) {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });

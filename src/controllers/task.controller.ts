@@ -64,8 +64,15 @@ export const taskController = {
     },
     fetchCreatedTaskInfinite: async (req: Request, res: Response) => {
         try {
-            const { agent_id, status, dueFilter, type } = req.query;
-            const task = await service.fetchCreatedTaskInfinite({ agent_id: agent_id as string, status: status as string, dueFilter: dueFilter as string, type: type as string });
+            const { agent_id, status, dueFilter, type, cursor, limit } = req.query;
+            const task = await service.fetchCreatedTaskInfinite({ 
+                agent_id: agent_id as string, 
+                status: status as string, 
+                dueFilter: dueFilter as string, 
+                type: type as string,
+                cursor: cursor as string,
+                limit: limit as string,
+            });
             res.status(200).json(task);
         } catch (error) {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
