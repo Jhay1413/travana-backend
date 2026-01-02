@@ -3759,6 +3759,7 @@ export const quoteRepo: QuoteRepo = {
           accomodation_id: quote_accomodation.accomodation_id,
           resort_name: resorts.name,
           date_created: quote.date_created,
+          tour_operator:tour_operator.name,
           sales_price: quote.sales_price,
           quote_status: quote.quote_status,
           price_per_person: quote.price_per_person,
@@ -3770,6 +3771,7 @@ export const quoteRepo: QuoteRepo = {
         })
         .from(quote)
         .leftJoin(transaction, eq(quote.transaction_id, transaction.id))
+        .leftJoin(tour_operator, eq(quote.main_tour_operator_id, tour_operator.id))
         .leftJoin(package_type, eq(quote.holiday_type_id, package_type.id))
         .leftJoin(lodges, eq(quote.lodge_id, lodges.id))
         .leftJoin(park, eq(lodges.park_id, park.id))
@@ -3864,6 +3866,7 @@ export const quoteRepo: QuoteRepo = {
           data.holiday_destination;
         return {
           id: data.id,
+          tour_operator: data.tour_operator ?? 'N/A',
           departureAirport: data.departure_airport ?? 'N/A',
           hasPost: data.postCount > 0,
           luggageTransfers: data.transfers ?? 'N/A',

@@ -14,6 +14,7 @@ import {
 } from '../shared';
 import { deal_images } from '../transaction';
 import { quote } from '@/schema/quote-schema';
+import { tour_operator } from '@/schema/transactions-schema';
 
 export const quoteQuerySummarySchema = z.object({
   id: z.string(),
@@ -131,11 +132,12 @@ export const quoteListQuerySchema = z.object({
 });
 export const freeQuoteListQuerySchema = z.object({
   id: z.string(),
+  tour_operator: z.string(),
   title: z.nullable(z.string()).optional(),
   quote_ref: z.nullable(z.string()).optional(),
   holiday_type: z.string().nullable(),
   travel_date: z.nullable(z.string()).optional(),
-  destination: z.string(),
+  destination: z.string().nullable(),
   resort_name: z.string().nullable(),
   country: z.string().nullable(),
   num_of_nights: z.string(),
