@@ -17,7 +17,7 @@ import * as ticket from './ticket-schema';
 import * as historical from './historical-schema';
 import * as auth from './auth-schema';
 import * as referral from './referral-schema';
-
+import * as taskSnooze from './task-snooze-schema';
 export const schema = {
   ...client,
   ...clientFile,
@@ -38,4 +38,5 @@ export const schema = {
   ...historical,
   ...auth,
   ...referral,
+  ...taskSnooze,
 };

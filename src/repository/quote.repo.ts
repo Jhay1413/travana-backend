@@ -68,6 +68,7 @@ export type QuoteRepo = {
     transaction_id: string;
     quote_id: string;
     quote_status:
+    | 'ARCHIVED'
     | 'LOST'
     | 'INACTIVE'
     | 'EXPIRED'
@@ -90,6 +91,7 @@ export type QuoteRepo = {
     transaction_id: string;
     quote_id: string;
     quote_status:
+    | 'ARCHIVED'
     | 'LOST'
     | 'INACTIVE'
     | 'EXPIRED'
@@ -605,6 +607,9 @@ export const quoteRepo: QuoteRepo = {
         const [quote_id] = await tx
           .insert(quote)
           .values({
+            deal_type: data.deal_type,
+            pre_booked_seats: data.pre_booked_seats,
+            flight_meals: data.flight_meals,
             holiday_type_id: data.holiday_type,
             pets: data.pets,
             lodge_id: data.lodge_id,
@@ -815,6 +820,9 @@ export const quoteRepo: QuoteRepo = {
         const [quote_id] = await tx
           .insert(quote)
           .values({
+            deal_type: data.deal_type,
+            pre_booked_seats: data.pre_booked_seats,
+            flight_meals: data.flight_meals,
             holiday_type_id: data.holiday_type,
             pets: data.pets,
             lodge_id: data.lodge_id,
@@ -1500,7 +1508,7 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
         .leftJoin(destination, eq(resorts.destination_id, destination.id))
-        .where(and(eq(quote.isFreeQuote, false), eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
+        .where(and(eq(quote.isFreeQuote, false),ne(quote.quote_status, 'ARCHIVED'), eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
         .groupBy(
           quote.id,
           quote.transaction_id,
@@ -3238,6 +3246,9 @@ export const quoteRepo: QuoteRepo = {
           .update(quote)
           .set({
             pets: data.pets,
+            deal_type: data.deal_type,
+            pre_booked_seats: data.pre_booked_seats,
+            flight_meals: data.flight_meals,
             holiday_type_id: data.holiday_type,
             lodge_id: data.lodge_id,
             cottage_id: data.cottage_id,

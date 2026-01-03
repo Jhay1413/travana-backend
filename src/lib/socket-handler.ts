@@ -2,6 +2,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import { eq, and } from 'drizzle-orm';
 import { userService } from '../service/user.service';
+import { initializeTaskReminderCron } from './task-reminder-cron';
 
 interface ChatSocket {
     userId: string;
@@ -37,6 +38,7 @@ import { db } from '../db/db';
 import { userRepo } from '../repository/user.repo';
 import { chatRepo } from '../repository/chat.repo';
 import { chatService } from '../service/chat.service';
+import { taskSnoozeRepo } from '../repository/task-snooze.repo';
 // Initialize socket server
 
 const chatInstance = chatService(chatRepo);
@@ -60,6 +62,9 @@ export const initializeSocketServer = (server: HTTPServer) => {
     });
 
     setupEventHandlers();
+    
+    // Initialize task reminder cron job
+    initializeTaskReminderCron();
 };
 
 
@@ -286,6 +291,64 @@ const setupEventHandlers = () => {
 
         socket.on('ticket_reply_added', (data: { ticketId: string; replyId: string; agentId: string; content: string }) => {
             io.emit('ticket_reply_added', data);
+        });
+
+        // Task reminder events
+        socket.on('request_task_reminder_check', async () => {
+            try {
+                const userSocket = connectedUsers.get(socket.id);
+                if (!userSocket) {
+                    socket.emit('error', { message: 'User not authenticated' });
+                    return;
+                }
+
+                // Import the trigger function dynamically to avoid circular deps
+                const { triggerTaskReminderCheck } = await import('./task-reminder-cron');
+                const dueTasks = await triggerTaskReminderCheck();
+                
+                socket.emit('task_reminder_check_result', {
+                    count: dueTasks.length,
+                    tasks: dueTasks,
+                    message: `Found ${dueTasks.length} task(s) due in 5 minutes`
+                });
+            } catch (error) {
+                console.error('Task reminder check error:', error);
+                socket.emit('error', { message: 'Failed to check task reminders' });
+            }
+        });
+
+        // Handle snoozing a task reminder
+        socket.on('snooze_task_reminder', async (data: { taskId: string; snoozeMinutes: number }) => {
+            try {
+                const userSocket = connectedUsers.get(socket.id);
+                if (!userSocket) {
+                    socket.emit('error', { message: 'User not authenticated' });
+                    return;
+                }
+
+                const { taskId, snoozeMinutes } = data;
+
+                // Validate snooze duration
+                const validDurations = [5, 10, 15, 30, 60];
+                if (!validDurations.includes(snoozeMinutes)) {
+                    socket.emit('error', { message: 'Invalid snooze duration' });
+                    return;
+                }
+
+                // Snooze the task
+                await taskSnoozeRepo.snoozeTask(taskId, userSocket.userId, snoozeMinutes);
+
+                socket.emit('task_snoozed', {
+                    taskId,
+                    snoozeMinutes,
+                    message: `Task snoozed for ${snoozeMinutes} minutes`,
+                });
+
+                console.log(`Task ${taskId} snoozed for ${snoozeMinutes} minutes by user ${userSocket.userId}`);
+            } catch (error) {
+                console.error('Snooze task error:', error);
+                socket.emit('error', { message: 'Failed to snooze task' });
+            }
         });
 
         // Handle marking message as read

@@ -4,7 +4,7 @@ import { task } from "../schema/task-schema";
 import { taskMutationSchema } from "../types/modules/agent/mutation";
 import { taskQuerySchema } from "../types/modules/agent/query";
 import { addMonths, addWeeks, endOfDay, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from "date-fns";
-import { and, eq, ilike, lte, ne, notIlike } from "drizzle-orm";
+import { and, eq, ilike, lte, ne, notIlike, gte } from "drizzle-orm";
 import { z } from "zod";
 
 
@@ -40,6 +40,7 @@ export type TaskRepo = {
         count: number,
     }>,
     deleteTaskById: (id: string) => Promise<void>,
+    fetchTasksDueInTimeframe: (startTime: Date, endTime: Date) => Promise<z.infer<typeof taskQuerySchema>[]>,
 }
 
 
@@ -425,6 +426,40 @@ export const taskRepo: TaskRepo = {
     },
     deleteTaskById: async (id) => {
         await db.delete(task).where(eq(task.id, id));
+    },
+    fetchTasksDueInTimeframe: async (startTime, endTime) => {
+        const response = await db.query.task.findMany({
+            where: and(
+                gte(task.due_date, startTime),
+                lte(task.due_date, endTime),
+                ne(task.status, 'completed'),
+                ne(task.status, 'cancelled')
+            ),
+            with: {
+                user: true,
+                client: true,
+                assigned_by_user: true,
+            },
+            orderBy: (task, { asc }) => [asc(task.due_date)],
+        });
+        return response.map((data) => ({
+            id: data.id,
+            agent: data.user,
+            assignedBy: data.assigned_by_user,
+            due_date: data.due_date?.toString() ?? '',
+            created_at: data.created_at?.toString(),
+            task: data.task ?? 'No Task',
+            title: data.title ?? 'No Title',
+            priority: data.priority ?? 'No Priority',
+            status: data.status ?? 'No Status',
+            transaction_id: data.transaction_id ?? '',
+            transaction_type: data.transaction_type ?? '',
+            client_id: data.client_id ?? '',
+            deal_id: data.deal_id ?? '',
+            assigned_by_id: data.assigned_by_id_v2 ?? '',
+            number: data.number ?? '',
+            type: data.type ?? '',
+        }));
     },
 
 }

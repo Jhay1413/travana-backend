@@ -7,6 +7,7 @@ import { booking } from './booking-schema';
 import { usersTable } from './user-schema';
 import { array } from 'zod';
 import { user } from './auth-schema';
+import { flight } from '@/types/modules/shared';
 
 export const quoteStatusEnum = pgEnum('quote_status', [
   'NEW_LEAD',
@@ -16,6 +17,7 @@ export const quoteStatusEnum = pgEnum('quote_status', [
   'AWAITING_DECISION',
   'REQUOTE',
   'WON',
+  'ARCHIVED',
   'LOST',
   'INACTIVE',
   'EXPIRED',
@@ -39,6 +41,9 @@ export const quote = pgTable('quote_table', {
   cottage_id: uuid().references(() => cottages.id),
   lodge_id: uuid().references(() => lodges.id),
   quote_type: varchar().notNull(),
+  deal_type: varchar(),
+  pre_booked_seats:varchar(),
+  flight_meals:boolean().default(false),
   infant: integer(),
   child: integer(),
   adult: integer(),
