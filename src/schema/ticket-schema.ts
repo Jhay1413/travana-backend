@@ -9,6 +9,7 @@ export const ticket = pgTable('ticket', {
     .default(sql`gen_random_uuid()`)
     .primaryKey(),
   ticket_id: varchar('ticket_id', { length: 7 }).unique(),
+   due_date: timestamp(),
   ticket_type: varchar('ticket_type', { length: 20 }), // admin, sales, travana
   category: varchar(),
   deal_id: varchar(),
@@ -20,6 +21,7 @@ export const ticket = pgTable('ticket', {
   client_id: uuid().references(() => clientTable.id),
   agent_id: uuid().references(() => usersTable.id),
   user_id: text().references(() => user.id),
+  completed_by: text().references(() => user.id),
   created_by: uuid().references(() => usersTable.id),
   created_by_user: text().references(() => user.id),
   created_at: timestamp().defaultNow(),
@@ -77,6 +79,7 @@ export const ticketRelation = relations(ticket, ({ one, many }) => ({
     fields: [ticket.client_id],
     references: [clientTable.id],
   }),
+
   user: one(user,{
     fields: [ticket.user_id],
     references: [user.id],
@@ -89,6 +92,11 @@ export const ticketRelation = relations(ticket, ({ one, many }) => ({
   }),
   replies: many(ticket_reply),
   files: many(ticket_file),
+  completed_by_user: one(user,{
+    fields: [ticket.completed_by],
+    references: [user.id],
+    relationName: 'completed_by_user',
+  }),
   created_by_user: one(user,{
     fields: [ticket.created_by_user],
     references: [user.id],

@@ -14,6 +14,9 @@ export const booking = pgTable('booking_table', {
   transaction_id: uuid()
     .references(() => transaction.id,{onDelete:"cascade"})
     .unique().notNull(),
+  deal_type: varchar(),
+  pre_booked_seats: varchar(),
+  flight_meals: boolean().default(false),
   holiday_type_id: uuid().references(() => package_type.id).notNull(),
   hays_ref: varchar().notNull(),
   supplier_ref: varchar().notNull(),
@@ -22,6 +25,7 @@ export const booking = pgTable('booking_table', {
   package_commission: numeric('package_commission', { precision: 10, scale: 2 }),
   travel_date: date().notNull(),
   title:varchar(),
+  
   discounts: numeric('discounts', { precision: 10, scale: 2 }),
   service_charge: numeric('service_charge', { precision: 10, scale: 2 }),
   num_of_nights: integer().notNull().default(0),

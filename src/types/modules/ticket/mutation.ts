@@ -11,6 +11,8 @@ export const ticketMutationSchema = z
     status: z.string().trim().min(1, 'Status is required'),
     priority: z.string().trim().min(1, 'Priority is required'),
     description: z.string().trim().min(1, 'Description is required'),
+    due_date: z.nullable(z.string().datetime()).optional(),
+    completed_by: z.nullable(z.string()).optional(),
     client_id: z.string().optional(),
     agent_id: z.string().optional(),
     created_by: z.string().optional(),

@@ -39,6 +39,7 @@ import { userRepo } from '../repository/user.repo';
 import { chatRepo } from '../repository/chat.repo';
 import { chatService } from '../service/chat.service';
 import { taskSnoozeRepo } from '../repository/task-snooze.repo';
+import { ticketSnoozeRepo } from '../repository/ticket-snooze.repo';
 // Initialize socket server
 
 const chatInstance = chatService(chatRepo);
@@ -348,6 +349,64 @@ const setupEventHandlers = () => {
             } catch (error) {
                 console.error('Snooze task error:', error);
                 socket.emit('error', { message: 'Failed to snooze task' });
+            }
+        });
+
+        // Handle ticket reminder check
+        socket.on('request_ticket_reminder_check', async () => {
+            try {
+                const userSocket = connectedUsers.get(socket.id);
+                if (!userSocket) {
+                    socket.emit('error', { message: 'User not authenticated' });
+                    return;
+                }
+
+                // Import the trigger function dynamically to avoid circular deps
+                const { triggerTicketReminderCheck } = await import('./ticket-reminder-cron');
+                const dueTickets = await triggerTicketReminderCheck();
+                
+                socket.emit('ticket_reminder_check_result', {
+                    count: dueTickets.length,
+                    tickets: dueTickets,
+                    message: `Found ${dueTickets.length} ticket(s) due in 5 minutes`
+                });
+            } catch (error) {
+                console.error('Ticket reminder check error:', error);
+                socket.emit('error', { message: 'Failed to check ticket reminders' });
+            }
+        });
+
+        // Handle snoozing a ticket reminder
+        socket.on('snooze_ticket_reminder', async (data: { ticketId: string; snoozeMinutes: number }) => {
+            try {
+                const userSocket = connectedUsers.get(socket.id);
+                if (!userSocket) {
+                    socket.emit('error', { message: 'User not authenticated' });
+                    return;
+                }
+
+                const { ticketId, snoozeMinutes } = data;
+
+                // Validate snooze duration
+                const validDurations = [5, 10, 15, 30, 60];
+                if (!validDurations.includes(snoozeMinutes)) {
+                    socket.emit('error', { message: 'Invalid snooze duration' });
+                    return;
+                }
+
+                // Snooze the ticket
+                await ticketSnoozeRepo.snoozeTicket(ticketId, userSocket.userId, snoozeMinutes);
+
+                socket.emit('ticket_snoozed', {
+                    ticketId,
+                    snoozeMinutes,
+                    message: `Ticket snoozed for ${snoozeMinutes} minutes`,
+                });
+
+                console.log(`Ticket ${ticketId} snoozed for ${snoozeMinutes} minutes by user ${userSocket.userId}`);
+            } catch (error) {
+                console.error('Snooze ticket error:', error);
+                socket.emit('error', { message: 'Failed to snooze ticket' });
             }
         });
 

@@ -1508,7 +1508,7 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
         .leftJoin(destination, eq(resorts.destination_id, destination.id))
-        .where(and(eq(quote.isFreeQuote, false),ne(quote.quote_status, 'ARCHIVED'), eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
+        .where(and(eq(quote.isFreeQuote, false), ne(quote.quote_status, 'ARCHIVED'), eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
         .groupBy(
           quote.id,
           quote.transaction_id,
@@ -2276,6 +2276,9 @@ export const quoteRepo: QuoteRepo = {
         const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
         console.log('Parsed Travel Date:', response.travel_date, parsedTravelDate);
         const payload_to_validate = {
+          deal_type: response.deal_type,
+          pre_booked_seats: response.pre_booked_seats,
+          flight_meals: response.flight_meals,
           quote_id: response.id,
           transaction_id: response.transaction_id,
           lead_source: response.transaction?.lead_source,
@@ -2377,6 +2380,9 @@ export const quoteRepo: QuoteRepo = {
       } else if (holiday.name === 'Hot Tub Break') {
         const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
         const payload_to_validate = {
+          deal_type: response.deal_type,
+          pre_booked_seats: response.pre_booked_seats,
+          flight_meals: response.flight_meals,
           quote_id: response.id,
           transaction_id: response.transaction_id,
           lead_source: response.transaction?.lead_source,
@@ -2481,7 +2487,9 @@ export const quoteRepo: QuoteRepo = {
       } else {
         const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
         const payload_to_validate = {
-
+          deal_type: response.deal_type,
+          pre_booked_seats: response.pre_booked_seats,
+          flight_meals: response.flight_meals,
           quote_id: response.id,
           transaction_id: response.transaction_id,
           lead_source: response.transaction?.lead_source,
@@ -2664,6 +2672,9 @@ export const quoteRepo: QuoteRepo = {
       const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
 
       const payload_to_validate = {
+        deal_type: response.deal_type,
+        pre_booked_seats: response.pre_booked_seats,
+        flight_meals: response.flight_meals,
         quote_id: response.id,
         transaction_id: response.transaction_id,
         travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
@@ -2999,6 +3010,9 @@ export const quoteRepo: QuoteRepo = {
         await tx
           .update(quote)
           .set({
+            deal_type: data.deal_type,
+            pre_booked_seats: data.pre_booked_seats,
+            flight_meals: data.flight_meals,
             holiday_type_id: data.holiday_type,
             travel_date: data.travel_date,
             discounts: data.discount ? data.discount.toString() : '0',
@@ -3770,7 +3784,7 @@ export const quoteRepo: QuoteRepo = {
           accomodation_id: quote_accomodation.accomodation_id,
           resort_name: resorts.name,
           date_created: quote.date_created,
-          tour_operator:tour_operator.name,
+          tour_operator: tour_operator.name,
           sales_price: quote.sales_price,
           quote_status: quote.quote_status,
           price_per_person: quote.price_per_person,

@@ -72,6 +72,8 @@ export const ticketsRepo: TicketsRepo = {
             .insert(ticket)
             .values({
                 ...data,
+                due_date: data.due_date ? new Date(data.due_date) : new Date(),
+                completed_by: data.completed_by || null,
                 agent_id: undefined,
                 user_id: data.agent_id,
                 ticket_id: ticketId,
@@ -201,6 +203,7 @@ export const ticketsRepo: TicketsRepo = {
                 files: true,
                 created_by: true,
                 created_by_user: true,
+                completed_by_user: true,
                 replies: {
                     orderBy: (ticket_reply, { desc }) => [desc(ticket_reply.created_at)],
                     with: {
@@ -217,6 +220,8 @@ export const ticketsRepo: TicketsRepo = {
         return {
             id: response.id,
             ticket_id: response.ticket_id,
+            due_date: response.due_date,
+            completed_by:`${response.completed_by_user ? `${response.completed_by_user.firstName} ${response.completed_by_user.lastName}` : 'N/A'}`,
             ticket_type: response.ticket_type as 'admin' | 'sales' | 'travana',
             transaction_type: response.transaction_type,
             deal_id: response.deal_id,
@@ -277,6 +282,8 @@ export const ticketsRepo: TicketsRepo = {
             .update(ticket)
             .set({
                 ...data,
+                due_date: data.due_date ? new Date(data.due_date) : new Date(),
+                completed_by: data.completed_by || null,
                 agent_id: undefined,
                 created_by: undefined,
                 user_id: data.agent_id,

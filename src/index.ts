@@ -9,6 +9,8 @@ import { authMiddleware } from './middleware/authChecker';
 import routes from './routes';
 import { createServer } from 'http';
 import { initializeSocketServer } from './lib/socket-handler';
+import { initializeTaskReminderCron } from './lib/task-reminder-cron';
+import { initializeTicketReminderCron } from './lib/ticket-reminder-cron';
 dotenv.config();
 
 const app = express();
@@ -52,6 +54,11 @@ const server = createServer(app);
 
 // Initialize Socket.IO
 initializeSocketServer(server);
+
+// Initialize cron jobs
+initializeTaskReminderCron();
+initializeTicketReminderCron();
+
 // Start server
 server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);

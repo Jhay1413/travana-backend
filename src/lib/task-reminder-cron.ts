@@ -85,12 +85,13 @@ export const initializeTaskReminderCron = () => {
             const allSnoozedTasks = await taskSnoozeRepo.getAllSnoozedTasks();
             const snoozedTaskIds = allSnoozedTasks.map(s => s.task_id);
 
-            // Find tasks that are:
-            // 1. Overdue (but not more than 6 minutes overdue)
-            // 2. Due within the next 6 minutes
-            // 3. Not currently snoozed
-            // This captures recently overdue and upcoming due tasks
-            const dueTasks = await db.query.task.findMany({
+            // Get ALL tasks that are either upcoming or overdue (no time limit on overdue)
+            // This includes:
+            // 1. Upcoming: Due within the next 5-6 minutes
+            // 2. All overdue tasks (regardless of how long they've been overdue)
+            const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+
+            const dueAndOverdueTasks = await db.query.task.findMany({
                 where: and(
                     lte(task.due_date, sixMinutesFromNow),
                     ne(task.status, 'completed'),
@@ -103,26 +104,29 @@ export const initializeTaskReminderCron = () => {
                     transaction: true,
                 },
             });
-            console.log(`Found ${dueTasks.length} tasks due soon.`);
 
-            if (dueTasks.length > 0) {
-                console.log(`Found ${dueTasks.length} task(s) that are overdue or due soon`);
+            console.log(`Found ${dueAndOverdueTasks.length} tasks that are due or overdue.`);
 
-                // Filter out snoozed tasks
+            // Process all due and overdue tasks
+            if (dueAndOverdueTasks.length > 0) {
                 const unSnoozedTasks = snoozedTaskIds.length > 0
-                    ? dueTasks.filter(t => !snoozedTaskIds.includes(t.id))
-                    : dueTasks;
+                    ? dueAndOverdueTasks.filter(t => !snoozedTaskIds.includes(t.id))
+                    : dueAndOverdueTasks;
 
                 for (const taskItem of unSnoozedTasks) {
-                    // Determine who should receive the notification
                     const recipientId = taskItem.user_id || taskItem.agent_id;
 
-                    if (recipientId) {
+                    if (recipientId && taskItem.due_date) {
+                        const isOverdue = new Date(taskItem.due_date) < now;
+                        const hoursOverdue = isOverdue 
+                            ? Math.floor((now.getTime() - new Date(taskItem.due_date).getTime()) / (60 * 60 * 1000))
+                            : 0;
+
                         const reminderData = {
                             taskId: taskItem.id,
                             title: taskItem.title || 'Task Reminder',
                             task: taskItem.task || '',
-                            dueDate: taskItem.due_date?.toISOString() || '',
+                            dueDate: taskItem.due_date.toISOString(),
                             priority: taskItem.priority || 'normal',
                             status: taskItem.status || 'pending',
                             transactionId: taskItem.transaction_id,
@@ -132,15 +136,15 @@ export const initializeTaskReminderCron = () => {
                             assignedBy: taskItem.assigned_by_user
                                 ? `${taskItem.assigned_by_user.firstName || ''} ${taskItem.assigned_by_user.lastName || ''}`.trim()
                                 : null,
-                            message: taskItem.due_date && new Date(taskItem.due_date) < now
-                                ? `Task "${taskItem.title || 'Untitled'}" is overdue!`
+                            message: isOverdue
+                                ? hoursOverdue > 0
+                                    ? `Task "${taskItem.title || 'Untitled'}" is ${hoursOverdue} hour(s) overdue!`
+                                    : `Task "${taskItem.title || 'Untitled'}" is overdue!`
                                 : `Task "${taskItem.title || 'Untitled'}" is due soon!`,
                         };
 
-                        // Emit socket event to the assigned user
                         emitToUser(recipientId, 'task_reminder', reminderData);
-
-                        console.log(`Sent task reminder for task ${taskItem.id} to user ${recipientId}`);
+                        console.log(`Sent task reminder for task ${taskItem.id} to user ${recipientId}${isOverdue ? ' (overdue)' : ''}`);
                     }
                 }
             }

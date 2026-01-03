@@ -1436,6 +1436,34 @@
       "when": 1767417108685,
       "tag": "0204_amazing_black_cat",
       "breakpoints": true
+    },
+    {
+      "idx": 205,
+      "version": "7",
+      "when": 1767430078482,
+      "tag": "0205_lonely_aqueduct",
+      "breakpoints": true
+    },
+    {
+      "idx": 206,
+      "version": "7",
+      "when": 1767433905825,
+      "tag": "0206_jazzy_lake",
+      "breakpoints": true
+    },
+    {
+      "idx": 207,
+      "version": "7",
+      "when": 1767434179455,
+      "tag": "0207_sturdy_klaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 208,
+      "version": "7",
+      "when": 1767434470277,
+      "tag": "0208_eager_randall_flagg",
+      "breakpoints": true
     }
   ]
 }

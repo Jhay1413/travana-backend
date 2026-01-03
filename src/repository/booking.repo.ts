@@ -137,6 +137,9 @@ export const bookingRepo: BookingRepo = {
       const [booking_id] = await tx
         .insert(booking)
         .values({
+          deal_type: data.deal_type,
+          pre_booked_seats: data.pre_booked_seats,
+          flight_meals: data.flight_meals,
           transaction_id: transaction_id,
           holiday_type_id: data.holiday_type,
           hays_ref: data.hays_ref,
@@ -318,6 +321,9 @@ export const bookingRepo: BookingRepo = {
       const [booking_id] = await tx
         .insert(booking)
         .values({
+          deal_type: data.deal_type,
+          pre_booked_seats: data.pre_booked_seats,
+          flight_meals: data.flight_meals,
           transaction_id: transaction_id,
           holiday_type_id: data.holiday_type,
           hays_ref: data.hays_ref,
@@ -497,6 +503,9 @@ export const bookingRepo: BookingRepo = {
       const [booking_id] = await tx
         .insert(booking)
         .values({
+          deal_type: data.deal_type,
+          pre_booked_seats: data.pre_booked_seats,
+          flight_meals: data.flight_meals,
           transaction_id: transaction_data.id,
           holiday_type_id: data.holiday_type,
           hays_ref: data.hays_ref,
@@ -667,6 +676,9 @@ export const bookingRepo: BookingRepo = {
       const [booking_id] = await tx
         .insert(booking)
         .values({
+          deal_type: data.deal_type,
+          pre_booked_seats: data.pre_booked_seats,
+          flight_meals: data.flight_meals,
           transaction_id: transaction_data.id,
           holiday_type_id: data.holiday_type,
           hays_ref: data.hays_ref,
@@ -990,6 +1002,9 @@ export const bookingRepo: BookingRepo = {
 
       const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
       const payload_to_validate = {
+        deal_type: response?.deal_type,
+        pre_booked_seats: response?.pre_booked_seats,
+        flight_meals: response?.flight_meals,
         transaction_id: response?.transaction_id,
         hays_ref: response?.hays_ref,
         supplier_ref: response?.supplier_ref,
@@ -1076,6 +1091,9 @@ export const bookingRepo: BookingRepo = {
     } else if (holiday?.name === 'Hot Tub Break') {
       const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
       const payload_to_validate = {
+        deal_type: response?.deal_type,
+        pre_booked_seats: response?.pre_booked_seats,
+        flight_meals: response?.flight_meals,
         transaction_id: response?.transaction_id,
         hays_ref: response?.hays_ref,
         supplier_ref: response?.supplier_ref,
@@ -1161,6 +1179,9 @@ export const bookingRepo: BookingRepo = {
     } else {
       const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
       const payload_to_validate = {
+        deal_type: response?.deal_type,
+        pre_booked_seats: response?.pre_booked_seats,
+        flight_meals: response?.flight_meals,
         transaction_id: response?.transaction_id,
         hays_ref: response?.hays_ref,
         supplier_ref: response?.supplier_ref,
@@ -1311,6 +1332,9 @@ export const bookingRepo: BookingRepo = {
     });
     const parsedTravelDate = parse(response?.travel_date!, "yyyy-MM-dd", new Date());
     const payload_to_validate = {
+      deal_type: response?.deal_type,
+      pre_booked_seats: response?.pre_booked_seats,
+      flight_meals: response?.flight_meals,
       travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
       main_tour_operator_id: response?.main_tour_operator_id,
       sales_price: parseFloat(response?.sales_price ?? '0'),
@@ -1501,6 +1525,9 @@ export const bookingRepo: BookingRepo = {
       await tx
         .update(booking)
         .set({
+          deal_type: data.deal_type,
+          pre_booked_seats: data.pre_booked_seats,
+          flight_meals: data.flight_meals,
           holiday_type_id: data.holiday_type,
           pets: data.pets,
           hays_ref: data.hays_ref,
@@ -1669,6 +1696,9 @@ export const bookingRepo: BookingRepo = {
       await tx
         .update(booking)
         .set({
+          deal_type: data.deal_type,
+          pre_booked_seats: data.pre_booked_seats,
+          flight_meals: data.flight_meals,
           holiday_type_id: data.holiday_type,
           travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : new Date().toISOString(),
           discounts: data.discount ? data.discount.toString() : '0',
@@ -3069,7 +3099,7 @@ export const bookingRepo: BookingRepo = {
       return travelDate.getMonth() === 2;
     });
     const monthlyData = [...response, ...historical_data].reduce((acc, booking) => {
-      
+
       if (booking.travel_date) {
         // Avoid JS "YYYY-MM-DD" parsing timezone shifts by using parseISO for date strings.
         const travelDate = typeof booking.travel_date === 'object' && booking.travel_date !== null && 'getTime' in booking.travel_date

@@ -139,7 +139,7 @@ export const userRelation = relations(user, ({ many }) => ({
   agentTargets: many(agentTargetTable),
   deleted_bookings: many(booking),
   assigned_tickets: many(ticket, { relationName: 'assigned_user' }),
-
+  completed_tickets: many(ticket, { relationName: 'completed_by_user' }),
   created_tickets: many(ticket, { relationName: 'created_by_user' }),
   reply_tickets: many(ticket_reply, { relationName: 'reply_user' }),
   todos: many(todos),
