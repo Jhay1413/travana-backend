@@ -61,6 +61,7 @@ export const initializeTaskReminderCron = () => {
                             priority: taskItem.priority || 'normal',
                             status: taskItem.status || 'pending',
                             transactionId: taskItem.transaction_id,
+                            clientId: taskItem.client_id,
                             clientName: taskItem.client
                                 ? `${taskItem.client.firstName || ''} ${taskItem.client.surename || ''}`.trim()
                                 : null,
@@ -118,7 +119,7 @@ export const initializeTaskReminderCron = () => {
 
                     if (recipientId && taskItem.due_date) {
                         const isOverdue = new Date(taskItem.due_date) < now;
-                        const hoursOverdue = isOverdue 
+                        const hoursOverdue = isOverdue
                             ? Math.floor((now.getTime() - new Date(taskItem.due_date).getTime()) / (60 * 60 * 1000))
                             : 0;
 
@@ -130,6 +131,7 @@ export const initializeTaskReminderCron = () => {
                             priority: taskItem.priority || 'normal',
                             status: taskItem.status || 'pending',
                             transactionId: taskItem.transaction_id,
+                            clientId: taskItem.client_id,
                             clientName: taskItem.client
                                 ? `${taskItem.client.firstName || ''} ${taskItem.client.surename || ''}`.trim()
                                 : null,
