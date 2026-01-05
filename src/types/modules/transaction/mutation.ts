@@ -104,7 +104,7 @@ export const quote_mutate_schema = z.object({
   isQuoteCopy: z.boolean().optional(),
   pre_booked_seats: z.nullable(z.string()).optional(),
   flight_meals: z.boolean().optional(),
-  deal_type:z.string().optional(),
+  deal_type:z.nullable(z.string()).optional(),
   isFreeQuote: z.boolean().optional(),
   lead_source: z.enum(['SHOP', 'FACEBOOK', 'WHATSAPP', 'INSTAGRAM', 'PHONE_ENQUIRY']).optional(),
   title: z.nullable(z.string()).optional(),
