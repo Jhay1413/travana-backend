@@ -95,8 +95,8 @@ export const initializeTaskReminderCron = () => {
             const dueAndOverdueTasks = await db.query.task.findMany({
                 where: and(
                     lte(task.due_date, sixMinutesFromNow),
-                    ne(task.status, 'completed'),
-                    ne(task.status, 'cancelled')
+                    ne(task.status, 'Completed'),
+                    ne(task.status, 'Cancelled')
                 ),
                 with: {
                     user: true,
