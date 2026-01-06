@@ -660,7 +660,7 @@ export const quoteRepo: QuoteRepo = {
         if (data.passengers && data.passengers.length > 0) {
           await tx.insert(passengers).values(
             data.passengers.map((data) => ({
-              type: data.type ?? "adults",
+              type: data.type ?? "adult",
               age: data.age,
               quote_id: quote_id.id,
             }))
@@ -869,7 +869,7 @@ export const quoteRepo: QuoteRepo = {
         if (data.passengers && data.passengers.length > 0) {
           await tx.insert(passengers).values(
             data.passengers.map((data) => ({
-              type: data.type,
+              type: data.type ?? "adult",
               age: data.age,
               quote_id: quote_id.id,
             }))
@@ -1091,7 +1091,7 @@ export const quoteRepo: QuoteRepo = {
         if (data.passengers && data.passengers.length > 0) {
           await tx.insert(passengers).values(
             data.passengers.map((data) => ({
-              type: data.type,
+              type: data.type ?? "adult",
               age: data.age,
               quote_id: quote_id.id,
             }))
@@ -3758,15 +3758,6 @@ export const quoteRepo: QuoteRepo = {
   fetchFreeQuotesInfinite: async (search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit) => {
     try {
       const pageSize = limit || 10;
-      const departureQuery = db
-        .select({
-          id: quote_flights.quote_id,
-          airport_name: airport.airport_name,
-        })
-        .from(quote_flights)
-        .leftJoin(airport, eq(quote_flights.departing_airport_id, airport.id))
-        .orderBy(asc(quote_flights.departure_date_time))
-        .limit(1).as('departureQuery');
 
       const query = db
         .select({
@@ -3790,7 +3781,14 @@ export const quoteRepo: QuoteRepo = {
           price_per_person: quote.price_per_person,
           board_basis: board_basis.type,
           travel_date: quote.travel_date,
-          departure_airport: departureQuery.airport_name,
+          departure_airport: sql<string>`(
+            SELECT airport_table.airport_name 
+            FROM quote_flights 
+            LEFT JOIN airport_table ON quote_flights.departing_airport_id = airport_table.id 
+            WHERE quote_flights.quote_id = quote_table.id 
+            ORDER BY quote_flights.departure_date_time ASC 
+            LIMIT 1
+          )`.as('departure_airport'),
           transfers: quote.transfer_type,
           postCount: db.$count(travelDeal, eq(travelDeal.quote_id, quote.id))
         })
@@ -3808,7 +3806,6 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
         .leftJoin(destination, eq(resorts.destination_id, destination.id))
         .leftJoin(country, eq(destination.country_id, country.id))
-        .leftJoin(departureQuery, eq(quote.id, departureQuery.id))
 
       const words = search?.trim().split(/\s+/).filter(Boolean) ?? [];
 

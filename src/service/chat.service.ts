@@ -58,7 +58,7 @@ export const chatService = (chatRepo: ChatRepo) => {
             return chatRepo.getRoomById(roomId);
         },
         markAllMessageAsRead: async (roomId: string, userId: string) => {
-            const unreadMessages = await chatRepo.getAllUnreadMessagesId(roomId);
+            const unreadMessages = await chatRepo.getAllUnreadMessagesId(roomId, userId);
             console.log("Unread Messages IDs: ", unreadMessages);
             if (!unreadMessages || unreadMessages.length === 0) {
                 return;

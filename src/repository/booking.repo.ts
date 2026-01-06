@@ -195,7 +195,7 @@ export const bookingRepo: BookingRepo = {
       if (data.passengers && data.passengers.length > 0) {
         await tx.insert(passengers).values(
           data.passengers.map((data) => ({
-            type: data.type,
+            type: data.type ?? "adult",
             age: data.age ? data.age : 0,
             booking_id: booking_id.id,
           }))
@@ -367,7 +367,7 @@ export const bookingRepo: BookingRepo = {
       if (data.passengers && data.passengers.length > 0) {
         await tx.insert(passengers).values(
           data.passengers.map((data) => ({
-            type: data.type,
+           type: data.type ?? "adult",
             age: data.age ? data.age : 0,
             booking_id: booking_id.id,
           }))
@@ -549,7 +549,7 @@ export const bookingRepo: BookingRepo = {
       if (data.passengers && data.passengers.length > 0) {
         await tx.insert(passengers).values(
           data.passengers.map((data) => ({
-            type: data.type,
+           type: data.type ?? "adult",
             age: data.age ? data.age : 0,
             booking_id: booking_id.id,
           }))
@@ -734,7 +734,7 @@ export const bookingRepo: BookingRepo = {
       if (data.passengers && data.passengers.length > 0) {
         await tx.insert(passengers).values(
           data.passengers.map((data) => ({
-            type: data.type,
+            type: data.type ?? "adult",
             age: data.age ? data.age : 0,
             booking_id: booking_id.id,
           }))

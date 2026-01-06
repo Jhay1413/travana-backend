@@ -93,29 +93,30 @@ const setupEventHandlers = () => {
                 connectedUsers.set(socket.id, {
                     userId,
                     socketId: socket.id,
-                    rooms: roomIds,
+                    rooms: [],  // Start with empty rooms, user will join when viewing
                 });
 
                 // Join user to their personal room for targeted notifications
                 socket.join(`user:${userId}`);
 
-                // Join user to their chat rooms
-                roomIds.forEach(roomId => {
-                    socket.join(roomId);
-                });
+                // Don't auto-join chat rooms - user will join when viewing
+                // roomIds.forEach(roomId => {
+                //     socket.join(roomId);
+                // });
 
                 // Update user's online status
                 await chatInstance.updateUserOnlineStatus(userId, true);
 
 
-                // Notify other users in the same rooms
-                roomIds.forEach(roomId => {
-                    socket.to(roomId).emit('user_online', {
-                        userId,
-                        roomId,
-                        userName: user ? `${user.firstName} ${user.lastName}` : 'Unknown User'
-                    });
-                });
+                // Notify other users in the same rooms that this user is online
+                // Don't notify for rooms they haven't joined yet
+                // roomIds.forEach(roomId => {
+                //     socket.to(roomId).emit('user_online', {
+                //         userId,
+                //         roomId,
+                //         userName: user ? `${user.firstName} ${user.lastName}` : 'Unknown User'
+                //     });
+                // });
 
                 socket.emit('authenticated', {
                     userId,
@@ -250,8 +251,28 @@ const setupEventHandlers = () => {
                 };
 
                 // Broadcast message to all users in the room
-
                 io.to(roomId).emit('new_message', messageData);
+
+                // Auto-mark as read for users currently in the room (except sender)
+                const roomSockets = await io.in(roomId).fetchSockets();
+                const activeUserIds: string[] = [];
+                
+                for (const roomSocket of roomSockets) {
+                    const activeUser = connectedUsers.get(roomSocket.id);
+                    if (activeUser && activeUser.userId !== userSocket.userId) {
+                        activeUserIds.push(activeUser.userId);
+                    }
+                }
+
+                // Mark message as read for all active users in the room
+                if (activeUserIds.length > 0) {
+                    await chatRepo.markAllMessageAsRead([message.id], activeUserIds[0]);
+                    
+                    // If there are multiple active users, mark for each
+                    for (let i = 1; i < activeUserIds.length; i++) {
+                        await chatRepo.markAllMessageAsRead([message.id], activeUserIds[i]);
+                    }
+                }
 
                 // Emit confirmation to sender
                 socket.emit('message_sent', { messageId: message.id });

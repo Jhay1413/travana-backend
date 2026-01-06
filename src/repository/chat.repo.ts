@@ -39,17 +39,18 @@ export type ChatRepo = {
   }[]>
   getRoomById: (roomId: string) => Promise<z.infer<typeof chatRoomQuerySchema> | null | undefined>
   markAllMessageAsRead: (messageIds: string[], userId: string) => Promise<void>;
-  getAllUnreadMessagesId: (roomId: string) => Promise<string[]>;
+  getAllUnreadMessagesId: (roomId: string, userId: string) => Promise<string[]>;
 }
 
 export const chatRepo: ChatRepo = {
-  getAllUnreadMessagesId: async (roomId) => {
+  getAllUnreadMessagesId: async (roomId, userId) => {
 
     const messages = await db.select({ id: chatMessage.id })
       .from(chatMessage)
       .where(
         and(
           eq(chatMessage.roomId, roomId),
+          ne(chatMessage.sender_id, userId),
           notExists(
             db
               .select({ one: sql`1` })
@@ -57,6 +58,7 @@ export const chatRepo: ChatRepo = {
               .where(
                 and(
                   eq(chatMessageRead.messageId, chatMessage.id),
+                  eq(chatMessageRead.user_id_v2, userId)
                 )
               )
           )
