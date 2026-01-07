@@ -2313,7 +2313,7 @@ export const quoteRepo: QuoteRepo = {
           adults: response.adult ? response.adult : 0,
           children: response.child ? response.child : 0,
           infants: response.infant ? response.infant : 0,
-          passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
+          passengers: response.passengers.map((data) => ({ type: data.type ?? "adult", age: data.age ?? 0 })),
           flights: response.flights.map((data) => {
 
             console.log(data.departure_date_time, 'Original Departure Date Time');
@@ -2419,7 +2419,7 @@ export const quoteRepo: QuoteRepo = {
           children: response.child,
           infants: response.infant,
 
-          passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
+          passengers: response.passengers.map((data) => ({ type: data.type ?? "adult", age: data.age ?? 0 })),
           flights: response.flights.map((data) => ({
             ...data,
             commission: parseFloat(data.commission ?? '0'),
@@ -2518,7 +2518,7 @@ export const quoteRepo: QuoteRepo = {
           // referrerId: response.transaction.referrals ? response.transaction.referrals.referrerId : undefined,
           // potentialCommission: response.transaction.referrals ? parseInt(response.transaction.referrals.potentialCommission) : undefined,
 
-          passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
+          passengers: response.passengers.map((data) => ({ type: data.type ?? "adult", age: data.age ?? 0 })),
           flights: response.flights.map((data) => ({
             ...data,
             departure_airport_name: data.departing_airport?.airport_name,
@@ -2711,7 +2711,7 @@ export const quoteRepo: QuoteRepo = {
         agent_id: response.transaction?.user_id,
         client_id: response.transaction?.client_id,
         voyages: response.quote_cruise.cruise_itinerary.map((data) => ({ ...data, day_number: data.day_number ? data.day_number : 0 })),
-        passengers: response.passengers.map((data) => ({ ...data, age: data.age })),
+        passengers: response.passengers.map((data) => ({ type: data.type ?? "adult", age: data.age ?? 0 })),
         hotels: response.accomodation
           .filter((accomodation) => accomodation.is_primary === false)
           .map((data) => ({
@@ -2976,7 +2976,7 @@ export const quoteRepo: QuoteRepo = {
         await tx.delete(passengers).where(eq(passengers.quote_id, quote_id));
 
         if (data.passengers && data.passengers.length > 0) {
-          await tx.insert(passengers).values(data.passengers.map((item) => ({ ...item, quote_id })));
+          await tx.insert(passengers).values(data.passengers.map((item) => ({ type: item.type ?? "adult", age: item.age ?? 0, quote_id })));
         }
 
         if (data.voyages && data.voyages.length > 0 && data.quote_cruise_id) {
@@ -3236,7 +3236,7 @@ export const quoteRepo: QuoteRepo = {
         await tx.delete(passengers).where(eq(passengers.quote_id, quote_id));
 
         if (data.passengers && data.passengers.length > 0) {
-          await tx.insert(passengers).values(data.passengers.map((item) => ({ ...item, quote_id })));
+          await tx.insert(passengers).values(data.passengers.map((item) => ({ type: item.type ?? "adult", age: item.age ?? 0, quote_id })));
         }
         if (data.accomodation_id) {
           await tx

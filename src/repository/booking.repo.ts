@@ -1507,7 +1507,7 @@ export const bookingRepo: BookingRepo = {
       await tx.delete(passengers).where(eq(passengers.booking_id, booking_id));
 
       if (data.passengers.length > 0) {
-        await tx.insert(passengers).values(data.passengers.map((item) => ({ ...item, booking_id })));
+        await tx.insert(passengers).values(data.passengers.map((item) => ({ type: item.type ?? "adult", age: item.age ?? 0, booking_id })));
       }
       if (data.accomodation_id) {
         await tx
@@ -1665,7 +1665,7 @@ export const bookingRepo: BookingRepo = {
       await tx.delete(passengers).where(eq(passengers.booking_id, booking_id));
 
       if (data.passengers.length > 0) {
-        await tx.insert(passengers).values(data.passengers.map((item) => ({ ...item, booking_id, age: item.age })));
+        await tx.insert(passengers).values(data.passengers.map((item) => ({ type: item.type ?? "adult", age: item.age ?? 0, booking_id })));
       }
 
       if (data.voyages && data.voyages.length > 0 && data.booking_cruise_id) {
