@@ -24,6 +24,20 @@ export const taskService = (taskRepo: TaskRepo) => {
         }) => {
             return await taskRepo.fetchCreatedTasks(filters);
         },
+        fetchCreatedTasksPaginated: async (filters: {
+            agent_id?: string,
+            status?: string,
+            dueFilter?: string,
+            type?: string,
+        }, pagination?: {
+            page?: string,
+            limit?: string,
+        }) => {
+            return await taskRepo.fetchCreatedTasksPaginated(filters, {
+                page: pagination?.page ? parseInt(pagination.page) : undefined,
+                limit: pagination?.limit ? parseInt(pagination.limit) : undefined,
+            });
+        },
         fetchCreatedTaskInfinite: async (filters: {
             agent_id?: string,
             status?: string,

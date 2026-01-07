@@ -71,6 +71,14 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
             }
             return response;
         },
+        fetchTicketForUpdate: async (id: string) => {
+            if (!id) throw new AppError('Ticket ID is required', true, 400);
+            const response = await repo.fetchTicketForUpdate(id);
+
+            if (!response) throw new AppError('Ticket not found', true, 404);
+
+            return response;
+        },
         updateTicket: async (id: string, data: z.infer<typeof ticketMutationSchema>) => {
             return await repo.updateTicket(id, data);
         },

@@ -62,6 +62,27 @@ export const taskController = {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },
+    fetchCreatedTasksPaginated: async (req: Request, res: Response) => {
+        try {
+            const { agent_id, status, dueFilter, type, page, limit } = req.query;
+            const task = await service.fetchCreatedTasksPaginated(
+                { 
+                    agent_id: agent_id as string, 
+                    status: status as string, 
+                    dueFilter: dueFilter as string, 
+                    type: type as string,
+                },
+                {
+                    page: page as string,
+                    limit: limit as string,
+                }
+            );
+            res.status(200).json(task);
+        } catch (error) {
+            console.log(error)
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
     fetchCreatedTaskInfinite: async (req: Request, res: Response) => {
         try {
             const { agent_id, status, dueFilter, type, cursor, limit } = req.query;

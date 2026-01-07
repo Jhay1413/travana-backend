@@ -20,6 +20,7 @@ router.get('/scheduled/:id', taskController.fetchScheduledTasks);
 
 // Task management operations
 router.get('/created/list', taskController.fetchCreatedTasks);
+router.get('/created/paginated', taskController.fetchCreatedTasksPaginated);
 router.get('/created/infinite', taskController.fetchCreatedTaskInfinite);
 router.get('/pending/count/:agent_id', taskController.fetchNumberOfPendingTasks);
 

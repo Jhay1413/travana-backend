@@ -13,6 +13,7 @@ export type TicketsRepo = {
     insertTicket: (data: z.infer<typeof ticketMutationSchema>) => Promise<string>,
     fetchTickets: (data: TicketsFilters) => Promise<z.infer<typeof ticketQuerySchema>[]>,
     fetchTickeyById: (id: string) => Promise<z.infer<typeof ticketQuerySchema>>,
+    fetchTicketForUpdate: (id: string) => Promise<z.infer<typeof ticketMutationSchema>>,
     updateTicket: (id: string, data: z.infer<typeof ticketMutationSchema>) => Promise<void>,
     deleteTicket: (id: string) => Promise<void>,
     updateTicketStatus: (id: string, status: string) => Promise<void>,
@@ -269,6 +270,41 @@ export const ticketsRepo: TicketsRepo = {
             })),
         };
     },
+    fetchTicketForUpdate: async (id) => {
+        const response = await db.query.ticket.findFirst({
+            where: eq(ticket.id, id),
+            with: {
+                files: true,
+            },
+        });
+
+        if (!response) {
+            throw new AppError('Ticket not found', true, 404);
+        }
+
+        return {
+            ticket_type: response.ticket_type as 'admin' | 'sales' | 'travana' | undefined,
+            ticket_id: response.ticket_id || undefined,
+            transaction_type: response.transaction_type as 'on_enquiry' | 'on_quote' | 'on_booking' | undefined,
+            deal_id: response.deal_id || undefined,
+            category: response.category || undefined,
+            subject: response.subject || '',
+            status: response.status || '',
+            priority: response.priority || '',
+            description: response.description || '',
+            due_date: response.due_date ? response.due_date.toISOString() : null,
+            completed_by: response.completed_by || null,
+            client_id: response.client_id || undefined,
+            agent_id: response.user_id || undefined,
+            created_by: response.created_by_user || undefined,
+            filesData: response.files.map((file) => ({
+                file_name: file.file_name || '',
+                file_path: file.file_path || '',
+                file_size: file.file_size || '',
+                file_type: file.file_type || '',
+            })),
+        };
+    },
     updateTicket: async (id, data) => {
         const existing_ticket = await db.query.ticket.findFirst({
             where: eq(ticket.id, id),
@@ -281,13 +317,18 @@ export const ticketsRepo: TicketsRepo = {
         await db
             .update(ticket)
             .set({
-                ...data,
+                ticket_type: data.ticket_type,
+                transaction_type: data.transaction_type,
+                deal_id: data.deal_id,
+                category: data.category,
+                subject: data.subject,
+                status: data.status,
+                priority: data.priority,
+                description: data.description,
                 due_date: data.due_date ? new Date(data.due_date) : new Date(),
                 completed_by: data.completed_by || null,
-                agent_id: undefined,
-                created_by: undefined,
+                client_id: data.client_id || null,
                 user_id: data.agent_id,
-                created_by_user: data.created_by || '',
             })
             .where(eq(ticket.id, id));
     },

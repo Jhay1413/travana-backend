@@ -4,7 +4,7 @@ import { task } from "../schema/task-schema";
 import { taskMutationSchema } from "../types/modules/agent/mutation";
 import { taskQuerySchema } from "../types/modules/agent/query";
 import { addMonths, addWeeks, endOfDay, endOfMonth, endOfWeek, startOfDay, startOfMonth, startOfWeek } from "date-fns";
-import { and, eq, ilike, lte, ne, notIlike, gte } from "drizzle-orm";
+import { and, eq, ilike, lte, ne, notIlike, gte, sql } from "drizzle-orm";
 import { z } from "zod";
 
 
@@ -20,6 +20,23 @@ export type TaskRepo = {
         dueFilter?: string,
         type?: string,
     }) => Promise<z.infer<typeof taskQuerySchema>[]>,
+    fetchCreatedTasksPaginated: (filters: {
+        agent_id?: string,
+        status?: string,
+        dueFilter?: string,
+        type?: string,
+    }, pagination?: {
+        page?: number,
+        limit?: number,
+    }) => Promise<{
+        data: z.infer<typeof taskQuerySchema>[],
+        pagination: {
+            total: number,
+            page: number,
+            limit: number,
+            totalPages: number,
+        },
+    }>,
     fetchCreatedTaskInfinite: (filters: {
         agent_id?: string,
         status?: string,
@@ -198,6 +215,109 @@ export const taskRepo: TaskRepo = {
             type: data.type ?? '',
             client: data.client ?? undefined,
         }));
+    },
+    fetchCreatedTasksPaginated: async (filters, pagination) => {
+        const now = new Date();
+        const page = pagination?.page || 1;
+        const limit = pagination?.limit || 10;
+        const offset = (page - 1) * limit;
+
+        // Build where conditions
+        const buildWhereConditions = () => {
+            const conditions = [];
+
+            if (filters.agent_id) {
+                conditions.push(eq(task.user_id, filters.agent_id));
+            }
+
+            if (filters.type) {
+                conditions.push(eq(task.type, filters.type));
+            }
+
+            if (filters.status !== 'Completed') {
+                conditions.push(notIlike(task.status, 'Completed'));
+            } else if (!filters.status) {
+                conditions.push(notIlike(task.status, 'Completed'));
+            } else {
+                conditions.push(ilike(task.status, filters.status));
+            }
+
+            if (filters.dueFilter === 'overdue') {
+                conditions.push(lte(task.due_date, startOfDay(now)));
+            } else if (filters.dueFilter === 'today') {
+                conditions.push(gte(task.due_date, startOfDay(now)), lte(task.due_date, endOfDay(now)));
+            } else if (filters.dueFilter === 'week' || filters.dueFilter === 'this_week') {
+                const start = startOfWeek(now, { weekStartsOn: 1 });
+                const end = endOfWeek(now, { weekStartsOn: 1 });
+                conditions.push(gte(task.due_date, start), lte(task.due_date, end));
+            } else if (filters.dueFilter === 'month') {
+                const start = startOfMonth(now);
+                const end = endOfMonth(now);
+                conditions.push(gte(task.due_date, start), lte(task.due_date, end));
+            } else if (filters.dueFilter === 'next_week') {
+                const nextWeekStart = addWeeks(startOfWeek(now, { weekStartsOn: 1 }), 1);
+                const nextWeekEnd = endOfWeek(nextWeekStart, { weekStartsOn: 1 });
+                conditions.push(gte(task.due_date, nextWeekStart), lte(task.due_date, nextWeekEnd));
+            } else if (filters.dueFilter === 'next_month') {
+                const nextMonthStart = addMonths(startOfMonth(now), 1);
+                const nextMonthEnd = endOfMonth(nextMonthStart);
+                conditions.push(gte(task.due_date, nextMonthStart), lte(task.due_date, nextMonthEnd));
+            }
+
+            return conditions.length > 0 ? and(...conditions) : undefined;
+        };
+
+        const whereConditions = buildWhereConditions();
+
+        // Get total count for pagination
+        const totalCount = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(task)
+            .where(whereConditions)
+            .then(result => result[0]?.count || 0);
+
+        // Fetch paginated data
+        const response = await db.query.task.findMany({
+            where: whereConditions,
+            with: {
+                user: true,
+                client: true,
+                assigned_by_user: true,
+            },
+            orderBy: (task, { desc }) => [desc(task.created_at)],
+            limit,
+            offset,
+        });
+
+        const totalPages = Math.ceil(totalCount / limit);
+
+        return {
+            data: response.map((data) => ({
+                id: data.id,
+                agent: data.user,
+                assignedBy: data.assigned_by_user,
+                due_date: data.due_date?.toString() ?? '',
+                created_at: data.created_at?.toString(),
+                task: data.task ?? 'No Task',
+                title: data.title ?? 'No Title',
+                priority: data.priority ?? 'No Priority',
+                status: data.status ?? 'No Status',
+                transaction_id: data.transaction_id ?? '',
+                transaction_type: data.transaction_type ?? '',
+                client_id: data.client_id ?? '',
+                deal_id: data.deal_id ?? '',
+                assigned_by_id: data.assigned_by_id_v2 ?? '',
+                number: data.number ?? '',
+                type: data.type ?? '',
+                client: data.client ?? undefined,
+            })),
+            pagination: {
+                total: totalCount,
+                page,
+                limit,
+                totalPages,
+            },
+        };
     },
     fetchCreatedTaskInfinite: async (filters) => {
         const now = new Date();
