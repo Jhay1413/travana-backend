@@ -46,6 +46,16 @@ export const ticketController = {
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },
+    fetchTicketForUpdate: async (req: Request, res: Response) => {
+        try {
+            const { id } = req.params;
+            const ticket = await service.fetchTicketForUpdate(id);
+            res.status(200).json(ticket);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+        }
+    },
     updateTicket: async (req: Request, res: Response) => {
         try {
             const { id } = req.params;

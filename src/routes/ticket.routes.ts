@@ -7,6 +7,7 @@ const router = Router();
 // Ticket CRUD operations
 router.get('/', ticketController.fetchTickets);
 router.get('/:id', ticketController.fetchTicketById);
+router.get('/:id/for-update', ticketController.fetchTicketForUpdate);
 router.post('/', ticketController.insertTicket);
 router.post('/with-files', uploadTicketFiles, ticketController.insertTicketWitFiles);
 router.put('/:id', ticketController.updateTicket);
