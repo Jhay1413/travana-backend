@@ -444,11 +444,14 @@ export const transactionRepo: TransactionRepo = {
     return response;
   },
   insertDealImages: async (data) => {
-    await db.insert(deal_images).values(data).onConflictDoUpdate({
+    // Skip if no images to insert
+    if (!data || data.length === 0) {
+      return;
+    }
+
+    // Insert images, on conflict do nothing (image already exists)
+    await db.insert(deal_images).values(data).onConflictDoNothing({
       target: [deal_images.owner_id, deal_images.image_url],
-      set: {
-        owner_id: data[0].owner_id,
-      }
     });
   },
   fetchResortByName: async (name) => {
