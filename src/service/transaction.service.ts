@@ -397,7 +397,8 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
       const parsed = parse(data.check_in_date_time, "dd-MM-yyyy'T'HH:mm:ss", new Date());
       // For "27-12-2025"  
       const parsedTravelDate = parse(data.travel_date, "dd-MM-yyyy", new Date());
-
+      // Set to noon to prevent timezone issues
+      parsedTravelDate.setHours(12, 0, 0, 0);
 
       if (data.tour_operator !== "Hoseasons") {
         const initialData: z.infer<typeof quote_mutate_schema> = {
