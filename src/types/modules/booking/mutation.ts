@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const booking_mutate_schema = z.object({
-  deal_type: z.string().optional(),
+  deal_type: z.nullable(z.string()).optional(),
   pre_booked_seats: z.nullable(z.string()).optional(),
   flight_meals: z.boolean().optional(),
   transaction_id: z.string().optional(),
