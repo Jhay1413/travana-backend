@@ -1259,6 +1259,7 @@ export const inquiryRepo: InquiryRepo = {
 
       const payload = paginatedResponse.map((item) => ({
         ...item,
+   
         enquiry_status: item.status as 'ACTIVE' | 'LOST' | 'INACTIVE' | 'EXPIRED' | 'NEW_LEAD',
         holiday_type_name: item.holiday_type?.name || '',
         travel_date: item.travel_date || '',
