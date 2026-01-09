@@ -6,6 +6,20 @@ import { sql, and, eq, gte, lte, or, desc } from 'drizzle-orm';
 import { z } from 'zod';
 import { user } from '../schema/auth-schema';
 
+// Helper function to compare priority (high > medium > low)
+const comparePriority = (a: string | null, b: string | null): number => {
+  const priorityOrder: Record<string, number> = {
+    high: 1,
+    medium: 2,
+    low: 3,
+  };
+  
+  const aPriority = a?.toLowerCase() || 'low';
+  const bPriority = b?.toLowerCase() || 'low';
+  
+  return (priorityOrder[aPriority] || 3) - (priorityOrder[bPriority] || 3);
+};
+
 // Unified work item schema
 export const workItemQuerySchema = z.object({
   id: z.string(),
@@ -83,7 +97,11 @@ export const workItemsRepo = {
 
     // Fetch tickets
     if (fetchTickets) {
-      const ticketConditions = [eq(ticket.user_id, agent_id)];
+      const ticketConditions = [
+        eq(ticket.user_id, agent_id),
+        // Exclude closed tickets
+        sql`${ticket.status} != 'closed'`
+      ];
 
       if (status) {
         ticketConditions.push(eq(ticket.status, status));
@@ -165,7 +183,11 @@ export const workItemsRepo = {
 
     // Fetch tasks
     if (fetchTasks) {
-      const taskConditions = [eq(task.user_id, agent_id)];
+      const taskConditions = [
+        eq(task.user_id, agent_id),
+        // Exclude completed tasks
+        sql`${task.status} != 'COMPLETED'`
+      ];
 
       if (status) {
         taskConditions.push(eq(task.status, status));
@@ -241,12 +263,22 @@ export const workItemsRepo = {
       });
     }
 
-    // Sort by due_date descending (most recent first)
+    // Sort by due_date ascending (earliest due date first), with nulls last
+    // Then by priority (high -> medium -> low)
     results.sort((a, b) => {
-      if (!a.due_date && !b.due_date) return 0;
-      if (!a.due_date) return 1;
-      if (!b.due_date) return -1;
-      return new Date(b.due_date).getTime() - new Date(a.due_date).getTime();
+      // Sort by due_date first
+      if (!a.due_date && !b.due_date) {
+        // Both have no due date, sort by priority
+        return comparePriority(a.priority, b.priority);
+      }
+      if (!a.due_date) return 1; // a goes to end
+      if (!b.due_date) return -1; // b goes to end
+      
+      const dateDiff = new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      
+      // Same due date, sort by priority
+      return comparePriority(a.priority, b.priority);
     });
 
     return results;
