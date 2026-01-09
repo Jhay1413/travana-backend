@@ -238,6 +238,15 @@ export const quoteRepo: QuoteRepo = {
           })
           .where(eq(transaction.id, transaction_id));
 
+        // Calculate price_per_person based on sales_price and total travelers
+        const adults = data.adults ?? 0;
+        const children = data.children ?? 0;
+        const totalTravelers = adults + children;
+        const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
+        const calculatedPricePerPerson = totalTravelers > 0 
+          ? (salesPrice / totalTravelers).toFixed(2)
+          : "0.00";
+
         const [quote_id] = await tx
           .insert(quote)
           .values({
@@ -261,6 +270,7 @@ export const quoteRepo: QuoteRepo = {
             infant: data.infants ? data.infants : 0,
             child: data.children ? data.children : 0,
             adult: data.adults ? data.adults : 0,
+            price_per_person: calculatedPricePerPerson,
             is_future_deal: data.is_future_deal,
             future_deal_date: data.future_deal_date,
             date_expiry: date_expiry,
@@ -425,6 +435,15 @@ export const quoteRepo: QuoteRepo = {
           .set({ status: 'on_quote', user_id: data.agent_id, client_id: data.client_id })
           .where(eq(transaction.id, transaction_id));
 
+        // Calculate price_per_person based on sales_price and total travelers
+        const adults = data.adults ?? 0;
+        const children = data.children ?? 0;
+        const totalTravelers = adults + children;
+        const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
+        const calculatedPricePerPerson = totalTravelers > 0 
+          ? (salesPrice / totalTravelers).toFixed(2)
+          : "0.00";
+
         const [quote_id] = await tx
           .insert(quote)
           .values({
@@ -448,6 +467,7 @@ export const quoteRepo: QuoteRepo = {
             infant: data.infants ? data.infants : 0,
             child: data.children ? data.children : 0,
             adult: data.adults ? data.adults : 0,
+            price_per_person: calculatedPricePerPerson,
             is_future_deal: data.is_future_deal,
             future_deal_date: data.future_deal_date,
             date_expiry: date_expiry,
@@ -604,6 +624,15 @@ export const quoteRepo: QuoteRepo = {
           })
           .returning({ id: transaction.id });
 
+        // Calculate price_per_person based on sales_price and total travelers
+        const adults = data.adults ?? 0;
+        const children = data.children ?? 0;
+        const totalTravelers = adults + children;
+        const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
+        const calculatedPricePerPerson = totalTravelers > 0 
+          ? (salesPrice / totalTravelers).toFixed(2)
+          : "0.00";
+
         const [quote_id] = await tx
           .insert(quote)
           .values({
@@ -633,7 +662,7 @@ export const quoteRepo: QuoteRepo = {
             infant: data.infants ? data.infants : 0,
             child: data.children ? data.children : 0,
             adult: data.adults ? data.adults : 0,
-            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
+            price_per_person: calculatedPricePerPerson,
             lodge_type: data.lodge_type ? data.lodge_type : "N/A",
             date_expiry: date_expiry,
             is_future_deal: data.is_future_deal,
@@ -1029,6 +1058,15 @@ export const quoteRepo: QuoteRepo = {
           })
           .returning({ id: transaction.id });
 
+        // Calculate price_per_person based on sales_price and total travelers
+        const adults = data.adults ?? 0;
+        const children = data.children ?? 0;
+        const totalTravelers = adults + children;
+        const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
+        const calculatedPricePerPerson = totalTravelers > 0 
+          ? (salesPrice / totalTravelers).toFixed(2)
+          : "0.00";
+
         const [quote_id] = await tx
           .insert(quote)
           .values({
@@ -1041,7 +1079,7 @@ export const quoteRepo: QuoteRepo = {
             title: data.title,
             quote_ref: data.quote_ref,
             sales_price: data.sales_price?.toString() ?? '0',
-            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
+            price_per_person: calculatedPricePerPerson,
             package_commission: data.commission?.toString() ?? '0',
             num_of_nights: data.no_of_nights ? parseInt(data.no_of_nights) : 0,
             transfer_type: data.transfer_type ?? "N/A",
@@ -3007,6 +3045,16 @@ export const quoteRepo: QuoteRepo = {
         plus2.setDate(now.getDate() + 2);
 
         const date_expiry = data.is_future_deal ? null : data.date_expiry ? new Date(data.date_expiry) : plus2;
+        
+        // Calculate price_per_person based on sales_price and total travelers
+        const adults = data.adults ?? 0;
+        const children = data.children ?? 0;
+        const totalTravelers = adults + children;
+        const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
+        const calculatedPricePerPerson = totalTravelers > 0 
+          ? (salesPrice / totalTravelers).toFixed(2)
+          : "0.00";
+
         await tx
           .update(quote)
           .set({
@@ -3019,7 +3067,7 @@ export const quoteRepo: QuoteRepo = {
             service_charge: data.service_charge ? data.service_charge.toString() : '0',
             quote_type: data.quote_type,
             sales_price: data.sales_price ? data.sales_price.toString() : '0',
-            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
+            price_per_person: calculatedPricePerPerson,
             title: data.title,
             quote_ref: data.quote_ref,
             package_commission: data.commission ? data.commission.toString() : '0',
@@ -3256,6 +3304,16 @@ export const quoteRepo: QuoteRepo = {
         const plus2 = new Date(now);
         plus2.setDate(now.getDate() + 2);
         const date_expiry = data.is_future_deal ? null : data.date_expiry ? new Date(data.date_expiry) : plus2;
+        
+        // Calculate price_per_person based on sales_price and total travelers
+        const adults = data.adults ?? 0;
+        const children = data.children ?? 0;
+        const totalTravelers = adults + children;
+        const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
+        const calculatedPricePerPerson = totalTravelers > 0 
+          ? (salesPrice / totalTravelers).toFixed(2)
+          : "0.00";
+
         await tx
           .update(quote)
           .set({
@@ -3273,7 +3331,7 @@ export const quoteRepo: QuoteRepo = {
             service_charge: data.service_charge ? data.service_charge.toString() : '0',
             quote_type: data.quote_type,
             sales_price: data.sales_price ? data.sales_price.toString() : '0',
-            price_per_person: data.price_per_person ? data.price_per_person.toString() : "0.00",
+            price_per_person: calculatedPricePerPerson,
             package_commission: data.commission ? data.commission.toString() : '0',
             num_of_nights: data.no_of_nights ? parseInt(data.no_of_nights) : 0,
             transfer_type: data.transfer_type ?? "N/A",

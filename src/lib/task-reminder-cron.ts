@@ -21,6 +21,8 @@ interface TaskReminder {
     user_id: string | null;
     client_id: string | null;
     transaction_id: string | null;
+    deal_id: string | null;
+    transaction_type: string | null;
     status: string;
 }
 
@@ -62,6 +64,8 @@ export const initializeTaskReminderCron = () => {
                             status: taskItem.status || 'pending',
                             transactionId: taskItem.transaction_id,
                             clientId: taskItem.client_id,
+                            dealId: taskItem.deal_id,
+                            transactionType: taskItem.transaction_type,
                             clientName: taskItem.client
                                 ? `${taskItem.client.firstName || ''} ${taskItem.client.surename || ''}`.trim()
                                 : null,
@@ -132,6 +136,8 @@ export const initializeTaskReminderCron = () => {
                             status: taskItem.status || 'pending',
                             transactionId: taskItem.transaction_id,
                             clientId: taskItem.client_id,
+                            dealId: taskItem.deal_id,
+                            transactionType: taskItem.transaction_type,
                             clientName: taskItem.client
                                 ? `${taskItem.client.firstName || ''} ${taskItem.client.surename || ''}`.trim()
                                 : null,

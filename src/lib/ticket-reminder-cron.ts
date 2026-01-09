@@ -21,6 +21,8 @@ interface TicketReminder {
     agent_id: string | null;
     user_id: string | null;
     client_id: string | null;
+    deal_id: string | null;
+    transaction_type: string | null;
     status: string;
 }
 
@@ -61,6 +63,9 @@ export const initializeTicketReminderCron = () => {
                             dueDate: ticketItem.due_date?.toISOString() || '',
                             priority: ticketItem.priority || 'normal',
                             status: ticketItem.status || 'open',
+                            clientId: ticketItem.client_id,
+                            dealId: ticketItem.deal_id,
+                            transactionType: ticketItem.transaction_type,
                             clientName: ticketItem.client
                                 ? `${ticketItem.client.firstName || ''} ${ticketItem.client.surename || ''}`.trim()
                                 : null,
@@ -131,6 +136,9 @@ export const initializeTicketReminderCron = () => {
                             dueDate: ticketItem.due_date.toISOString(),
                             priority: ticketItem.priority || 'normal',
                             status: ticketItem.status || 'open',
+                            clientId: ticketItem.client_id,
+                            dealId: ticketItem.deal_id,
+                            transactionType: ticketItem.transaction_type,
                             clientName: ticketItem.client
                                 ? `${ticketItem.client.firstName || ''} ${ticketItem.client.surename || ''}`.trim()
                                 : null,

@@ -99,9 +99,12 @@ export const workItemsRepo = {
     if (fetchTickets) {
       const ticketConditions = [
         eq(ticket.user_id, agent_id),
-        // Exclude closed tickets
-        sql`${ticket.status} != 'closed'`
       ];
+
+      // Only exclude closed tickets if not specifically filtering by status
+      if (!status) {
+        ticketConditions.push(sql`${ticket.status} != 'closed'`);
+      }
 
       if (status) {
         ticketConditions.push(eq(ticket.status, status));
@@ -185,9 +188,12 @@ export const workItemsRepo = {
     if (fetchTasks) {
       const taskConditions = [
         eq(task.user_id, agent_id),
-        // Exclude completed tasks
-        sql`${task.status} != 'COMPLETED'`
       ];
+
+      // Only exclude completed tasks if not specifically filtering by status
+      if (!status) {
+        taskConditions.push(sql`${task.status} != 'Completed'`);
+      }
 
       if (status) {
         taskConditions.push(eq(task.status, status));
@@ -305,9 +311,9 @@ export const workItemsRepo = {
     const taskStats = await db
       .select({
         total: sql<number>`count(*)`,
-        pending: sql<number>`count(*) filter (where ${task.status} != 'COMPLETED')`,
-        completed: sql<number>`count(*) filter (where ${task.status} = 'COMPLETED')`,
-        overdue: sql<number>`count(*) filter (where ${task.due_date} < ${now} and ${task.status} != 'COMPLETED')`,
+        pending: sql<number>`count(*) filter (where ${task.status} != 'Completed')`,
+        completed: sql<number>`count(*) filter (where ${task.status} = 'Completed')`,
+        overdue: sql<number>`count(*) filter (where ${task.due_date} < ${now} and ${task.status} != 'Completed')`,
       })
       .from(task)
       .where(eq(task.user_id, agent_id));
