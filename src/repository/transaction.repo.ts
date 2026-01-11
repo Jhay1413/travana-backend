@@ -277,7 +277,7 @@ export type TransactionRepo = {
 
   // Parks endpoints
   fetchAllParks: () => Promise<{ id: string; name: string }[]>;
-  insertPark: (data: { name: string, code: string,location:string }) => Promise<{ id: string, name: string }>;
+  insertPark: (data: { name: string, code: string, location: string }) => Promise<{ id: string, name: string }>;
   // Deletion Codes endpoints
   generateDeletionCodes: (data: { numberOfCodes: number }) => Promise<void>;
   insertDeletionCode: (data: { code: string }) => Promise<void>;
@@ -329,7 +329,7 @@ export type TransactionRepo = {
   // Cruise Destination endpoints
   insertCruiseDestination: (data: z.infer<typeof cruise_destination_mutate_schema>) => Promise<void>;
   updateCruiseDestination: (id: string, data: z.infer<typeof cruise_destination_mutate_schema>) => Promise<void>;
-  fetchAllCruiseDestinations: (selectedIds?:string[],search?: string, page?: number, limit?: number) => Promise<{
+  fetchAllCruiseDestinations: (selectedIds?: string[], search?: string, page?: number, limit?: number) => Promise<{
     data: z.infer<typeof cruise_destination_query_schema>[];
     pagination: {
       page: number;
@@ -385,9 +385,12 @@ export type TransactionRepo = {
   setImageAsPrimary: (new_primary_id: string, old_primary_id?: string) => Promise<void>;
   insertCruiseData: (data: z.infer<typeof cruiseFormSchema>) => Promise<void>;
   fetchHolidayTypeById: (id: string) => Promise<{ id: string; name: string }>;
+  changeClient: (transaction_id: string, client_id: string) => Promise<void>;
 };
 export const transactionRepo: TransactionRepo = {
-
+  changeClient: async (transaction_id, client_id) => {
+    await db.update(transaction).set({ client_id: client_id }).where(eq(transaction.id, transaction_id));
+},
   updateParkLocation: async (park_id, location) => {
     await db.update(park).set({ location: location }).where(eq(park.id, park_id));
   },
@@ -1284,7 +1287,7 @@ export const transactionRepo: TransactionRepo = {
   updateCruiseDestination: async (id, data) => {
     await db.update(cruise_destination).set(data).where(eq(cruise_destination.id, id));
   },
-  fetchAllCruiseDestinations: async (selectedIds=[],search, page = 1, limit = 10) => {
+  fetchAllCruiseDestinations: async (selectedIds = [], search, page = 1, limit = 10) => {
     const conditions = [
       search ? ilike(cruise_destination.name, `%${search}%`) : undefined,
       selectedIds?.length ? inArray(cruise_destination.id, selectedIds) : undefined,

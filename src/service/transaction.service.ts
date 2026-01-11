@@ -27,6 +27,9 @@ import Fuse from 'fuse.js';
 
 export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, clientRepo: ClientRepo, notificationRepo: NotificationRepo, notificationProvider: NotificationProvider) => {
   return {
+    changeClient: async (transaction_id: string, client_id: string) => {
+      return await repo.changeClient(transaction_id, client_id);
+    },
     insertCruiseData: async (data: z.infer<typeof cruiseFormSchema>) => {
       return await repo.insertCruiseData(data);
     },
@@ -400,6 +403,13 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
       // Set to noon to prevent timezone issues
       parsedTravelDate.setHours(12, 0, 0, 0);
 
+      const hotelImages = Array.from(
+        new Set([
+          ...(data.hotel_images || []),
+          ...(data.room_images || [])
+        ])
+      );
+
       if (data.tour_operator !== "Hoseasons") {
         const initialData: z.infer<typeof quote_mutate_schema> = {
           travel_date: format(parsedTravelDate, "dd-MM-yyyy HH:mm:ss"),
@@ -422,7 +432,7 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
           pets: 0,
           main_board_basis_id: "",
           accomodation_id: "",
-          deal_images: data.hotel_images
+          deal_images: hotelImages
 
         }
         const board_basis = await repo.fetchBoardBasis();

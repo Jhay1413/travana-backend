@@ -9,7 +9,19 @@ import { Request, Response } from 'express';
 const service = transactionService(transactionRepo, userRepo, clientRepo, notificationRepo, notificationProvider);
 
 export const transactionController = {
+  changeClient: async (req: Request, res: Response) => {
+    try {
 
+      const { transaction_id } = req.params;
+      const { clientId } = req.body;
+
+      await service.changeClient(transaction_id, clientId);
+      res.status(200).json({ message: 'Client changed successfully' });
+
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
   insertCruiseData: async (req: Request, res: Response) => {
     try {
       const data = req.body;

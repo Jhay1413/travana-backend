@@ -15,6 +15,7 @@ router.get('/note/:id', transactionController.fetchNoteById);
 router.delete('/note/:note_id', transactionController.deleteNote);
 
 // Transaction management endpoints
+router.patch('/change-client/:transaction_id', transactionController.changeClient);
 router.put('/reassign/:transaction_id', transactionController.reassignTransaction);
 router.patch('/lead-source/:transaction_id', transactionController.updateLeadSource);
 

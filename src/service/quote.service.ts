@@ -105,6 +105,8 @@ export const quoteService = (
       if (data.deal_images && data.deal_images.length > 0) {
 
         if (data.holiday_type_name === 'Package Holiday' && data.accomodation_id) {
+
+          console.log('Inserting deal images for accomodation id:', data.deal_images);
           const imagesToInsert = data.deal_images.map(image => ({
             owner_id: data.accomodation_id ?? " ",
             image_url: image,
