@@ -70,6 +70,7 @@ export const clientController = {
             const clientTransactions = await service.fetchClientTransactions(id, status as string);
             res.status(200).json(clientTransactions);
         } catch (error) {
+            console.log(error)
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },

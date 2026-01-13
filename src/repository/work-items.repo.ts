@@ -62,6 +62,8 @@ interface WorkItemsFilters {
   priority?: string;
   dueFilter?: 'today' | 'week' | 'month' | 'all';
   type?: 'ticket' | 'task' | 'all';
+  pageNumber?: number;
+  limit?: number;
 }
 
 export const workItemsRepo = {
@@ -72,6 +74,9 @@ export const workItemsRepo = {
     const { agent_id, status, priority, dueFilter, type = 'all' } = filters;
 
     // Date range calculations
+ 
+
+
     const now = new Date();
     let startDate: Date | undefined;
     let endDate: Date | undefined;

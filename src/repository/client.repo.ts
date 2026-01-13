@@ -7,12 +7,13 @@ import { and, asc, count, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm'
 import z from 'zod';
 import { nestedBuilder } from '../utils/nested-condition';
 import { booking } from '../schema/booking-schema';
-import { country, destination, package_type, transaction } from '../schema/transactions-schema';
+import { accomodation_list, country, destination, lodges, package_type, park, transaction } from '../schema/transactions-schema';
 import { enquiry_cruise_destination, enquiry_destination, enquiry_table } from '../schema/enquiry-schema';
 import { user } from '../schema/auth-schema';
 import { cruise_destination } from '../schema/cruise-schema';
 import { clientFileMutationSchema, clientFileQuerySchema } from '../types/modules/client-file';
 import { clientFileTable } from '../schema/client-file-schema';
+import { quote, quote_accomodation, quote_cruise } from '../schema/quote-schema';
 
 export type ClientRepo = {
   fetchClientById: (id: string) => Promise<z.infer<typeof clientQuerySchema>>;
@@ -423,50 +424,56 @@ export const clientRepo: ClientRepo = {
         }))
         .sort((a, b) => new Date(b.date_created!).getTime() - new Date(a.date_created!).getTime());
     } else if (status === 'on_quote') {
-      const response = await db.query.transaction.findMany({
-        where: and(eq(transaction.client_id, id), eq(transaction.status, status as any)),
-        with: {
-          quote: {
-            with: {
-              holiday_type: true,
-              accomodation: {
-                with: {
-                  accomodation: true,
-                },
-              },
-              lodge: {
-                with: {
-                  park: true,
-                },
-              },
-              cottage: true,
-              quote_cruise: true,
-            },
-          },
-        },
-      });
-      return response
-        .map((data) => {
-          const cruise_destination = data.quote?.[0]?.quote_cruise?.cruise_name ?? null;
-          const lodge_destination = data.quote?.[0]?.lodge?.park?.location ?? null;
-          const holiday_destination = data.quote?.[0]?.accomodation?.[0]?.accomodation?.name ?? null;
 
-          return {
-            id: data.id,
-            deal_id: data.quote?.[0]?.id,
-            holiday_type: data.quote?.[0]?.holiday_type.name,
-            title: data.quote?.[0]?.title,
-            date_created: data.quote[0].date_created!,
-            travel_date: new Date(data.quote[0].travel_date!),
-            destination:
-              data.quote?.[0]?.holiday_type.name === 'Cruise Package'
-                ? cruise_destination || "No destination"
-                : data.quote?.[0]?.holiday_type.name === 'Hot Tub Break'
-                  ? lodge_destination || "No destination"
-                  : holiday_destination || "No destination",
-          };
-        })
-        .sort((a, b) => new Date(b.date_created!).getTime() - new Date(a.date_created!).getTime());
+
+      const response2 = await db.select(
+        {
+          id: transaction.id,
+          deal_id: quote.id,
+          holiday_type: package_type.name,
+          cruise_destination: quote_cruise.cruise_name,
+          lodge_destination: park.location,
+          holiday_destination: sql<string[]>`array_agg(DISTINCT ${accomodation_list.name})`.as('holiday_destination'),
+          title: quote.title,
+          date_created: quote.date_created,
+          travel_date: quote.travel_date,
+        }
+      ).from(transaction)
+        .leftJoin(quote, eq(quote.transaction_id, transaction.id))
+        .leftJoin(package_type, eq(package_type.id, quote.holiday_type_id))
+        .leftJoin(quote_cruise, eq(quote_cruise.quote_id, quote.id))
+        .leftJoin(lodges, eq(lodges.id, quote.lodge_id))
+        .leftJoin(park, eq(park.id, lodges.park_id))
+        .leftJoin(quote_accomodation, eq(quote_accomodation.quote_id, quote.id))
+        .leftJoin(accomodation_list, eq(accomodation_list.id, quote_accomodation.accomodation_id)).where(and(eq(transaction.client_id, id), eq(transaction.status, status as any)))
+        .groupBy(
+          transaction.id,
+          quote.id,
+          quote_cruise.cruise_name,
+          park.location,
+          quote.title,
+          quote.date_created,
+          quote.travel_date,
+          package_type.name
+          
+        );
+
+      return response2.map(data => ({
+        id: data.id,
+        deal_id: data.deal_id,
+        holiday_type: data.holiday_type || "",
+        title: data.title,
+        date_created: data.date_created!,
+        travel_date: new Date(data.travel_date!),
+        destination:
+          data.holiday_type === 'Cruise Package'
+            ? data.cruise_destination || "No destination"
+            : data.holiday_type === 'Hot Tub Break'
+              ? data.lodge_destination || "No destination"
+              : data.holiday_destination[0] || "No destination",
+      })).sort((a, b) => new Date(b.date_created!).getTime() - new Date(a.date_created!).getTime());
+
+
     } else if (status === 'on_booking') {
       const response = await db.query.transaction.findMany({
         where: and(eq(transaction.client_id, id), eq(transaction.status, status as any)),
