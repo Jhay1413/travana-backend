@@ -133,6 +133,7 @@ export const quoteListQuerySchema = z.object({
 export const freeQuoteListQuerySchema = z.object({
   id: z.string(),
   tour_operator: z.string(),
+  hotel: z.string().nullable(),
   title: z.nullable(z.string()).optional(),
   quote_ref: z.nullable(z.string()).optional(),
   holiday_type: z.string().nullable(),

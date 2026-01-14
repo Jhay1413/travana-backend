@@ -243,7 +243,7 @@ export const quoteRepo: QuoteRepo = {
         const children = data.children ?? 0;
         const totalTravelers = adults + children;
         const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
-        const calculatedPricePerPerson = totalTravelers > 0 
+        const calculatedPricePerPerson = totalTravelers > 0
           ? (salesPrice / totalTravelers).toFixed(2)
           : "0.00";
 
@@ -440,7 +440,7 @@ export const quoteRepo: QuoteRepo = {
         const children = data.children ?? 0;
         const totalTravelers = adults + children;
         const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
-        const calculatedPricePerPerson = totalTravelers > 0 
+        const calculatedPricePerPerson = totalTravelers > 0
           ? (salesPrice / totalTravelers).toFixed(2)
           : "0.00";
 
@@ -629,7 +629,7 @@ export const quoteRepo: QuoteRepo = {
         const children = data.children ?? 0;
         const totalTravelers = adults + children;
         const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
-        const calculatedPricePerPerson = totalTravelers > 0 
+        const calculatedPricePerPerson = totalTravelers > 0
           ? (salesPrice / totalTravelers).toFixed(2)
           : "0.00";
 
@@ -1063,7 +1063,7 @@ export const quoteRepo: QuoteRepo = {
         const children = data.children ?? 0;
         const totalTravelers = adults + children;
         const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
-        const calculatedPricePerPerson = totalTravelers > 0 
+        const calculatedPricePerPerson = totalTravelers > 0
           ? (salesPrice / totalTravelers).toFixed(2)
           : "0.00";
 
@@ -3045,13 +3045,13 @@ export const quoteRepo: QuoteRepo = {
         plus2.setDate(now.getDate() + 2);
 
         const date_expiry = data.is_future_deal ? null : data.date_expiry ? new Date(data.date_expiry) : plus2;
-        
+
         // Calculate price_per_person based on sales_price and total travelers
         const adults = data.adults ?? 0;
         const children = data.children ?? 0;
         const totalTravelers = adults + children;
         const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
-        const calculatedPricePerPerson = totalTravelers > 0 
+        const calculatedPricePerPerson = totalTravelers > 0
           ? (salesPrice / totalTravelers).toFixed(2)
           : "0.00";
 
@@ -3304,13 +3304,13 @@ export const quoteRepo: QuoteRepo = {
         const plus2 = new Date(now);
         plus2.setDate(now.getDate() + 2);
         const date_expiry = data.is_future_deal ? null : data.date_expiry ? new Date(data.date_expiry) : plus2;
-        
+
         // Calculate price_per_person based on sales_price and total travelers
         const adults = data.adults ?? 0;
         const children = data.children ?? 0;
         const totalTravelers = adults + children;
         const salesPrice = parseFloat(data.sales_price?.toString() ?? '0');
-        const calculatedPricePerPerson = totalTravelers > 0 
+        const calculatedPricePerPerson = totalTravelers > 0
           ? (salesPrice / totalTravelers).toFixed(2)
           : "0.00";
 
@@ -3827,6 +3827,7 @@ export const quoteRepo: QuoteRepo = {
           lodge_destination: park.city,
           lodge_name: lodges.lodge_name,
           country: country.country_name,
+          destination: destination.name,
           cottage_destination: cottages.location,
           cruise_destination: quote_cruise.cruise_name,
           holiday_destination: accomodation_list.name,
@@ -3839,6 +3840,8 @@ export const quoteRepo: QuoteRepo = {
           price_per_person: quote.price_per_person,
           board_basis: board_basis.type,
           travel_date: quote.travel_date,
+          hotel: sql<string[]>`array_agg(DISTINCT ${accomodation_list.name})`.as('hotel'),
+
           departure_airport: sql<string>`(
             SELECT airport_table.airport_name 
             FROM quote_flights 
@@ -3904,7 +3907,30 @@ export const quoteRepo: QuoteRepo = {
 
       // Apply query with cursor-based pagination and tie-breaker
       const response = await query
-        .where(whereClause)
+        .where(whereClause).groupBy(
+          quote.id,
+          package_type.name,
+          quote.title,
+          quote.quote_ref,
+          quote.num_of_nights,
+          park.city,
+          lodges.lodge_name,
+          country.country_name,
+          cottages.location,
+          quote_cruise.cruise_name,
+          accomodation_list.name,
+          quote_accomodation.accomodation_id,
+          resorts.name,
+          quote.date_created,
+          tour_operator.name,
+          quote.sales_price,
+          quote.quote_status,
+          quote.price_per_person,
+          board_basis.type,
+          quote.travel_date,
+          destination.name,
+          quote.transfer_type,
+        )
         .orderBy(primaryOrder, asc(quote.id)) // tie-breaker for consistent pagination
         .limit(pageSize + 1);
 
@@ -3943,7 +3969,7 @@ export const quoteRepo: QuoteRepo = {
           data.lodge_destination ??
           data.cottage_destination ??
           data.cruise_destination ??
-          data.holiday_destination;
+         `${data.country}, ${data.destination}`;
         return {
           id: data.id,
           tour_operator: data.tour_operator ?? 'N/A',
@@ -3953,6 +3979,7 @@ export const quoteRepo: QuoteRepo = {
           travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : null,
           title: data.title,
           holiday_type: data.holiday_type,
+          hotel: data.lodge_destination || data.cruise_destination || data.hotel[0],
           quote_ref: data.quote_ref,
           num_of_nights: data.num_of_nights.toString(),
           lodge_destination: data.lodge_destination ?? null,

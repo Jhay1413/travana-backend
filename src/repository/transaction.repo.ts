@@ -397,7 +397,7 @@ export const transactionRepo: TransactionRepo = {
   fetchHolidayTypeById: async (id) => {
     const response = await db.query.package_type.findFirst({
       where: eq(package_type.id, id),
-    });
+  });
     if (response) {
       return { id: response.id, name: response.name };
     }

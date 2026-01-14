@@ -22,7 +22,7 @@ import { count, eq, desc } from 'drizzle-orm';
 import { referral } from '../schema/referral-schema';
 import { ReferralService } from '../service/referrals.service';
 import { referralRepo } from '../repository/referrals.repo';
-
+import onlySocialsRoutes from './only-socials.routes';
 
 const router = Router();
 
@@ -44,6 +44,7 @@ router.use('/dashboard', dashboardRoutes);
 router.use('/chat', chatRoutes);
 router.use('/auth-options', authRoutes);
 router.use('/ai', aiRoutes);
+router.use('/only-socials', onlySocialsRoutes);
 
 
 router.get('/org/list', async (req, res) => {
