@@ -303,9 +303,9 @@ export const StructuredScrapeDataSchema = z.object({
   lodge_images: z.array(z.string()).optional(),
   lodge_code: z.string().optional(),
   lodge_description: z.string().optional(),
-  lodge_id:z.string().optional(),
-  lodge_park_name:z.string().optional(),
-  pets:z.number().optional(),
+  lodge_id: z.string().optional(),
+  lodge_park_name: z.string().optional(),
+  pets: z.number().optional(),
 });
 
 
@@ -339,3 +339,19 @@ export interface GeneratedPostResponse {
   deal: TravelDeal;
   deal_images?: string[];
 }
+
+export const travelDealResponseSchema = z.object({
+  id: z.string(),
+  post: z.string(),
+  subtitle: z.string(),
+  resortSummary: z.string(),
+  hashtags: z.array(z.string()),
+  title: z.string(),
+  travelDate: z.string(),
+  nights: z.number(),
+  boardBasis: z.string(),
+  departureAirport: z.string(),
+  luggageTransfers: z.string(),
+  price: z.string(),
+  quote_id: z.string(),
+})

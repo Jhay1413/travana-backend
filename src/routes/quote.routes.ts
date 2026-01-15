@@ -7,7 +7,7 @@ const router = Router();
 router.post('/convert/:transaction_id', quoteController.convertQuote);
 router.post('/', quoteController.insertQuote);
 router.post('/duplicate', quoteController.duplicateQuote);
-
+router.post('/schedule-post/:id', quoteController.scheduleTravelDeal);
 // Quote fetching
 router.get('/', quoteController.fetchQuotes);
 router.get('/travel-deals', quoteController.fetchTravelDeals);
@@ -17,6 +17,7 @@ router.get('/:id', quoteController.fetchQuoteById);
 router.get('/for-update/:id', quoteController.fetchPackageToUpdate);
 router.get('/title', quoteController.fetchQuoteTitle);
 router.get('/free/infinite', quoteController.fetchFreeQuotesInfinite);
+router.get('/travel-deal/:id', quoteController.fetchTravelDealByQuoteId);
 
 // Quote updates
 router.put('/:id', quoteController.updateQuote);
@@ -26,6 +27,7 @@ router.put('/:id/expiry', quoteController.updateQuoteExpiry);
 router.put('/:id/future-deal', quoteController.setFutureDealDate);
 router.put('/:id/unset-future-deal', quoteController.unsetFutureDealDate);
 router.put('/:id/generate-post', quoteController.generatePostContent);
+
 
 // Quote deletion
 router.delete('/:id', quoteController.deleteQuote);

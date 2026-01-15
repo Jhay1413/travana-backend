@@ -27,7 +27,7 @@ export function formatPost(deal: TravelDeal, subtitle: string, resortSummary: st
 
   return `${tropicalEmoji} ${deal.title} ${tropicalEmoji}
 ${subtitleEmoji} ${subtitle} ${subtitleEmoji}
-📅 ${deal.travelDate}
+📅 ${new Date(deal.travelDate).toLocaleDateString()}
 🌙 ${deal.nights} Nights
 🍽️ ${deal.boardBasis}
 ✈️ ${deal.departureAirport}

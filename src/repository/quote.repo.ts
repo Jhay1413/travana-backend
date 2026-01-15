@@ -46,7 +46,7 @@ import {
   quoteQuerySummarySchema,
   unionAllType,
 } from '../types/modules/quote/query';
-import { GeneratedPostResponse, quoteChild, quoteTitleSchema } from '../types/modules/transaction';
+import { GeneratedPostResponse, quoteChild, quoteTitleSchema, travelDealResponseSchema } from '../types/modules/transaction';
 import { quote_mutate_schema, travelDealType } from '../types/modules/transaction/mutation';
 import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne, like } from 'drizzle-orm';
 import z from 'zod';
@@ -181,7 +181,8 @@ export type QuoteRepo = {
   setFutureDealDate: (id: string, future_deal_date: string) => Promise<void>;
   unsetFutureDealDate: (id: string, status?: string) => Promise<void>;
   fetchHolidayTypeByQuoteId: (quote_id: string) => Promise<string | undefined>;
-  insertTravelDeal: (data: GeneratedPostResponse, quote_id: string) => Promise<void>;
+  insertTravelDeal: (data: GeneratedPostResponse, quote_id: string) => Promise<string>;
+  fetchTravelDealByQuoteId: (quote_id: string) => Promise<z.infer<typeof travelDealResponseSchema> | null>;
   fetchTravelDeals: (
     search?: string,
     country_id?: string,
@@ -193,9 +194,55 @@ export type QuoteRepo = {
     cursor?: string,
     limit?: number
   ) => Promise<GeneratedPostResponse[]>;
+  scheduleTravelDeal: (quote_id: string, postSchedule: Date | null, onlySocialsId: string) => Promise<void>;
+  fetchTravelDealById: (travel_deal_id: string) => Promise<z.infer<typeof travelDealResponseSchema> | null>;
 };
 
 export const quoteRepo: QuoteRepo = {
+  fetchTravelDealById: async (travel_deal_id) => {
+    const response = await db.query.travelDeal.findFirst({
+      where: eq(travelDeal.id, travel_deal_id),
+    })
+    return response ? {
+      id: response.id,
+      post: response.post || '',
+      subtitle: response.subtitle || '',
+      resortSummary: response.resortSummary || '',
+      hashtags: response.hashtags || '',
+      title: response.title || '',
+      travelDate: response.travelDate || '',
+      nights: response.nights || 0,
+      boardBasis: response.boardBasis || '',
+      departureAirport: response.departureAirport || '',
+      luggageTransfers: response.luggageTransfers || '',
+      price: response.price || '',
+      quote_id: response.quote_id || '',
+    } : null;
+  },
+  scheduleTravelDeal: async (travel_deal_id, postSchedule, onlySocialsId) => {
+    await db.update(travelDeal).set({ postSchedule: postSchedule, onlySocialsId: onlySocialsId }).where(eq(travelDeal.id, travel_deal_id));
+  },
+  fetchTravelDealByQuoteId: async (quote_id) => {
+    console.log("Fetching travel deal for quote ID:", quote_id);
+    const response = await db.query.travelDeal.findFirst({
+      where: eq(travelDeal.quote_id, quote_id),
+    })
+    return response ? {
+      id: response.id,
+      post: response.post || '',
+      subtitle: response.subtitle || '',
+      resortSummary: response.resortSummary || '',
+      hashtags: response.hashtags || '',
+      title: response.title || '',
+      travelDate: response.travelDate || '',
+      nights: response.nights || 0,
+      boardBasis: response.boardBasis || '',
+      departureAirport: response.departureAirport || '',
+      luggageTransfers: response.luggageTransfers || '',
+      price: response.price || '',
+      quote_id: response.quote_id || '',
+    } : null;
+  },
   fetchHolidayTypeByQuoteId: async (quote_id) => {
     const response = await db.query.quote.findFirst({
       where: eq(quote.id, quote_id),
@@ -205,6 +252,7 @@ export const quoteRepo: QuoteRepo = {
     });
     return response?.holiday_type?.name;
   },
+
   fetchHolidayTypeById: async (quote_id) => {
     try {
       const response = await db.query.quote.findFirst({
@@ -3969,7 +4017,7 @@ export const quoteRepo: QuoteRepo = {
           data.lodge_destination ??
           data.cottage_destination ??
           data.cruise_destination ??
-         `${data.country}, ${data.destination}`;
+          `${data.country}, ${data.destination}`;
         return {
           id: data.id,
           tour_operator: data.tour_operator ?? 'N/A',
@@ -4164,7 +4212,7 @@ export const quoteRepo: QuoteRepo = {
   },
   insertTravelDeal: async (data, quote_id) => {
     const arr = data.hashtags.split(" ").map(word => word.replace("#", ""));
-    await db.insert(travelDeal).values({
+    const response = await db.insert(travelDeal).values({
       post: data.post,
       subtitle: data.subtitle,
       resortSummary: data.resortSummary,
@@ -4177,7 +4225,10 @@ export const quoteRepo: QuoteRepo = {
       luggageTransfers: data.deal.luggageTransfers,
       price: data.deal.price,
       quote_id: quote_id,
+    }).returning({
+      id: travelDeal.id,
     });
+    return response[0].id;
   },
   fetchTravelDeals: async (search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit) => {
     try {

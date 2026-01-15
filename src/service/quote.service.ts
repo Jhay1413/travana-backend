@@ -15,6 +15,8 @@ import { parsedInput } from '../lib/parsedInput';
 import { travelDealSchema } from '../types/modules/transaction';
 import { formatPost } from '../lib/formatPost';
 import { generateNextDealId } from '../lib/generateId';
+import { format, parseISO } from 'date-fns';
+import { scheduleOnlySocialsPost } from '../helpers/schedule-post';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -361,46 +363,144 @@ export const quoteService = (
       limit?: number) => {
       return await repo.fetchTravelDeals(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
     },
+    fetchTravelDealByQuoteId: async (quote_id: string) => {
+      return await repo.fetchTravelDealByQuoteId(quote_id);
+    },
+    generatePostContent: async (quoteDetails: string, postSchedule: string, quote_id: string) => {
+      // Validation
 
-    generatePostContent: async (quoteDetails: string, quote_id: string) => {
+     
       if (!quoteDetails || typeof quoteDetails !== 'string') {
         throw new AppError('Invalid quote details provided.', true, 400);
       }
-      const parsedData = parsedInput(quoteDetails);
 
+      const parsedData = parsedInput(quoteDetails);
       const validationResult = travelDealSchema.safeParse(parsedData);
+
       if (!validationResult.success) {
-        const errors = validationResult.error
-        throw new AppError(`Invalid quote details: ${errors.message}`, true, 400);
+        throw new AppError(
+          `Invalid quote details: ${validationResult.error.message}`,
+          true,
+          400
+        );
       }
 
       const result = validationResult.data;
-      // Extract destination from title (everything before common separators like -, |, :)
       const destination = result.title.split(/[-|:]/)[0].trim() || result.title;
 
-      // Generate subtitle if it's empty, and generate resort summary and hashtags in parallel
-      let subtitle = result.subtitle || "";
-
-      // Run AI calls in parallel for better performance
-      const [generatedSubtitle, resortSummary, hashtags] = await Promise.all([
-        subtitle ? Promise.resolve(subtitle) : aiService.generateSubtitle(result.title),
+      // Generate all AI content in parallel
+      const [subtitle, resortSummary, hashtags] = await Promise.all([
+        result.subtitle || aiService.generateSubtitle(result.title),
         aiService.generateResortSummary(result.title),
         aiService.generateHashtags(result.title, destination)
       ]);
 
-      subtitle = generatedSubtitle;
-
-      // Format the post
+      // Format and insert deal
       const post = formatPost(result, subtitle, resortSummary, hashtags);
+      const dealToInsert = { post, subtitle, resortSummary, hashtags, deal: result };
 
-      const dealToInsert = {
-        post,
-        subtitle,
-        resortSummary,
-        hashtags,
-        deal: result
+      const [insertedDeal, onlySocialsData] = await Promise.all([
+        repo.insertTravelDeal(dealToInsert, quote_id),
+        scheduleOnlySocialsPost(postSchedule,post)
+      ]);
+
+      // Update with OnlySocials UUID
+      await repo.scheduleTravelDeal(
+        insertedDeal,
+        new Date(postSchedule),
+        onlySocialsData.uuid,
+       
+      );
+
+      return onlySocialsData;
+    },
+    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string) => {
+
+      const response = await repo.fetchTravelDealById(travel_deal_id);
+      if (!response) {
+        throw new AppError('Travel deal not found', true, 404);
       }
-      return await repo.insertTravelDeal(dealToInsert, quote_id)
+      const scheduleDateTime = parseISO(postSchedule);
+      const scheduleDate = format(scheduleDateTime, 'yyyy-MM-dd');
+      const scheduleTime = format(scheduleDateTime, 'HH:mm');
+      try {
+
+        console.log(process.env.ONLYSOCIALS_API_TOKEN)
+        const onlySocialsResponse = await fetch(
+          `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE}/posts`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.ONLY_SOCIALS}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              accounts: [44362], // The social media account ID
+              versions: [
+                {
+                  account_id: 44362,
+                  is_original: true,
+                  content: [
+                    {
+                      body: response.post,
+                      media: [], // Add media if available
+                      url: ""
+                    }
+                  ],
+                  options: {
+                    facebook_page: {
+                      type: "post"
+                    }
+                  }
+                }
+              ],
+              tags: [],
+              date: scheduleDate,
+              time: scheduleTime,
+              until_date: null,
+              until_time: "",
+              repeat_frequency: null,
+              short_link_provider: null,
+              short_link_provider_id: null
+            })
+          }
+        );
+
+        const onlySocialsData = await onlySocialsResponse.json() as {
+          id: string,
+          uuid: string,
+          name: string,
+          hexColor: string
+        };
+
+        if (!onlySocialsResponse.ok) {
+          console.log('OnlySocials API error response:', onlySocialsData);
+          throw new AppError(
+            `OnlySocials API error: ${onlySocialsData.name || 'Failed to schedule post'}`,
+            true,
+            onlySocialsResponse.status
+          );
+        }
+
+        // Save the OnlySocials post UUID/ID to your database
+        await repo.scheduleTravelDeal(
+          travel_deal_id,
+          new Date(postSchedule),
+          onlySocialsData.uuid // Save the OnlySocials post UUID for future reference
+        );
+
+        return onlySocialsData;
+
+      } catch (error) {
+        if (error instanceof AppError) {
+          throw error;
+        }
+        throw new AppError(
+          `Failed to schedule post on OnlySocials: ${error}`,
+          true,
+          500
+        );
+      }
     }
   };
 }

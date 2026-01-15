@@ -276,9 +276,9 @@ export const quoteController = {
   },
   generatePostContent: async (req: Request, res: Response) => {
     try {
-      const { quoteDetails } = req.body;
+      const { quoteDetails, postSchedule } = req.body;
       const { id } = req.params;
-      const postContent = await service.generatePostContent(quoteDetails, id);
+      const postContent = await service.generatePostContent(quoteDetails, postSchedule, id);
       res.status(200).json({
         message: 'Post content generated successfully',
         postContent
@@ -288,6 +288,30 @@ export const quoteController = {
       res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
     }
   },
+  fetchTravelDealByQuoteId: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const deal = await service.fetchTravelDealByQuoteId(id);
+      res.status(200).json(deal);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  scheduleTravelDeal: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { scheduledDate } = req.body;
+      const schedule = await service.scheduleTravelDeal(id, scheduledDate);
+      res.status(200).json({
+        message: 'Travel deal scheduled successfully',
+        schedule
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  }
 
 
   //   restoreQuote: async (req: Request, res: Response) => {
