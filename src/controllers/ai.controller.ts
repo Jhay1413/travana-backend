@@ -34,7 +34,7 @@ export const AiController = {
 
       // Run AI calls in parallel for better performance
       const [generatedSubtitle, resortSummary, hashtags] = await Promise.all([
-        subtitle ? Promise.resolve(subtitle) : service.generateSubtitle(deal.title),
+        service.generateSubtitle(deal.title),
         service.generateResortSummary(deal.title),
         service.generateHashtags(deal.title, destination)
       ]);
