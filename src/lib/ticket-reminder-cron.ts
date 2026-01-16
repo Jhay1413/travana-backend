@@ -98,7 +98,7 @@ export const initializeTicketReminderCron = () => {
 
             const dueAndOverdueTickets = await db.query.ticket.findMany({
                 where: and(
-                    lte(ticket.due_date, sixMinutesFromNow),
+                    lte(ticket.due_date, now),
                     ne(ticket.status, 'completed'),
                     ne(ticket.status, 'closed'),
                     ne(ticket.status, 'cancelled')

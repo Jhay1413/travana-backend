@@ -22,6 +22,7 @@ export const taskController = {
             await service.updateTask(id, data);
             res.status(200).json({ message: 'Task updated successfully' });
         } catch (error) {
+            console.log(error)
             res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
         }
     },

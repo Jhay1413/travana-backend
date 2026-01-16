@@ -95,10 +95,9 @@ export const initializeTaskReminderCron = () => {
             // 1. Upcoming: Due within the next 5-6 minutes
             // 2. All overdue tasks (regardless of how long they've been overdue)
             const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
-
             const dueAndOverdueTasks = await db.query.task.findMany({
                 where: and(
-                    lte(task.due_date, sixMinutesFromNow),
+                    lte(task.due_date, now),
                     ne(task.status, 'Completed'),
                     ne(task.status, 'Cancelled')
                 ),
