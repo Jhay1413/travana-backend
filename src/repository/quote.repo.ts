@@ -53,6 +53,7 @@ import z from 'zod';
 import { dataValidator } from '../helpers/data-validator';
 import { airport } from '../schema/flights-schema';
 import { de } from 'zod/v4/locales';
+import { schedule } from 'node-cron';
 
 export type QuoteRepo = {
   fetchHolidayTypeById: (quote_id: string) => Promise<string>;
@@ -194,7 +195,7 @@ export type QuoteRepo = {
     cursor?: string,
     limit?: number
   ) => Promise<GeneratedPostResponse[]>;
-  scheduleTravelDeal: (quote_id: string, postSchedule: Date | null, onlySocialsId: string) => Promise<void>;
+  scheduleTravelDeal: (travel_deal_id: string, postSchedule: Date | null, onlySocialsId: string) => Promise<void>;
   fetchTravelDealById: (travel_deal_id: string) => Promise<z.infer<typeof travelDealResponseSchema> | null>;
 };
 
@@ -229,6 +230,10 @@ export const quoteRepo: QuoteRepo = {
     })
     return response ? {
       id: response.id,
+      onlySocialId: response.onlySocialsId ,
+      scheduledPostDate: response.postSchedule ? new Date(response.postSchedule).toISOString() : null,
+      scheduledPostTime: response.postSchedule ? format(new Date(response.postSchedule), 'HH:mm') : null,
+
       post: response.post || '',
       subtitle: response.subtitle || '',
       resortSummary: response.resortSummary || '',
@@ -3888,6 +3893,8 @@ export const quoteRepo: QuoteRepo = {
           price_per_person: quote.price_per_person,
           board_basis: board_basis.type,
           travel_date: quote.travel_date,
+          onlySocialId: travelDeal.onlySocialsId,
+          scheduledPostDate: travelDeal.postSchedule,
           hotel: sql<string[]>`array_agg(DISTINCT ${accomodation_list.name})`.as('hotel'),
 
           departure_airport: sql<string>`(
@@ -3902,6 +3909,7 @@ export const quoteRepo: QuoteRepo = {
           postCount: db.$count(travelDeal, eq(travelDeal.quote_id, quote.id))
         })
         .from(quote)
+        .leftJoin(travelDeal, eq(travelDeal.quote_id, quote.id))
         .leftJoin(transaction, eq(quote.transaction_id, transaction.id))
         .leftJoin(tour_operator, eq(quote.main_tour_operator_id, tour_operator.id))
         .leftJoin(package_type, eq(quote.holiday_type_id, package_type.id))
@@ -3978,6 +3986,8 @@ export const quoteRepo: QuoteRepo = {
           quote.travel_date,
           destination.name,
           quote.transfer_type,
+          travelDeal.onlySocialsId,
+          travelDeal.postSchedule
         )
         .orderBy(primaryOrder, asc(quote.id)) // tie-breaker for consistent pagination
         .limit(pageSize + 1);
@@ -4020,6 +4030,8 @@ export const quoteRepo: QuoteRepo = {
           `${data.country}, ${data.destination}`;
         return {
           id: data.id,
+          onlySocialId: data.onlySocialId,
+          scheduledPostDate: data.scheduledPostDate ? new Date(data.scheduledPostDate).toISOString() : null,
           tour_operator: data.tour_operator ?? 'N/A',
           departureAirport: data.departure_airport ?? 'N/A',
           hasPost: data.postCount > 0,

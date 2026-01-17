@@ -22,6 +22,7 @@ export type S3Service = {
     getSignedUrl: (fileKey: string) => Promise<string>;
     uploadAvatar: (file: Express.Multer.File) => Promise<string>;
     uploadClientFile: (file: Express.Multer.File, clientName: string) => Promise<string>;
+    uploadDealFile: (file: Express.Multer.File[]) =>  Promise<{ file_name: string; file_path: string; file_size: number; file_type: string; }[]>;
     uploadTicketFile: (files: Express.Multer.File[]) => Promise<{ file_name: string; file_path: string; file_size: number; file_type: string; }[]>;
     uploadTicketReplyFile: (files: Express.Multer.File[]) => Promise<{ file_name: string; file_path: string; file_size: number; file_type: string; }[]>;
 }
@@ -61,46 +62,68 @@ export const s3Service: S3Service = {
         await s3.upload(params).promise();
         return fileKey;
     },
+
+    uploadDealFile: async (files) => {
+        const fileUrls = await Promise.all(
+            files.map(async (file) => {
+                const fileKey = `deal-file/${file.originalname}`;
+                const params = {
+                    Bucket: 'temp-travana-bucket',
+                    Key: fileKey,
+                    ContentType: file.mimetype || 'application/octet-stream',
+                    Body: file.buffer,
+                };
+                await s3.upload(params).promise();
+                return {
+                    file_name: file.originalname,
+                    file_path: fileKey,
+                    file_size: file.size,
+                    file_type: file.mimetype,
+                };
+            })
+        );
+        return fileUrls;
+    },
     uploadTicketFile: async (files) => {
         const fileUrls = await Promise.all(
             files.map(async (file) => {
-              const fileKey = `ticket-file/${file.originalname}`;
-              const params = {
-                Bucket: 'temp-travana-bucket',
-                Key: fileKey,
-                ContentType: file.mimetype || 'application/octet-stream',
-                Body: file.buffer,
-              };
-              await s3.upload(params).promise();
-              return {
-                file_name: file.originalname,
-                file_path: fileKey,
-                file_size: file.size,
-                file_type: file.mimetype,
-              };
+                const fileKey = `ticket-file/${file.originalname}`;
+                const params = {
+                    Bucket: 'temp-travana-bucket',
+                    Key: fileKey,
+                    ContentType: file.mimetype || 'application/octet-stream',
+                    Body: file.buffer,
+                };
+                await s3.upload(params).promise();
+                return {
+                    file_name: file.originalname,
+                    file_path: fileKey,
+                    file_size: file.size,
+                    file_type: file.mimetype,
+                };
             })
-          );
-          return fileUrls;
+        );
+        return fileUrls;
     },
     uploadTicketReplyFile: async (files) => {
         const fileUrls = await Promise.all(
             files.map(async (file) => {
-              const fileKey = `ticket-reply-file/${file.originalname}`;
-              const params = {
-                Bucket: 'temp-travana-bucket',
-                Key: fileKey,
-                ContentType: file.mimetype || 'application/octet-stream',
-                Body: file.buffer,
-              };
-              await s3.upload(params).promise();
-              return {
-                file_name: file.originalname,
-                file_path: fileKey,
-                file_size: file.size,
-                file_type: file.mimetype,
-              };
+                const fileKey = `ticket-reply-file/${file.originalname}`;
+                const params = {
+                    Bucket: 'temp-travana-bucket',
+                    Key: fileKey,
+                    ContentType: file.mimetype || 'application/octet-stream',
+                    Body: file.buffer,
+                };
+                await s3.upload(params).promise();
+                return {
+                    file_name: file.originalname,
+                    file_path: fileKey,
+                    file_size: file.size,
+                    file_type: file.mimetype,
+                };
             })
-          );
-          return fileUrls;
+        );
+        return fileUrls;
     }
 }

@@ -13,10 +13,11 @@ import { TransactionRepo } from '../repository/transaction.repo';
 import { AiService } from './ai.service';
 import { parsedInput } from '../lib/parsedInput';
 import { travelDealSchema } from '../types/modules/transaction';
-import { formatPost } from '../lib/formatPost';
+import { formatPost, formatPostHTML } from '../lib/formatPost';
 import { generateNextDealId } from '../lib/generateId';
 import { format, parseISO } from 'date-fns';
-import { scheduleOnlySocialsPost } from '../helpers/schedule-post';
+import { reScheduleOnlySocialsPost, scheduleOnlySocialsPost, uploadMultipleMedia } from '../helpers/schedule-post';
+import { S3Service, s3Service } from '@/lib/s3';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -28,7 +29,8 @@ export const quoteService = (
   authRepo: AuthRepo,
   referralRepo: ReferralRepo,
   transactionRepo: TransactionRepo,
-  aiService: ReturnType<typeof AiService> // ✅ inject here
+  aiService: ReturnType<typeof AiService>, // ✅ inject here,
+  s3Service: S3Service
 
 ) => {
   return {
@@ -366,10 +368,10 @@ export const quoteService = (
     fetchTravelDealByQuoteId: async (quote_id: string) => {
       return await repo.fetchTravelDealByQuoteId(quote_id);
     },
-    generatePostContent: async (quoteDetails: string, postSchedule: string, quote_id: string) => {
+    generatePostContent: async (quoteDetails: string, quote_id: string) => {
       // Validation
 
-     
+
       if (!quoteDetails || typeof quoteDetails !== 'string') {
         throw new AppError('Invalid quote details provided.', true, 400);
       }
@@ -386,121 +388,80 @@ export const quoteService = (
       }
 
       const result = validationResult.data;
-      const destination = result.title.split(/[-|:]/)[0].trim() || result.title;
 
       // Generate all AI content in parallel
       const [subtitle, resortSummary, hashtags] = await Promise.all([
-        result.subtitle || aiService.generateSubtitle(result.title),
-        aiService.generateResortSummary(result.title),
-        aiService.generateHashtags(result.title, destination)
+        aiService.generateSubtitle(result.title, result.destination ?? 'N/A'),
+        aiService.generateResortSummary(result.title, result.destination ?? 'N/A'),
+        aiService.generateHashtags(result.title, result.destination)
       ]);
 
       // Format and insert deal
-      const post = formatPost(result, subtitle, resortSummary, hashtags);
+      const post = formatPostHTML(result, subtitle, resortSummary, hashtags);
       const dealToInsert = { post, subtitle, resortSummary, hashtags, deal: result };
 
-      const [insertedDeal, onlySocialsData] = await Promise.all([
-        repo.insertTravelDeal(dealToInsert, quote_id),
-        scheduleOnlySocialsPost(postSchedule,post)
-      ]);
 
-      // Update with OnlySocials UUID
-      await repo.scheduleTravelDeal(
-        insertedDeal,
-        new Date(postSchedule),
-        onlySocialsData.uuid,
-       
-      );
+      const insertDeal = await repo.insertTravelDeal(dealToInsert, quote_id);
 
-      return onlySocialsData;
+
+      return insertDeal;
     },
-    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string) => {
+    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string, onlySocialId?: string, files?: Express.Multer.File[]) => {
 
       const response = await repo.fetchTravelDealById(travel_deal_id);
+
+
+
       if (!response) {
         throw new AppError('Travel deal not found', true, 404);
       }
-      const scheduleDateTime = parseISO(postSchedule);
-      const scheduleDate = format(scheduleDateTime, 'yyyy-MM-dd');
-      const scheduleTime = format(scheduleDateTime, 'HH:mm');
-      try {
 
-        console.log(process.env.ONLYSOCIALS_API_TOKEN)
-        const onlySocialsResponse = await fetch(
-          `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE}/posts`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${process.env.ONLY_SOCIALS}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              accounts: [44362], // The social media account ID
-              versions: [
-                {
-                  account_id: 44362,
-                  is_original: true,
-                  content: [
-                    {
-                      body: response.post,
-                      media: [], // Add media if available
-                      url: ""
-                    }
-                  ],
-                  options: {
-                    facebook_page: {
-                      type: "post"
-                    }
-                  }
-                }
-              ],
-              tags: [],
-              date: scheduleDate,
-              time: scheduleTime,
-              until_date: null,
-              until_time: "",
-              repeat_frequency: null,
-              short_link_provider: null,
-              short_link_provider_id: null
-            })
-          }
-        );
 
-        const onlySocialsData = await onlySocialsResponse.json() as {
-          id: string,
-          uuid: string,
-          name: string,
-          hexColor: string
-        };
+      let filesData: Array<{
+        file_name: string;
+        file_path: string;
+        file_size: number;
+        file_type: string;
+      }> = [];
+      // if (files && files.length > 0) {
+      //   filesData = await s3Service.uploadDealFile(files);
 
-        if (!onlySocialsResponse.ok) {
-          console.log('OnlySocials API error response:', onlySocialsData);
-          throw new AppError(
-            `OnlySocials API error: ${onlySocialsData.name || 'Failed to schedule post'}`,
-            true,
-            onlySocialsResponse.status
-          );
-        }
+      // }
+      let mediaUuids: string[] = [];
 
-        // Save the OnlySocials post UUID/ID to your database
+      // Step 1: Upload media if provided
+
+      console.log(files,"its a files")
+      if (files && files.length > 0) {
+        const uploadedMedia = await uploadMultipleMedia(files);
+        mediaUuids = uploadedMedia.map(media => media.uuid);
+      }
+
+      let signedUrls: string[] = [];
+
+      // for (let file of filesData) {
+      //   const signedUrl = await s3Service.getSignedUrl(file.file_path);
+      //   signedUrls.push(signedUrl);
+      // }
+      if (onlySocialId) {
+        const onlySocialsData = await reScheduleOnlySocialsPost(onlySocialId, postSchedule, response.post);
         await repo.scheduleTravelDeal(
           travel_deal_id,
           new Date(postSchedule),
-          onlySocialsData.uuid // Save the OnlySocials post UUID for future reference
-        );
-
-        return onlySocialsData;
-
-      } catch (error) {
-        if (error instanceof AppError) {
-          throw error;
-        }
-        throw new AppError(
-          `Failed to schedule post on OnlySocials: ${error}`,
-          true,
-          500
+          onlySocialsData.uuid,
         );
       }
+      else {
+
+        const onlySocialsData = await scheduleOnlySocialsPost(postSchedule, response.post, mediaUuids);
+        await repo.scheduleTravelDeal(
+          travel_deal_id,
+          new Date(postSchedule),
+          onlySocialsData.uuid,
+        )
+      }
+
+
     }
   };
 }

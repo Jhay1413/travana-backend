@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { quoteController } from '../controllers/quote.controller';
+import { uploadDealImages, uploadMultiple } from '../middleware/upload';
 
 const router = Router();
 
@@ -7,7 +8,7 @@ const router = Router();
 router.post('/convert/:transaction_id', quoteController.convertQuote);
 router.post('/', quoteController.insertQuote);
 router.post('/duplicate', quoteController.duplicateQuote);
-router.post('/schedule-post/:id', quoteController.scheduleTravelDeal);
+router.post('/schedule-post/:id', uploadMultiple, quoteController.scheduleTravelDeal);
 // Quote fetching
 router.get('/', quoteController.fetchQuotes);
 router.get('/travel-deals', quoteController.fetchTravelDeals);

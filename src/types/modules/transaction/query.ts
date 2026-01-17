@@ -321,6 +321,7 @@ export const travelDealSchema = z.object({
   departureAirport: z.string().min(1, "Departure airport is required"),
   luggageTransfers: z.string().min(1, "Luggage & transfers info is required"),
   price: z.string().optional().default(""),
+  destination:z.string().optional()
 });
 
 export type TravelDeal = z.infer<typeof travelDealSchema>;
@@ -354,4 +355,7 @@ export const travelDealResponseSchema = z.object({
   luggageTransfers: z.string(),
   price: z.string(),
   quote_id: z.string(),
+  onlySocialId: z.string().nullable().optional(),
+  scheduledPostDate: z.string().nullable().optional(),
+  scheduledPostTime: z.string().nullable().optional(),
 })

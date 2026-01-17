@@ -10,8 +10,9 @@ import { referralRepo } from '../repository/referrals.repo';
 import { Request, Response } from 'express';
 import { transactionRepo } from '../repository/transaction.repo';
 import { AiService } from '../service/ai.service';
+import { s3Service } from '../lib/s3';
 export const aiService = AiService(); // singleton instance
-const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService);
+const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService,s3Service);
 
 export const quoteController = {
   convertQuote: async (req: Request, res: Response) => {
@@ -276,9 +277,9 @@ export const quoteController = {
   },
   generatePostContent: async (req: Request, res: Response) => {
     try {
-      const { quoteDetails, postSchedule } = req.body;
+      const { quoteDetails } = req.body;
       const { id } = req.params;
-      const postContent = await service.generatePostContent(quoteDetails, postSchedule, id);
+      const postContent = await service.generatePostContent(quoteDetails, id);
       res.status(200).json({
         message: 'Post content generated successfully',
         postContent
@@ -301,8 +302,10 @@ export const quoteController = {
   scheduleTravelDeal: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { scheduledDate } = req.body;
-      const schedule = await service.scheduleTravelDeal(id, scheduledDate);
+      const { scheduledDate,onlySocialId } = req.body;
+      const files = req.files as Express.Multer.File[];
+      console.log(req,"controller files")
+      const schedule = await service.scheduleTravelDeal(id, scheduledDate, onlySocialId,files);
       res.status(200).json({
         message: 'Travel deal scheduled successfully',
         schedule

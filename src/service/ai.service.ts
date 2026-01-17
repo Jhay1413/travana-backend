@@ -6,7 +6,7 @@ const openai = new OpenAI({
 
 export const AiService = () => {
   // Define the helper method *inside* the factory
-  const tryGenerateWithModel = async (title: string, model: string) => {
+  const tryGenerateWithModel = async (title: string,destination:string, model: string) => {
     try {
       console.log(`[OpenAI] Trying model: ${model}`);
 
@@ -19,7 +19,7 @@ export const AiService = () => {
           },
           {
             role: "user",
-            content: `Write a catchy subtitle (max 12 words) for: "${title}". Be exciting and appealing. Return ONLY the subtitle text.`,
+            content: `Write a catchy subtitle (max 12 words) for: "${title}" in ${destination}. Be exciting and appealing. Return ONLY the subtitle text.`,
           },
         ],
         max_completion_tokens: 50,
@@ -34,13 +34,13 @@ export const AiService = () => {
     }
   };
 
-  const generateSubtitle = async (title: string) => {
+  const generateSubtitle = async (title: string,destination:string) => {
     console.log(`[OpenAI] Generating subtitle for: "${title}"`);
 
     const models = ["gpt-5", "gpt-4.1", "gpt-4.1-mini", "gpt-5-mini"];
 
     for (const model of models) {
-      const subtitle = await tryGenerateWithModel(title, model);
+      const subtitle = await tryGenerateWithModel(title,destination, model);
       if (subtitle) {
         console.log(`[OpenAI] Success with ${model}: "${subtitle}"`);
         return subtitle;
@@ -50,7 +50,7 @@ export const AiService = () => {
     console.warn(`[OpenAI] All models failed, using fallback subtitle`);
     return "Discover amazing value on this incredible getaway";
   };
-  const tryGenerateResortSummaryWithModel = async (title: string, model: string) => {
+  const tryGenerateResortSummaryWithModel = async (title: string, destination: string, model: string) => {
     try {
       console.log(`[OpenAI] Trying model for resort summary: ${model}`);
       const response = await openai.chat.completions.create({
@@ -62,7 +62,14 @@ export const AiService = () => {
           },
           {
             role: "user",
-            content: `Write a brief, engaging resort summary (2-3 sentences, max 60 words) for "${title}". Focus on what makes this destination special, the atmosphere, and key amenities. Return ONLY the summary text.`
+            content: `Write a brief, engaging resort summary put in like a bullet form but instead of bullet form make it an icon for "${title}" in ${destination}. Focus on what makes this destination special, the atmosphere, and key amenities. Return ONLY the summary text.
+            it should start with 🌞 Why You’ll Love It:
+            example :
+            🌞 Why You’ll Love It:
+            🏖️ Close to golden sands & turquoise waters
+
+            NOTE!! MAKE SURE TO MAKE IT AS HTML ELEMENT SHOULD HAVE <BR> EACH
+            `
           }
         ],
         max_completion_tokens: 150,
@@ -76,14 +83,14 @@ export const AiService = () => {
       return null;
     }
   };
-  const generateResortSummary = async (title: string) => {
+  const generateResortSummary = async (title: string, destination: string) => {
     console.log(`[OpenAI] Generating resort summary for: "${title}"`);
 
     // Try different models in order of preference
     const models = ["gpt-5", "gpt-4.1", "gpt-4.1-mini", "gpt-5-mini"];
 
     for (const model of models) {
-      const summary = await tryGenerateResortSummaryWithModel(title, model);
+      const summary = await tryGenerateResortSummaryWithModel(title, destination, model);
       if (summary) {
         console.log(`[OpenAI] Success with ${model} for resort summary`);
         return summary;
