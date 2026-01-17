@@ -1,9 +1,9 @@
 import { format, parseISO } from "date-fns";
 import { AppError } from "../middleware/errorHandler";
-import path from "path";
-
+import FormData from 'form-data';
 import fs from 'fs';
-import axios from "axios";
+import path from 'path';
+import axios from 'axios';
 interface MediaUploadResponse {
   id: string;
   uuid: string;
@@ -200,7 +200,7 @@ export async function uploadMedia(
       : file.originalname;
 
     console.log(`📤 Uploading: ${fileName}`);
-    
+
     // Debug: Check environment variables
     if (!process.env.ONLY_SOCIALS) {
       throw new Error('ONLY_SOCIALS token is not set');
@@ -209,40 +209,45 @@ export async function uploadMedia(
       throw new Error('ONLY_SOCIALS_WORKSPACE is not set');
     }
 
-    // Convert file to base64
-    const base64 = fileToBase64(file);
-    
-    // Debug: Log base64 length
-    console.log('Base64 length:', base64.length);
+    const formData = new FormData();
 
-    // Prepare request data
-    const data = JSON.stringify({
-      file: base64,
-      alt_text: altText || fileName
-    });
+    // Handle different file types
+    if (typeof file === 'string') {
+      // If it's a file path, read it as a stream
+      const fileStream = fs.createReadStream(file);
+      formData.append('file', fileStream, fileName);
+    } else {
+      // If it's a Multer file, use the buffer
+      formData.append('file', file.buffer, {
+        filename: file.originalname,
+        contentType: file.mimetype
+      });
+    }
 
-    // Axios config
-    const config = {
-      method: 'post',
-      url: `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE.trim()}/media/`,
-      headers: {
-        'Authorization': `Bearer ${process.env.ONLY_SOCIALS.trim()}`,
-        'Content-Type': 'application/json'
-      },
-      data: data
-    };
+    formData.append('alt_text', altText || fileName);
 
     // Make the request
-    const response = await axios(config);
-    
+    const response = await axios.post(
+      `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE.trim()}/media`,
+      formData,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.ONLY_SOCIALS.trim()}`,
+          ...formData.getHeaders() // CRITICAL: This adds the correct Content-Type with boundary
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity
+      }
+    );
+
     console.log(`✅ Uploaded: ${fileName} -> UUID: ${response.data.uuid}`);
-    
+
     return response.data as MediaUploadResponse;
 
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error('❌ Axios error:', error.response?.data || error.message);
-      throw new Error(`Upload failed: ${error.response?.data || error.message}`);
+      throw new Error(`Upload failed: ${JSON.stringify(error.response?.data) || error.message}`);
     }
     console.error(`❌ Failed to upload:`, error);
     throw error;

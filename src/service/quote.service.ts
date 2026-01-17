@@ -434,7 +434,7 @@ export const quoteService = (
       console.log(files,"its a files")
       if (files && files.length > 0) {
         const uploadedMedia = await uploadMultipleMedia(files);
-        mediaUuids = uploadedMedia.map(media => media.uuid);
+        mediaUuids = uploadedMedia.map(media => media.id);
       }
 
       let signedUrls: string[] = [];
