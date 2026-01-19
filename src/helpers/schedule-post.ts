@@ -4,6 +4,7 @@ import FormData from 'form-data';
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
+import { Post } from "@/types/modules/only-socials";
 interface MediaUploadResponse {
   id: string;
   uuid: string;
@@ -14,6 +15,31 @@ interface MediaUploadResponse {
   thumb_url: string;
   is_video: boolean;
   created_at: string;
+}
+
+
+export const fetchOnlySocialDeal = async (onlySocialId: string) => {
+
+
+  const API_URL = `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE}/posts/${onlySocialId}`;
+
+  try {
+    const response = await axios.get(API_URL, {
+      headers: {
+        'Authorization': `Bearer ${process.env.ONLY_SOCIALS}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    return response.data as Post
+  }
+
+  catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('❌ Axios error:', error.response?.data || error.message);
+      throw new Error(`Fetch failed: ${JSON.stringify(error.response?.data) || error.message}`);
+    }
+    throw error
+  }
 }
 
 export const scheduleOnlySocialsPost = async (postSchedule: string, postContent: string, images: string[]) => {
@@ -100,7 +126,7 @@ export const scheduleOnlySocialsPost = async (postSchedule: string, postContent:
 
 
 
-export const reScheduleOnlySocialsPost = async (onlySocialsPostId: string, newPostSchedule: string, postContent: string) => {
+export const reScheduleOnlySocialsPost = async (onlySocialsPostId: string, newPostSchedule: string, postContent: string, images: string[]) => {
 
 
   const scheduleDateTime = parseISO(newPostSchedule);
@@ -124,7 +150,7 @@ export const reScheduleOnlySocialsPost = async (onlySocialsPostId: string, newPo
           is_original: true,
           content: [{
             body: postContent,
-            media: [],
+            media: images,
             url: ""
           }],
           options: {

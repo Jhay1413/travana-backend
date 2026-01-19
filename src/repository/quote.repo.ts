@@ -195,7 +195,7 @@ export type QuoteRepo = {
     cursor?: string,
     limit?: number
   ) => Promise<GeneratedPostResponse[]>;
-  scheduleTravelDeal: (travel_deal_id: string, postSchedule: Date | null, onlySocialsId: string) => Promise<void>;
+  scheduleTravelDeal: (travel_deal_id: string, postSchedule: Date | null, onlySocialsId: string, post?: string) => Promise<void>;
   fetchTravelDealById: (travel_deal_id: string) => Promise<z.infer<typeof travelDealResponseSchema> | null>;
 };
 
@@ -220,8 +220,8 @@ export const quoteRepo: QuoteRepo = {
       quote_id: response.quote_id || '',
     } : null;
   },
-  scheduleTravelDeal: async (travel_deal_id, postSchedule, onlySocialsId) => {
-    await db.update(travelDeal).set({ postSchedule: postSchedule, onlySocialsId: onlySocialsId }).where(eq(travelDeal.id, travel_deal_id));
+  scheduleTravelDeal: async (travel_deal_id, postSchedule, onlySocialsId,post) => {
+    await db.update(travelDeal).set({ postSchedule: postSchedule, onlySocialsId: onlySocialsId, post: post }).where(eq(travelDeal.id, travel_deal_id));
   },
   fetchTravelDealByQuoteId: async (quote_id) => {
     console.log("Fetching travel deal for quote ID:", quote_id);

@@ -6,6 +6,7 @@ import { boardBasisQuerySchema } from '../accomodations';
 import { cruiseLineQuerySchema, portQuerySchema } from '../cruise';
 import { destinationQuerySchema } from '../destination';
 import { airportQuerySchema } from '../airports';
+import { mediaSchema } from '../only-socials';
 
 export const resortQuerySchema = z.object({
   id: z.string(),
@@ -321,7 +322,7 @@ export const travelDealSchema = z.object({
   departureAirport: z.string().min(1, "Departure airport is required"),
   luggageTransfers: z.string().min(1, "Luggage & transfers info is required"),
   price: z.string().optional().default(""),
-  destination:z.string().optional()
+  destination: z.string().optional()
 });
 
 export type TravelDeal = z.infer<typeof travelDealSchema>;
@@ -358,4 +359,5 @@ export const travelDealResponseSchema = z.object({
   onlySocialId: z.string().nullable().optional(),
   scheduledPostDate: z.string().nullable().optional(),
   scheduledPostTime: z.string().nullable().optional(),
+  images: z.array(mediaSchema).optional(),
 })

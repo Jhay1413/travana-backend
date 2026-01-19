@@ -1,9 +1,20 @@
 import { z } from 'zod';
 
 // Content schema
+
+export const mediaSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  mime_type: z.string(),
+  type: z.string(),
+  url: z.string().url(),
+  thumb_url: z.string().url(),
+  is_video: z.boolean(),
+  created_at: z.string(),
+});
 const ContentSchema = z.object({
   body: z.string(),
-  media: z.array(z.unknown()),
+  media: z.array(mediaSchema),
   url: z.string(),
 });
 

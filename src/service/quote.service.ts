@@ -16,8 +16,9 @@ import { travelDealSchema } from '../types/modules/transaction';
 import { formatPost, formatPostHTML } from '../lib/formatPost';
 import { generateNextDealId } from '../lib/generateId';
 import { format, parseISO } from 'date-fns';
-import { reScheduleOnlySocialsPost, scheduleOnlySocialsPost, uploadMultipleMedia } from '../helpers/schedule-post';
+import { fetchOnlySocialDeal, reScheduleOnlySocialsPost, scheduleOnlySocialsPost, uploadMultipleMedia } from '../helpers/schedule-post';
 import { S3Service, s3Service } from '@/lib/s3';
+import { mediaSchema } from '@/types/modules/only-socials';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -365,8 +366,23 @@ export const quoteService = (
       limit?: number) => {
       return await repo.fetchTravelDeals(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
     },
-    fetchTravelDealByQuoteId: async (quote_id: string) => {
-      return await repo.fetchTravelDealByQuoteId(quote_id);
+    fetchTravelDealByQuoteId: async (quote_id: string, onlySocialId?: string) => {
+
+      let post: string | undefined = undefined
+      let images: Array<z.infer<typeof mediaSchema>> = []
+      if (onlySocialId) {
+        const onlySocialDeal = await fetchOnlySocialDeal(onlySocialId as string);
+        post = onlySocialDeal.versions[0].content[0].body
+        images = onlySocialDeal.versions[0].content[0].media
+      }
+      const response = await repo.fetchTravelDealByQuoteId(quote_id);
+
+      return {
+        ...response,
+        post: post || response?.post,
+        images: images.length > 0 ? images : response?.images || []
+
+      }
     },
     generatePostContent: async (quoteDetails: string, quote_id: string) => {
       // Validation
@@ -406,7 +422,7 @@ export const quoteService = (
 
       return insertDeal;
     },
-    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string, onlySocialId?: string, files?: Express.Multer.File[]) => {
+    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string, onlySocialId?: string, files?: Express.Multer.File[], post?: string, existingImages?: string[]) => {
 
       const response = await repo.fetchTravelDealById(travel_deal_id);
 
@@ -430,8 +446,10 @@ export const quoteService = (
       let mediaUuids: string[] = [];
 
       // Step 1: Upload media if provided
-
-      console.log(files,"its a files")
+      if (existingImages && existingImages.length > 0) {
+        mediaUuids = [...existingImages];
+      }
+      console.log(files, "its a files")
       if (files && files.length > 0) {
         const uploadedMedia = await uploadMultipleMedia(files);
         mediaUuids = uploadedMedia.map(media => media.id);
@@ -444,20 +462,22 @@ export const quoteService = (
       //   signedUrls.push(signedUrl);
       // }
       if (onlySocialId) {
-        const onlySocialsData = await reScheduleOnlySocialsPost(onlySocialId, postSchedule, response.post);
+        const onlySocialsData = await reScheduleOnlySocialsPost(onlySocialId, postSchedule, post ?? response.post,mediaUuids);
         await repo.scheduleTravelDeal(
           travel_deal_id,
           new Date(postSchedule),
           onlySocialsData.uuid,
+          post
         );
       }
       else {
 
-        const onlySocialsData = await scheduleOnlySocialsPost(postSchedule, response.post, mediaUuids);
+        const onlySocialsData = await scheduleOnlySocialsPost(postSchedule, post ?? response.post, mediaUuids);
         await repo.scheduleTravelDeal(
           travel_deal_id,
           new Date(postSchedule),
           onlySocialsData.uuid,
+          post
         )
       }
 

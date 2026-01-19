@@ -292,7 +292,8 @@ export const quoteController = {
   fetchTravelDealByQuoteId: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const deal = await service.fetchTravelDealByQuoteId(id);
+      const { onlySocialId } = req.query;
+      const deal = await service.fetchTravelDealByQuoteId(id, onlySocialId as string);
       res.status(200).json(deal);
     } catch (error) {
       console.log(error);
@@ -302,10 +303,10 @@ export const quoteController = {
   scheduleTravelDeal: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { scheduledDate,onlySocialId } = req.body;
+      const { scheduledDate,onlySocialId,post, existingImages } = req.body;
       const files = req.files as Express.Multer.File[];
       console.log(req,"controller files")
-      const schedule = await service.scheduleTravelDeal(id, scheduledDate, onlySocialId,files);
+      const schedule = await service.scheduleTravelDeal(id, scheduledDate, onlySocialId,files,post, existingImages);
       res.status(200).json({
         message: 'Travel deal scheduled successfully',
         schedule
