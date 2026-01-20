@@ -18,7 +18,8 @@ import { generateNextDealId } from '../lib/generateId';
 import { format, parseISO } from 'date-fns';
 import { fetchOnlySocialDeal, reScheduleOnlySocialsPost, scheduleOnlySocialsPost, uploadMultipleMedia } from '../helpers/schedule-post';
 import { S3Service, s3Service } from '@/lib/s3';
-import { mediaSchema } from '@/types/modules/only-socials';
+import { mediaSchema } from '../types/modules/only-socials';
+import { cleanHtmlString } from '../helpers/clean-up-string';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -375,13 +376,15 @@ export const quoteService = (
         post = onlySocialDeal.versions[0].content[0].body
         images = onlySocialDeal.versions[0].content[0].media
       }
-      const response = await repo.fetchTravelDealByQuoteId(quote_id);
 
+
+
+      const response = await repo.fetchTravelDealByQuoteId(quote_id);
+      const post2return = post ? post  : response?.post
       return {
         ...response,
-        post: post || response?.post,
+        post: post2return,
         images: images.length > 0 ? images : response?.images || []
-
       }
     },
     generatePostContent: async (quoteDetails: string, quote_id: string) => {
@@ -422,7 +425,7 @@ export const quoteService = (
 
       return insertDeal;
     },
-    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string, onlySocialId?: string, files?: Express.Multer.File[], post?: string, existingImages?: string[]) => {
+    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string, onlySocialId?: string, files?: Express.Multer.File[], post?: string, existingImages?: number[]) => {
 
       const response = await repo.fetchTravelDealById(travel_deal_id);
 
@@ -443,9 +446,13 @@ export const quoteService = (
       //   filesData = await s3Service.uploadDealFile(files);
 
       // }
-      let mediaUuids: string[] = [];
 
-      // Step 1: Upload media if provided
+
+
+      console.log(post, "existing post")
+      let mediaUuids: number[] = [];
+
+      // Step 1: Upload media if provided 
       if (existingImages && existingImages.length > 0) {
         mediaUuids = [...existingImages];
       }
@@ -455,14 +462,13 @@ export const quoteService = (
         mediaUuids = uploadedMedia.map(media => media.id);
       }
 
-      let signedUrls: string[] = [];
 
       // for (let file of filesData) {
       //   const signedUrl = await s3Service.getSignedUrl(file.file_path);
       //   signedUrls.push(signedUrl);
       // }
       if (onlySocialId) {
-        const onlySocialsData = await reScheduleOnlySocialsPost(onlySocialId, postSchedule, post ?? response.post,mediaUuids);
+        const onlySocialsData = await reScheduleOnlySocialsPost(onlySocialId, postSchedule, post ?? response.post, mediaUuids);
         await repo.scheduleTravelDeal(
           travel_deal_id,
           new Date(postSchedule),

@@ -12,7 +12,7 @@ import { transactionRepo } from '../repository/transaction.repo';
 import { AiService } from '../service/ai.service';
 import { s3Service } from '../lib/s3';
 export const aiService = AiService(); // singleton instance
-const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService,s3Service);
+const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService, s3Service);
 
 export const quoteController = {
   convertQuote: async (req: Request, res: Response) => {
@@ -303,10 +303,12 @@ export const quoteController = {
   scheduleTravelDeal: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { scheduledDate,onlySocialId,post, existingImages } = req.body;
+      const { scheduledDate, onlySocialId, post, existingImages } = req.body;
       const files = req.files as Express.Multer.File[];
-      console.log(req,"controller files")
-      const schedule = await service.scheduleTravelDeal(id, scheduledDate, onlySocialId,files,post, existingImages);
+      const parsedExistingImages: number[] = existingImages ? JSON.parse(existingImages) : [];
+      console.log(req, "controller files")
+
+      const schedule = await service.scheduleTravelDeal(id, scheduledDate, onlySocialId, files, post, parsedExistingImages);
       res.status(200).json({
         message: 'Travel deal scheduled successfully',
         schedule

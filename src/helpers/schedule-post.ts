@@ -6,7 +6,7 @@ import path from 'path';
 import axios from 'axios';
 import { Post } from "@/types/modules/only-socials";
 interface MediaUploadResponse {
-  id: string;
+  id: number;
   uuid: string;
   name: string;
   mime_type: string;
@@ -42,7 +42,7 @@ export const fetchOnlySocialDeal = async (onlySocialId: string) => {
   }
 }
 
-export const scheduleOnlySocialsPost = async (postSchedule: string, postContent: string, images: string[]) => {
+export const scheduleOnlySocialsPost = async (postSchedule: string, postContent: string, images: number[]) => {
   const scheduleDateTime = parseISO(postSchedule);
   const scheduleDate = format(scheduleDateTime, 'yyyy-MM-dd');
   const scheduleTime = format(scheduleDateTime, 'HH:mm');
@@ -126,13 +126,18 @@ export const scheduleOnlySocialsPost = async (postSchedule: string, postContent:
 
 
 
-export const reScheduleOnlySocialsPost = async (onlySocialsPostId: string, newPostSchedule: string, postContent: string, images: string[]) => {
+export const reScheduleOnlySocialsPost = async (onlySocialsPostId: string, newPostSchedule: string, postContent: string, images: number[]) => {
+
+
+
 
 
   const scheduleDateTime = parseISO(newPostSchedule);
   const scheduleDate = format(scheduleDateTime, 'yyyy-MM-dd');
   const scheduleTime = format(scheduleDateTime, 'HH:mm');
   const ACCOUNT_ID = 44362;
+
+  
   const API_URL = `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE}/posts/${onlySocialsPostId}`;
 
   try {
