@@ -2741,7 +2741,7 @@ export const quoteRepo: QuoteRepo = {
         cruise_date: response.quote_cruise.cruise_date ? new Date(response.quote_cruise.cruise_date).toISOString() : null,
         cabin_type: response.quote_cruise.cabin_type,
         cruise_line: response.quote_cruise.cruise_line,
-        cruise_ship: response.quote_cruise.ship,
+        cruise_ship: response.quote_cruise.ship ?? "N/A",
         cruise_name: response.quote_cruise.cruise_name,
         no_of_nights: response.num_of_nights.toString() ?? '0',
 
@@ -3969,7 +3969,7 @@ export const quoteRepo: QuoteRepo = {
           data.lodge_destination ??
           data.cottage_destination ??
           data.cruise_destination ??
-         `${data.country}, ${data.destination}`;
+          `${data.country}, ${data.destination}`;
         return {
           id: data.id,
           tour_operator: data.tour_operator ?? 'N/A',
