@@ -6,6 +6,7 @@ import { boardBasisQuerySchema } from '../accomodations';
 import { cruiseLineQuerySchema, portQuerySchema } from '../cruise';
 import { destinationQuerySchema } from '../destination';
 import { airportQuerySchema } from '../airports';
+import { mediaSchema } from '../only-socials';
 
 export const resortQuerySchema = z.object({
   id: z.string(),
@@ -303,9 +304,9 @@ export const StructuredScrapeDataSchema = z.object({
   lodge_images: z.array(z.string()).optional(),
   lodge_code: z.string().optional(),
   lodge_description: z.string().optional(),
-  lodge_id:z.string().optional(),
-  lodge_park_name:z.string().optional(),
-  pets:z.number().optional(),
+  lodge_id: z.string().optional(),
+  lodge_park_name: z.string().optional(),
+  pets: z.number().optional(),
 });
 
 
@@ -321,6 +322,7 @@ export const travelDealSchema = z.object({
   departureAirport: z.string().min(1, "Departure airport is required"),
   luggageTransfers: z.string().min(1, "Luggage & transfers info is required"),
   price: z.string().optional().default(""),
+  destination: z.string().optional()
 });
 
 export type TravelDeal = z.infer<typeof travelDealSchema>;
@@ -339,3 +341,23 @@ export interface GeneratedPostResponse {
   deal: TravelDeal;
   deal_images?: string[];
 }
+
+export const travelDealResponseSchema = z.object({
+  id: z.string(),
+  post: z.string(),
+  subtitle: z.string(),
+  resortSummary: z.string(),
+  hashtags: z.array(z.string()),
+  title: z.string(),
+  travelDate: z.string(),
+  nights: z.number(),
+  boardBasis: z.string(),
+  departureAirport: z.string(),
+  luggageTransfers: z.string(),
+  price: z.string(),
+  quote_id: z.string(),
+  onlySocialId: z.string().nullable().optional(),
+  scheduledPostDate: z.string().nullable().optional(),
+  scheduledPostTime: z.string().nullable().optional(),
+  images: z.array(mediaSchema).optional(),
+})

@@ -151,6 +151,8 @@ export const freeQuoteListQuerySchema = z.object({
   departureAirport: z.string(),
   luggageTransfers: z.string(),
   hasPost: z.boolean().optional(),
+  scheduledPostDate: z.string().nullable().optional(),
+  onlySocialId:z.string().nullable().optional(),
 });
 export const quoteQueryResultSchema = z.object({});
 

@@ -109,5 +109,6 @@ const ticketUpload = multer({
 
 export const uploadSingle = upload.single('avatar');
 export const uploadClientFile = upload.single('file');
+export const uploadDealImages = upload.array('files', 10); // Up to 10 images
 export const uploadMultiple = upload.array('files', 5); // For multiple files if needed
 export const uploadTicketFiles = ticketUpload.array('files', 10); // For ticket files

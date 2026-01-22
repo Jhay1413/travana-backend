@@ -430,6 +430,8 @@ export const travelDeal = pgTable('travel_deal', {
   nights: integer().notNull(),
   boardBasis: varchar(),
   departureAirport: varchar(),
+  postSchedule: timestamp({ precision: 0, withTimezone: true }),
+  onlySocialsId: varchar(),
   luggageTransfers: varchar(),
   price: numeric('price', { precision: 10, scale: 2 }),
   quote_id: uuid().references(() => quote.id, {

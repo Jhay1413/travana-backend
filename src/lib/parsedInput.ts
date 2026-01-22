@@ -33,6 +33,9 @@ export const parsedInput = (text: string) => {
     } else if (key === 'price') {
       data.price = value;
     }
+    else if( key === 'destination'){
+      data.destination = value;
+    }
   }
 
   console.log('[Parser] Parsed data:', data);

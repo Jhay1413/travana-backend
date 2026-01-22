@@ -13,8 +13,14 @@ import { TransactionRepo } from '../repository/transaction.repo';
 import { AiService } from './ai.service';
 import { parsedInput } from '../lib/parsedInput';
 import { travelDealSchema } from '../types/modules/transaction';
-import { formatPost } from '../lib/formatPost';
+import { formatPost, formatPostHTML } from '../lib/formatPost';
 import { generateNextDealId } from '../lib/generateId';
+import { format, parseISO } from 'date-fns';
+import { deleteOnlySocialsPost, fetchOnlySocialDeal, reScheduleOnlySocialsPost, scheduleOnlySocialsPost, uploadMultipleMedia } from '../helpers/schedule-post';
+import { S3Service, s3Service } from '@/lib/s3';
+import { mediaSchema } from '../types/modules/only-socials';
+import { cleanHtmlString } from '../helpers/clean-up-string';
+import { response } from 'express';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -26,10 +32,19 @@ export const quoteService = (
   authRepo: AuthRepo,
   referralRepo: ReferralRepo,
   transactionRepo: TransactionRepo,
-  aiService: ReturnType<typeof AiService> // ✅ inject here
+  aiService: ReturnType<typeof AiService>, // ✅ inject here,
+  s3Service: S3Service
 
 ) => {
   return {
+
+    deleteTravelDeal: async (travel_deal_id: string, onlySocialId: string) => {
+      if(!onlySocialId) return await repo.deleteTravelDeal(travel_deal_id);
+      await deleteOnlySocialsPost(onlySocialId);
+
+      return await repo.deleteTravelDeal(travel_deal_id);
+
+    },
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
       // const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
 
@@ -330,13 +345,14 @@ export const quoteService = (
       country_id?: string,
       package_type_id?: string,
       min_price?: string,
+      schedule_filter?: string,
       max_price?: string,
       start_date?: string,
       end_date?: string,
       cursor?: string,
       limit?: number
     ) => {
-      return await repo.fetchFreeQuotesInfinite(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
+      return await repo.fetchFreeQuotesInfinite(search, country_id, package_type_id, min_price,schedule_filter, max_price, start_date, end_date, cursor, limit);
     },
     updateQuoteExpiry: async (id: string, date_expiry: string) => {
       return await repo.updateQuoteExpiry(id, date_expiry);
@@ -361,46 +377,127 @@ export const quoteService = (
       limit?: number) => {
       return await repo.fetchTravelDeals(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
     },
+    fetchTravelDealByQuoteId: async (quote_id: string, onlySocialId?: string) => {
 
+      let post: string | undefined = undefined
+      let images: Array<z.infer<typeof mediaSchema>> = []
+      if (onlySocialId) {
+        const onlySocialDeal = await fetchOnlySocialDeal(onlySocialId as string);
+        post = onlySocialDeal.versions[0].content[0].body
+        images = onlySocialDeal.versions[0].content[0].media
+      }
+
+
+
+      const response = await repo.fetchTravelDealByQuoteId(quote_id);
+      const post2return = post ? post : response?.post
+      return {
+        ...response,
+        post: post2return,
+        images: images.length > 0 ? images : response?.images || []
+      }
+    },
     generatePostContent: async (quoteDetails: string, quote_id: string) => {
+      // Validation
+
+
       if (!quoteDetails || typeof quoteDetails !== 'string') {
         throw new AppError('Invalid quote details provided.', true, 400);
       }
-      const parsedData = parsedInput(quoteDetails);
 
+      const parsedData = parsedInput(quoteDetails);
       const validationResult = travelDealSchema.safeParse(parsedData);
+
       if (!validationResult.success) {
-        const errors = validationResult.error
-        throw new AppError(`Invalid quote details: ${errors.message}`, true, 400);
+        throw new AppError(
+          `Invalid quote details: ${validationResult.error.message}`,
+          true,
+          400
+        );
       }
 
       const result = validationResult.data;
-      // Extract destination from title (everything before common separators like -, |, :)
-      const destination = result.title.split(/[-|:]/)[0].trim() || result.title;
 
-      // Generate subtitle if it's empty, and generate resort summary and hashtags in parallel
-      let subtitle = result.subtitle || "";
-
-      // Run AI calls in parallel for better performance
-      const [generatedSubtitle, resortSummary, hashtags] = await Promise.all([
-        subtitle ? Promise.resolve(subtitle) : aiService.generateSubtitle(result.title),
-        aiService.generateResortSummary(result.title),
-        aiService.generateHashtags(result.title, destination)
+      // Generate all AI content in parallel
+      const [subtitle, resortSummary, hashtags] = await Promise.all([
+        aiService.generateSubtitle(result.title, result.destination ?? 'N/A'),
+        aiService.generateResortSummary(result.title, result.destination ?? 'N/A'),
+        aiService.generateHashtags(result.title, result.destination)
       ]);
 
-      subtitle = generatedSubtitle;
+      // Format and insert deal
+      const post = formatPostHTML(result, subtitle, resortSummary, hashtags);
+      const dealToInsert = { post, subtitle, resortSummary, hashtags, deal: result };
 
-      // Format the post
-      const post = formatPost(result, subtitle, resortSummary, hashtags);
 
-      const dealToInsert = {
-        post,
-        subtitle,
-        resortSummary,
-        hashtags,
-        deal: result
+      const insertDeal = await repo.insertTravelDeal(dealToInsert, quote_id);
+
+
+      return insertDeal;
+    },
+    scheduleTravelDeal: async (travel_deal_id: string, postSchedule: string, onlySocialId?: string, files?: Express.Multer.File[], post?: string, existingImages?: number[]) => {
+
+      const response = await repo.fetchTravelDealById(travel_deal_id);
+
+
+
+      if (!response) {
+        throw new AppError('Travel deal not found', true, 404);
       }
-      return await repo.insertTravelDeal(dealToInsert, quote_id)
+
+
+      let filesData: Array<{
+        file_name: string;
+        file_path: string;
+        file_size: number;
+        file_type: string;
+      }> = [];
+      // if (files && files.length > 0) {
+      //   filesData = await s3Service.uploadDealFile(files);
+
+      // }
+
+
+
+      console.log(post, "existing post")
+      let mediaUuids: number[] = [];
+
+      // Step 1: Upload media if provided 
+      if (existingImages && existingImages.length > 0) {
+        mediaUuids = [...existingImages];
+      }
+      console.log(files, "its a files")
+      if (files && files.length > 0) {
+        const uploadedMedia = await uploadMultipleMedia(files);
+        mediaUuids = uploadedMedia.map(media => media.id);
+      }
+
+
+      // for (let file of filesData) {
+      //   const signedUrl = await s3Service.getSignedUrl(file.file_path);
+      //   signedUrls.push(signedUrl);
+      // }
+      if (onlySocialId) {
+        const onlySocialsData = await reScheduleOnlySocialsPost(onlySocialId, postSchedule, post ?? response.post, mediaUuids);
+        await repo.scheduleTravelDeal(
+          travel_deal_id,
+          new Date(postSchedule),
+          onlySocialsData.uuid,
+          post
+        );
+      }
+      else {
+
+        const onlySocialsData = await scheduleOnlySocialsPost(postSchedule, post ?? response.post, mediaUuids);
+        await repo.scheduleTravelDeal(
+          travel_deal_id,
+          new Date(postSchedule),
+          onlySocialsData.uuid,
+          post
+        )
+      }
+
+
     }
   };
 }

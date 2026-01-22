@@ -1,6 +1,6 @@
 {
-  "id": "3a3dc3f1-bc4d-4a02-803b-03b431247003",
-  "prevId": "d71af71e-4151-4daa-8d48-05136bdb8ccf",
+  "id": "62d69033-bacc-4277-82e6-38645ca80407",
+  "prevId": "3a3dc3f1-bc4d-4a02-803b-03b431247003",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -6103,6 +6103,18 @@
         },
         "departureAirport": {
           "name": "departureAirport",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "postSchedule": {
+          "name": "postSchedule",
+          "type": "timestamp (0) with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "onlySocialsId": {
+          "name": "onlySocialsId",
           "type": "varchar",
           "primaryKey": false,
           "notNull": false
