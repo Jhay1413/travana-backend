@@ -32,5 +32,6 @@ router.put('/:id/generate-post', quoteController.generatePostContent);
 
 // Quote deletion
 router.delete('/:id', quoteController.deleteQuote);
+router.delete('/travel-deal/:id', quoteController.deleteTravelDeal);
 
 export default router;

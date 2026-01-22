@@ -156,6 +156,7 @@ export type QuoteRepo = {
     country_id?: string,
     package_type_id?: string,
     min_price?: string,
+    scheduleFilter?: string,
     max_price?: string,
     start_date?: string,
     end_date?: string,
@@ -179,6 +180,7 @@ export type QuoteRepo = {
       totalPages: number;
     };
   }>;
+  deleteTravelDeal: (travel_deal_id: string) => Promise<void>;
   setFutureDealDate: (id: string, future_deal_date: string) => Promise<void>;
   unsetFutureDealDate: (id: string, status?: string) => Promise<void>;
   fetchHolidayTypeByQuoteId: (quote_id: string) => Promise<string | undefined>;
@@ -200,6 +202,10 @@ export type QuoteRepo = {
 };
 
 export const quoteRepo: QuoteRepo = {
+  deleteTravelDeal: async (travel_deal_id) => {
+    console.log("Deleting travel deal with ID:", travel_deal_id);
+    await db.delete(travelDeal).where(eq(travelDeal.id, travel_deal_id));
+  },
   fetchTravelDealById: async (travel_deal_id) => {
     const response = await db.query.travelDeal.findFirst({
       where: eq(travelDeal.id, travel_deal_id),
@@ -220,7 +226,7 @@ export const quoteRepo: QuoteRepo = {
       quote_id: response.quote_id || '',
     } : null;
   },
-  scheduleTravelDeal: async (travel_deal_id, postSchedule, onlySocialsId,post) => {
+  scheduleTravelDeal: async (travel_deal_id, postSchedule, onlySocialsId, post) => {
     await db.update(travelDeal).set({ postSchedule: postSchedule, onlySocialsId: onlySocialsId, post: post }).where(eq(travelDeal.id, travel_deal_id));
   },
   fetchTravelDealByQuoteId: async (quote_id) => {
@@ -230,7 +236,7 @@ export const quoteRepo: QuoteRepo = {
     })
     return response ? {
       id: response.id,
-      onlySocialId: response.onlySocialsId ,
+      onlySocialId: response.onlySocialsId,
       scheduledPostDate: response.postSchedule ? new Date(response.postSchedule).toISOString() : null,
       scheduledPostTime: response.postSchedule ? format(new Date(response.postSchedule), 'HH:mm') : null,
 
@@ -3866,8 +3872,22 @@ export const quoteRepo: QuoteRepo = {
       throw new AppError('Failed to delete quote', true, 500);
     }
   },
-  fetchFreeQuotesInfinite: async (search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit) => {
+  fetchFreeQuotesInfinite: async (
+    search,
+    country_id,
+    package_type_id,
+    min_price,
+    schedule_filter, // NEW PARAMETER: 'today' | 'this_week' | 'this_month'
+    max_price,
+    start_date,
+    end_date,
+    
+    cursor,
+    limit
+  ) => {
     try {
+
+      console.log(schedule_filter);
       const pageSize = limit || 10;
 
       const query = db
@@ -3898,13 +3918,13 @@ export const quoteRepo: QuoteRepo = {
           hotel: sql<string[]>`array_agg(DISTINCT ${accomodation_list.name})`.as('hotel'),
 
           departure_airport: sql<string>`(
-            SELECT airport_table.airport_name 
-            FROM quote_flights 
-            LEFT JOIN airport_table ON quote_flights.departing_airport_id = airport_table.id 
-            WHERE quote_flights.quote_id = quote_table.id 
-            ORDER BY quote_flights.departure_date_time ASC 
-            LIMIT 1
-          )`.as('departure_airport'),
+          SELECT airport_table.airport_name 
+          FROM quote_flights 
+          LEFT JOIN airport_table ON quote_flights.departing_airport_id = airport_table.id 
+          WHERE quote_flights.quote_id = quote_table.id 
+          ORDER BY quote_flights.departure_date_time ASC 
+          LIMIT 1
+        )`.as('departure_airport'),
           transfers: quote.transfer_type,
           postCount: db.$count(travelDeal, eq(travelDeal.quote_id, quote.id))
         })
@@ -3941,6 +3961,55 @@ export const quoteRepo: QuoteRepo = {
         )
         : [];
 
+      // ✅ NEW: Schedule date filter logic
+      const getScheduleDateFilter = () => {
+        if (!schedule_filter) return undefined;
+
+        const now = new Date();
+
+        switch (schedule_filter) {
+          case 'today':
+            const todayStart = new Date(now);
+            todayStart.setHours(0, 0, 0, 0);
+            const todayEnd = new Date(now);
+            todayEnd.setHours(23, 59, 59, 999);
+
+            return and(
+              gte(travelDeal.postSchedule, todayStart),
+              lte(travelDeal.postSchedule, todayEnd)
+            );
+
+          case 'this_week':
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            return and(
+              gte(travelDeal.postSchedule, startOfWeek),
+              lte(travelDeal.postSchedule, endOfWeek)
+            );
+
+          case 'this_month':
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            startOfMonth.setHours(0, 0, 0, 0);
+
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            endOfMonth.setHours(23, 59, 59, 999);
+
+            return and(
+              gte(travelDeal.postSchedule, startOfMonth),
+              lte(travelDeal.postSchedule, endOfMonth)
+            );
+
+          default:
+            return undefined;
+        }
+      };
+
       const filters = [
         ...searchOrs,
         package_type_id ? eq(quote.holiday_type_id, package_type_id) : undefined,
@@ -3949,7 +4018,8 @@ export const quoteRepo: QuoteRepo = {
         max_price ? lte(quote.sales_price, max_price) : undefined,
         start_date ? gte(quote.travel_date, format(new Date(start_date), "yyyy-MM-dd")) : undefined,
         end_date ? lte(quote.travel_date, format(new Date(end_date), "yyyy-MM-dd")) : undefined,
-        cursor ? gt(quote.id, cursor) : undefined, // cursor-based pagination
+        getScheduleDateFilter(), // ✅ NEW: Add schedule date filter
+        cursor ? gt(quote.id, cursor) : undefined,
       ].filter(Boolean);
 
       // ✅ Always include base conditions
@@ -3957,13 +4027,15 @@ export const quoteRepo: QuoteRepo = {
       const whereClause = filters.length
         ? and(...baseConditions, ...filters)
         : and(...baseConditions);
+
       const primaryOrder = (start_date || end_date)
-        ? asc(quote.travel_date)        // sort by travel_date if filtering by date
-        : desc(quote.date_created);     // default sort
+        ? asc(quote.travel_date)
+        : desc(quote.date_created);
 
       // Apply query with cursor-based pagination and tie-breaker
       const response = await query
-        .where(whereClause).groupBy(
+        .where(whereClause)
+        .groupBy(
           quote.id,
           package_type.name,
           quote.title,
@@ -3989,7 +4061,7 @@ export const quoteRepo: QuoteRepo = {
           travelDeal.onlySocialsId,
           travelDeal.postSchedule
         )
-        .orderBy(primaryOrder, asc(quote.id)) // tie-breaker for consistent pagination
+        .orderBy(primaryOrder, asc(quote.id))
         .limit(pageSize + 1);
 
 

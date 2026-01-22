@@ -16,10 +16,11 @@ import { travelDealSchema } from '../types/modules/transaction';
 import { formatPost, formatPostHTML } from '../lib/formatPost';
 import { generateNextDealId } from '../lib/generateId';
 import { format, parseISO } from 'date-fns';
-import { fetchOnlySocialDeal, reScheduleOnlySocialsPost, scheduleOnlySocialsPost, uploadMultipleMedia } from '../helpers/schedule-post';
+import { deleteOnlySocialsPost, fetchOnlySocialDeal, reScheduleOnlySocialsPost, scheduleOnlySocialsPost, uploadMultipleMedia } from '../helpers/schedule-post';
 import { S3Service, s3Service } from '@/lib/s3';
 import { mediaSchema } from '../types/modules/only-socials';
 import { cleanHtmlString } from '../helpers/clean-up-string';
+import { response } from 'express';
 
 export const quoteService = (
   repo: QuoteRepo,
@@ -36,6 +37,14 @@ export const quoteService = (
 
 ) => {
   return {
+
+    deleteTravelDeal: async (travel_deal_id: string, onlySocialId: string) => {
+      if(!onlySocialId) return await repo.deleteTravelDeal(travel_deal_id);
+      await deleteOnlySocialsPost(onlySocialId);
+
+      return await repo.deleteTravelDeal(travel_deal_id);
+
+    },
     convertQuote: async (transaction_id: string, data: z.infer<typeof quote_mutate_schema>, user_id: string) => {
       // const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
 
@@ -336,13 +345,14 @@ export const quoteService = (
       country_id?: string,
       package_type_id?: string,
       min_price?: string,
+      schedule_filter?: string,
       max_price?: string,
       start_date?: string,
       end_date?: string,
       cursor?: string,
       limit?: number
     ) => {
-      return await repo.fetchFreeQuotesInfinite(search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit);
+      return await repo.fetchFreeQuotesInfinite(search, country_id, package_type_id, min_price,schedule_filter, max_price, start_date, end_date, cursor, limit);
     },
     updateQuoteExpiry: async (id: string, date_expiry: string) => {
       return await repo.updateQuoteExpiry(id, date_expiry);
@@ -380,7 +390,7 @@ export const quoteService = (
 
 
       const response = await repo.fetchTravelDealByQuoteId(quote_id);
-      const post2return = post ? post  : response?.post
+      const post2return = post ? post : response?.post
       return {
         ...response,
         post: post2return,

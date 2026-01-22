@@ -15,6 +15,21 @@ export const aiService = AiService(); // singleton instance
 const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService, s3Service);
 
 export const quoteController = {
+
+  deleteTravelDeal: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { onlySocialId } = req.query;
+
+      console.log(onlySocialId, "controller onlySocialId")
+      await service.deleteTravelDeal(id, onlySocialId as string);
+      res.status(200).json({ message: 'Travel deal deleted successfully' });
+    }
+    catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
   convertQuote: async (req: Request, res: Response) => {
     try {
       const data = req.body;
@@ -188,23 +203,26 @@ export const quoteController = {
   },
   fetchFreeQuotesInfinite: async (req: Request, res: Response) => {
     try {
-      const { search, country_id, package_type_id, min_price, max_price, start_date, end_date, cursor, limit } = req.query as {
+      const { search, country_id, package_type_id, min_price,schedule_filter, max_price, start_date, end_date, cursor, limit } = req.query as {
         search?: string;
         country_id?: string;
         package_type_id?: string;
         min_price?: string;
+        schedule_filter?: string;
         max_price?: string;
         start_date?: string;
         end_date?: string;
         cursor?: string;
         limit?: string;
       };
+      console.log(schedule_filter, "controller schedule_filter")
       const num_limit = limit ? Number(limit) : 10;
       const quote = await service.fetchFreeQuotesInfinite(
         search,
         country_id,
         package_type_id,
         min_price,
+        schedule_filter,
         max_price,
         start_date,
         end_date,

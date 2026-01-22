@@ -16,7 +16,38 @@ interface MediaUploadResponse {
   is_video: boolean;
   created_at: string;
 }
+export const deleteOnlySocialsPost = async (onlySocialsPostId: string) => {
 
+  const API_URL = `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE}/posts/${onlySocialsPostId}`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${process.env.ONLY_SOCIALS}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      console.error('OnlySocials API error:', data);
+      throw new AppError(
+        `OnlySocials API error: ${data} || 'Failed to delete post'}`,
+        true,
+        response.status
+      );
+    }
+    return;
+
+  } catch (error) {
+    if (error instanceof AppError) throw error;
+    throw new AppError(
+      `Failed to delete post on OnlySocials: ${error instanceof Error ? error.message : String(error)}`,
+      true,
+      500
+    );
+  }
+}
 
 export const fetchOnlySocialDeal = async (onlySocialId: string) => {
 
@@ -137,7 +168,7 @@ export const reScheduleOnlySocialsPost = async (onlySocialsPostId: string, newPo
   const scheduleTime = format(scheduleDateTime, 'HH:mm');
   const ACCOUNT_ID = 44362;
 
-  
+
   const API_URL = `https://app.onlysocial.io/os/api/${process.env.ONLY_SOCIALS_WORKSPACE}/posts/${onlySocialsPostId}`;
 
   try {
