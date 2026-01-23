@@ -318,9 +318,9 @@ export const travelDealSchema = z.object({
   subtitle: z.string().optional().default(""),
   travelDate: z.string().min(1, "Travel date is required"),
   nights: z.string().min(1, "Number of nights is required"),
-  boardBasis: z.string().min(1, "Board basis is required"),
-  departureAirport: z.string().min(1, "Departure airport is required"),
-  luggageTransfers: z.string().min(1, "Luggage & transfers info is required"),
+  boardBasis: z.string().optional(),
+  departureAirport: z.string().optional(),
+  luggageTransfers: z.string().optional(),
   price: z.string().optional().default(""),
   destination: z.string().optional()
 });
