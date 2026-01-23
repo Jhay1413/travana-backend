@@ -3881,7 +3881,7 @@ export const quoteRepo: QuoteRepo = {
     max_price,
     start_date,
     end_date,
-    
+
     cursor,
     limit
   ) => {
@@ -3937,7 +3937,13 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(park, eq(lodges.park_id, park.id))
         .leftJoin(cottages, eq(quote.cottage_id, cottages.id))
         .leftJoin(quote_cruise, eq(quote_cruise.quote_id, quote.id))
-        .leftJoin(quote_accomodation, eq(quote_accomodation.quote_id, quote.id))
+        .leftJoin(
+          quote_accomodation,
+          and(
+            eq(quote_accomodation.quote_id, quote.id),
+            eq(quote_accomodation.is_primary, true)
+          )
+        )
         .leftJoin(board_basis, eq(quote_accomodation.board_basis_id, board_basis.id))
         .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
@@ -4021,12 +4027,12 @@ export const quoteRepo: QuoteRepo = {
         getScheduleDateFilter(), // ✅ NEW: Add schedule date filter
         cursor ? gt(quote.id, cursor) : undefined,
       ].filter(Boolean);
-
+      console.log(filters.length, "filter Length")
       // ✅ Always include base conditions
-      const baseConditions = [eq(quote_accomodation.is_primary, true), eq(quote.isQuoteCopy, false)];
-      const whereClause = filters.length
+      const baseConditions = [eq(quote.isQuoteCopy, false)];
+      const whereClause = filters.length > 0
         ? and(...baseConditions, ...filters)
-        : and(...baseConditions);
+        : and(...baseConditions); 
 
       const primaryOrder = (start_date || end_date)
         ? asc(quote.travel_date)
@@ -4063,6 +4069,7 @@ export const quoteRepo: QuoteRepo = {
         )
         .orderBy(primaryOrder, asc(quote.id))
         .limit(pageSize + 1);
+
 
 
       const accomIds = response

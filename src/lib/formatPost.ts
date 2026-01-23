@@ -31,9 +31,9 @@ ${subtitleEmoji} ${subtitle} ${subtitleEmoji}<br>
 <br>
 📅 ${new Date(deal.travelDate).toLocaleDateString()}<br>
 🌙 ${deal.nights} Nights<br>
-🍽️ ${deal.boardBasis}<br>
-✈️ ${deal.departureAirport}<br>
-🧳 ${deal.luggageTransfers} 🚌<br>
+${deal.boardBasis && deal.boardBasis != "N/A" ? `🍽️ ${deal.boardBasis}<br>` : ''}
+${deal.departureAirport && deal.departureAirport != "N/A" ? `✈️ ${deal.departureAirport}<br>` : ''}
+${deal.luggageTransfers && deal.luggageTransfers != "N/A" ? `🧳 ${deal.luggageTransfers} 🚌<br>` : ''}
 <br>
 ${priceSection}<br>
 <br>
