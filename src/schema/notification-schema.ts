@@ -1,4 +1,4 @@
-import { boolean, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+  import { boolean, integer, pgTable, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { usersTable } from './user-schema';
 import { clientTable } from './client-schema';
@@ -32,11 +32,13 @@ export const notification = pgTable('notification', {
   user_id_v2: text().references(() => user.id, { onDelete: 'cascade' }),
   client_id: uuid().references(() => clientTable.id, { onDelete: 'cascade' }),
   message: varchar(),
+  hoursDue: integer().default(0),
   date_created: timestamp().defaultNow(),
   is_read: boolean().default(false),
   date_read: timestamp(),
   reference_id: varchar(),
   due_date: timestamp(),
+  date_updated: timestamp().defaultNow(),
 });
 
 export const notification_relations = relations(notification, ({ one }) => ({

@@ -1,9 +1,10 @@
 import cron from 'node-cron';
 import { db } from '../db/db';
 import { task } from '../schema/task-schema';
-import { and, gte, lte, ne, sql, notInArray } from 'drizzle-orm';
+import { and, gte, lte, ne, sql, notInArray, eq } from 'drizzle-orm';
 import { emitToUser } from './socket-handler';
 import { taskSnoozeRepo } from '../repository/task-snooze.repo';
+import { notification } from '../schema/notification-schema';
 
 /**
  * Task Reminder Cron Job
@@ -53,6 +54,7 @@ export const initializeTaskReminderCron = () => {
               user: true,
             },
           });
+
 
           if (taskItem && snoozedTask.user_id) {
             const reminderData = {
@@ -125,6 +127,40 @@ export const initializeTaskReminderCron = () => {
             const hoursOverdue = isOverdue
               ? Math.floor((now.getTime() - new Date(taskItem.due_date).getTime()) / (60 * 60 * 1000))
               : 0;
+
+            const notificationData = {
+              type: "task_deadline",
+              user_id_v2: recipientId,
+              hoursDue: hoursOverdue,
+              message: isOverdue
+                ? hoursOverdue > 0
+                  ? `Task "${taskItem.title || 'Untitled'}" is ${hoursOverdue} hour(s) overdue!`
+                  : `Task "${taskItem.title || 'Untitled'}" is overdue!`
+                : `Task "${taskItem.title || 'Untitled'}" is due soon!`,
+              reference_id: taskItem.id,
+              due_date: taskItem.due_date.toISOString(),
+            }
+
+            const response = await db.query.notification.findFirst({
+              where: and(
+                eq(notification.reference_id, taskItem.id),
+              )
+            });
+            if (response) {
+              await db.update(notification).set({
+                hoursDue: notificationData.hoursDue,
+                message: notificationData.message,
+                due_date: new Date(notificationData.due_date),
+                is_read: false,
+              }).where(eq(notification.id, response.id));
+            } else {
+
+              await db.insert(notification).values({
+                ...notificationData,
+                due_date: new Date(notificationData.due_date),
+              });
+            }
+
 
             const reminderData = {
               taskId: taskItem.id,

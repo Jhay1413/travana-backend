@@ -23,6 +23,7 @@ import { referral } from '../schema/referral-schema';
 import { ReferralService } from '../service/referrals.service';
 import { referralRepo } from '../repository/referrals.repo';
 import onlySocialsRoutes from './only-socials.routes';
+import notificationRoutes from './notification.routes';
 
 const router = Router();
 
@@ -45,7 +46,7 @@ router.use('/chat', chatRoutes);
 router.use('/auth-options', authRoutes);
 router.use('/ai', aiRoutes);
 router.use('/only-socials', onlySocialsRoutes);
-
+router.use('/notifications', notificationRoutes);
 
 router.get('/org/list', async (req, res) => {
   const session = await auth.api.getSession({
