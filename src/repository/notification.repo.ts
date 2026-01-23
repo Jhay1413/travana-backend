@@ -3,6 +3,7 @@ import { db } from '../db/db';
 import { notification, notification_token } from '../schema/notification-schema';
 import { and, eq } from 'drizzle-orm';
 import z from 'zod';
+import { format } from 'date-fns';
 
 export type NotificationRepo = {
   insertNotification: (
@@ -73,6 +74,7 @@ export const notificationRepo: NotificationRepo = {
         date_created: true,
         date_updated: true,
       },
+      orderBy: (notification, { desc }) => [desc(notification.date_updated)],
     });
     return notifications.map((data) => ({
       id: data.id,
@@ -85,8 +87,8 @@ export const notificationRepo: NotificationRepo = {
       agent_initials: null,
       due_date: data.due_date ? data.due_date.toISOString() : null,
       is_read: data.is_read,
-      date: data.date_created ? data.date_created.toISOString().split('T')[0] : null,
-      time: data.date_created ? data.date_created.toISOString().split('T')[1] : null,
+      date: data.due_date ? format(data.due_date, 'yyyy-MM-dd') : null,
+      time: data.due_date ? format(data.due_date, 'h:mmaaa') : null, // "4:30pm" or "4:30am"
 
     }));
   },
