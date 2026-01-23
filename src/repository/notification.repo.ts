@@ -12,7 +12,8 @@ export type NotificationRepo = {
     type: string,
     reference_id: string,
     client_id?: string,
-    due_date?: string | null
+    due_date?: string | null,
+    hoursDue?: number
   ) => Promise<void>;
   readNotification: (notification_id: string) => Promise<void>;
   clearAllNotifications: (user_id: string) => Promise<void>;
@@ -26,11 +27,12 @@ export const notificationRepo: NotificationRepo = {
   clearAllNotifications: async (user_id) => {
     await db.delete(notification).where(eq(notification.user_id_v2, user_id));
   },
-  insertNotification: async (user_id, message, type, reference_id, client_id, due_date) => {
+  insertNotification: async (user_id, message, type, reference_id, client_id, due_date, hoursDue) => {
     await db.insert(notification).values({
       user_id_v2: user_id,
       message: message,
       type: type,
+      hoursDue: hoursDue,
       reference_id: reference_id,
       due_date: due_date ? new Date(due_date) : null,
       client_id: client_id,

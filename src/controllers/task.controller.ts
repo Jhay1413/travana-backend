@@ -1,7 +1,9 @@
 import { taskService } from "../service/task.service";
 import { taskRepo } from "../repository/task.repo";
 import { Request, Response } from "express";
-const service = taskService(taskRepo);
+import { notificationRepo } from "../repository/notification.repo";
+import { userRepo } from "../repository/user.repo";
+const service = taskService(taskRepo,notificationRepo,userRepo);
 
 export const taskController = {
     insertTask: async (req: Request, res: Response) => {

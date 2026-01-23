@@ -10,7 +10,7 @@ import { z } from "zod";
 
 
 export type TaskRepo = {
-    insertTask: (data: z.infer<typeof taskMutationSchema>) => Promise<void>,
+    insertTask: (data: z.infer<typeof taskMutationSchema>) => Promise<{ id: string }>,
     updateTask: (id: string, data: z.infer<typeof taskMutationSchema>) => Promise<void>,
     fetchTaskByAgent: (agent_id: string) => Promise<z.infer<typeof taskQuerySchema>[]>,
     fetchTaskByClient: (client_id: string) => Promise<z.infer<typeof taskQuerySchema>[]>,
@@ -64,7 +64,7 @@ export type TaskRepo = {
 
 export const taskRepo: TaskRepo = {
     insertTask: async (data) => {
-        await db
+        const response = await db
             .insert(task)
             .values({
                 user_id: data.agent_id,
@@ -82,6 +82,10 @@ export const taskRepo: TaskRepo = {
                 status: data.status,
             })
             .returning({ id: task.id });
+
+        return {
+            id: response[0].id
+        };
 
     },
     updateTask: async (id, data) => {
@@ -509,7 +513,7 @@ export const taskRepo: TaskRepo = {
     },
     fetchTaskByTransaction: async (transaction_id) => {
         const response = await db.query.task.findMany({
-            where: and(eq(task.transaction_id, transaction_id),ne(task.status,"Completed")),
+            where: and(eq(task.transaction_id, transaction_id), ne(task.status, "Completed")),
             with: {
                 user: true,
                 client: true,

@@ -3,10 +3,13 @@ import { S3Service } from "../lib/s3";
 import { TicketsRepo } from "../repository/tickets.repo";
 import { ticketMutationSchema, ticketReplyMutationSchema, TicketsFilters } from "../types/modules/ticket";
 import z from "zod";
-import { emitTicketCreated, emitTicketAssigned, emitTicketStatusUpdated, emitTicketReplyAdded } from "../lib/socket-handler";
+import { emitTicketCreated, emitTicketAssigned, emitTicketStatusUpdated, emitTicketReplyAdded, emitToUser } from "../lib/socket-handler";
+import { response } from "express";
+import { NotificationRepo } from "../repository/notification.repo";
+import { UserRepo } from "../repository/user.repo";
 
 
-export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
+export const TicketService = (repo: TicketsRepo, s3Service: S3Service, notificationRepo: NotificationRepo, userRepo: UserRepo) => {
     return {
         insertTicket: async (data: z.infer<typeof ticketMutationSchema>, file?: Express.Multer.File[]) => {
             let filesData: Array<{
@@ -19,6 +22,13 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
                 filesData = await s3Service.uploadTicketFile(file);
 
             }
+            const user = await userRepo.fetchUserById(data.created_by || '');
+            if (!user) {
+                throw new AppError('User not found', true, 404);
+            }
+
+
+            console.log(data)
             const ticket_data = {
                 ticket_type: data.ticket_type,
                 category: data.category,
@@ -39,14 +49,30 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
 
             const ticketId = await repo.insertTicket({ ...ticket_data });
 
-            // Emit WebSocket notification
-            emitTicketCreated({
-                ticketId: ticketId,
-                agentId: data.agent_id || '',
-                subject: data.subject,
-                createdBy: data.created_by || '',
-            });
+            console.log(data.due_date);
+            const notificationData = {
+                type: "ticket_deadline",
+                user_id_v2: data.agent_id,
+                message: `${user.firstName || 'A user'} has created a new ticket assigned to you`,
+                reference_id: ticketId,
+                due_date: data.due_date,
+                client_id: data.client_id,
+            }
 
+            if (!notificationData.user_id_v2) {
+                throw new AppError('Agent ID is required for notification', true, 400);
+            }
+            await notificationRepo.insertNotification(
+                notificationData.user_id_v2,
+                notificationData.message,
+                notificationData.type,
+                notificationData.reference_id,
+                notificationData.client_id,
+                notificationData.due_date,
+            );
+
+            // Emit WebSocket notification
+            emitToUser(notificationData.user_id_v2, 'ticket_reminder', undefined);
             return ticketId;
         },
         fetchTickets: async (filters: TicketsFilters) => {
@@ -88,7 +114,7 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
         updateTicketStatus: async (id: string, status: string, updatedBy?: string) => {
             // Get ticket details first to get agent and creator info
             const ticketDetails = await repo.fetchTickeyById(id);
-            
+
             await repo.updateTicketStatus(id, status);
 
             // Emit WebSocket notification
@@ -158,7 +184,7 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service) => {
                     file_size: file.file_size.toString(),
                 })) : [],
             };
-            
+
             const replyId = await repo.insertTicketReplyFile(reply_data);
 
             // Get ticket details to notify relevant parties

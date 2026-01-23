@@ -132,6 +132,7 @@ export const initializeTaskReminderCron = () => {
               type: "task_deadline",
               user_id_v2: recipientId,
               hoursDue: hoursOverdue,
+              client_id: taskItem.client_id,
               message: isOverdue
                 ? hoursOverdue > 0
                   ? `Task "${taskItem.title || 'Untitled'}" is ${hoursOverdue} hour(s) overdue!`

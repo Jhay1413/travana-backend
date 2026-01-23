@@ -1,11 +1,47 @@
+import { UserRepo } from "../repository/user.repo";
+import { emitToUser } from "../lib/socket-handler";
+import { NotificationRepo } from "../repository/notification.repo";
 import { TaskRepo } from "../repository/task.repo";
 import { taskMutationSchema } from "../types/modules/agent/mutation";
 import z from "zod";
 
-export const taskService = (taskRepo: TaskRepo) => {
+export const taskService = (taskRepo: TaskRepo, notificationRepo: NotificationRepo, userRepo: UserRepo) => {
     return {
         insertTask: async (data: z.infer<typeof taskMutationSchema>) => {
-            return await taskRepo.insertTask(data);
+            const now = new Date();
+
+            const user = await userRepo.fetchUserById(data.assigned_by_id || '');
+            const response = await taskRepo.insertTask(data);
+            const isOverdue = new Date(data.due_date) < now;
+            const hoursOverdue = isOverdue
+                ? Math.floor((now.getTime() - new Date(data.due_date).getTime()) / (60 * 60 * 1000))
+                : 0;
+
+
+
+            const notificationData = {
+                type: "task_deadline",
+                user_id_v2: data.agent_id,
+                hoursDue: hoursOverdue,
+                message: `${user?.firstName || 'A user'} has created a new task assigned to you`,
+                reference_id: response.id,
+                due_date: data.due_date,
+                client_id: data.client_id,
+            }
+            await notificationRepo.insertNotification(
+                notificationData.user_id_v2,
+                notificationData.message,
+                notificationData.type,
+                notificationData.reference_id,
+                notificationData.client_id,
+                notificationData.due_date,
+                notificationData.hoursDue,
+            );
+
+            emitToUser(notificationData.user_id_v2, 'task_reminder', undefined);
+            return response;
+
+
         },
         updateTask: async (id: string, data: z.infer<typeof taskMutationSchema>) => {
             return await taskRepo.updateTask(id, data);

@@ -4,8 +4,10 @@ import { s3Service } from "../lib/s3";
 import { Request, Response } from "express";
 import { auth } from "../lib/auth";
 import { fromNodeHeaders } from "better-auth/node";
+import { notificationRepo } from "../repository/notification.repo";
+import { userRepo } from "../repository/user.repo";
 
-const service = TicketService(ticketsRepo, s3Service);
+const service = TicketService(ticketsRepo, s3Service,notificationRepo,userRepo);
 
 export const ticketController = {
     insertTicketWitFiles: async (req: Request, res: Response) => {
