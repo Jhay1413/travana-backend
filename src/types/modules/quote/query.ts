@@ -61,6 +61,7 @@ export const quoteBasedSchema = z.object({
   service_charge: z.number(),
   num_of_nights: z.number(),
   quote_type: z.string().optional(),
+  has_multiple_quotes: z.boolean().optional(),
   quote_status: z.string().optional(),
   flights: z.array(flight).optional(),
   hotels: z.array(hotels).optional(),

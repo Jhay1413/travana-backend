@@ -1936,6 +1936,14 @@ export const quoteRepo: QuoteRepo = {
       let query = db
         .select({
           ...selected_fields,
+          has_multiple_quotes: sql`
+          (
+            SELECT COUNT(*) > 1 
+            FROM quote_table AS qt 
+            WHERE qt.transaction_id = quote_table.transaction_id 
+              AND quote_table.transaction_id IS NOT NULL
+          )
+        `.as('has_multiple_quotes'),
 
           overall_commission: sql`
             COALESCE((SELECT SUM(commission) FROM quote_flights WHERE quote_flights.quote_id = quote_table.id), 0)
@@ -2133,6 +2141,7 @@ export const quoteRepo: QuoteRepo = {
 
       const payload = {
         ...data,
+        
         cruise_date: data?.cruise_date ? new Date(data.cruise_date) : null,
         post_cruise_stay: data?.post_cruise_stay,
         pre_cruise_stay: data?.pre_cruise_stay,
@@ -4032,7 +4041,7 @@ export const quoteRepo: QuoteRepo = {
       const baseConditions = [eq(quote.isQuoteCopy, false)];
       const whereClause = filters.length > 0
         ? and(...baseConditions, ...filters)
-        : and(...baseConditions); 
+        : and(...baseConditions);
 
       const primaryOrder = (start_date || end_date)
         ? asc(quote.travel_date)
