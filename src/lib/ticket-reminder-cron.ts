@@ -38,65 +38,66 @@ export const initializeTicketReminderCron = () => {
       const sixMinutesFromNow = new Date(now.getTime() + 6 * 60 * 1000);
 
       // Check for snoozed tickets that need to be reminded
-      const snoozedTicketsDue = await ticketSnoozeRepo.getSnoozedTicketsDue();
+      // const snoozedTicketsDue = await ticketSnoozeRepo.getSnoozedTicketsDue();
 
-      if (snoozedTicketsDue.length > 0) {
-        console.log(`Found ${snoozedTicketsDue.length} snoozed ticket(s) to remind`);
+      // if (snoozedTicketsDue.length > 0) {
+      //   console.log(`Found ${snoozedTicketsDue.length} snoozed ticket(s) to remind`);
 
-        for (const snoozedTicket of snoozedTicketsDue) {
-          // Fetch the ticket details using the ticket_id
-          const ticketItem = await db.query.ticket.findFirst({
-            where: (t, { eq }) => eq(t.id, snoozedTicket.ticket_id),
-            with: {
-              client: true,
-              created_by_user: true,
-              user: true,
-              agent: true,
-            },
-          });
+      //   for (const snoozedTicket of snoozedTicketsDue) {
+      //     // Fetch the ticket details using the ticket_id
+      //     const ticketItem = await db.query.ticket.findFirst({
+      //       where: (t, { eq }) => eq(t.id, snoozedTicket.ticket_id),
+      //       with: {
+      //         client: true,
+      //         created_by_user: true,
+      //         user: true,
+      //         agent: true,
+      //       },
+      //     });
 
-          if (ticketItem && snoozedTicket.user_id) {
-            const reminderData = {
-              ticketId: ticketItem.id,
-              ticketNumber: ticketItem.ticket_id || 'N/A',
-              subject: ticketItem.subject || 'Ticket Reminder',
-              description: ticketItem.description || '',
-              dueDate: ticketItem.due_date?.toISOString() || '',
-              priority: ticketItem.priority || 'normal',
-              status: ticketItem.status || 'open',
-              clientId: ticketItem.client_id,
-              dealId: ticketItem.deal_id,
-              transactionType: ticketItem.transaction_type,
-              clientName: ticketItem.client
-                ? `${ticketItem.client.firstName || ''} ${ticketItem.client.surename || ''}`.trim()
-                : null,
-              createdBy: ticketItem.created_by_user
-                ? `${ticketItem.created_by_user.firstName || ''} ${ticketItem.created_by_user.lastName || ''}`.trim()
-                : null,
-              message: ticketItem.due_date && new Date(ticketItem.due_date) < now
-                ? `Ticket #${ticketItem.ticket_id || 'N/A'} "${ticketItem.subject || 'Untitled'}" is still overdue!`
-                : `Reminder: Ticket #${ticketItem.ticket_id || 'N/A'} "${ticketItem.subject || 'Untitled'}" is due soon!`,
-            };
+      //     if (ticketItem && snoozedTicket.user_id) {
+      //       const reminderData = {
+      //         ticketId: ticketItem.id,
+      //         ticketNumber: ticketItem.ticket_id || 'N/A',
+      //         subject: ticketItem.subject || 'Ticket Reminder',
+      //         description: ticketItem.description || '',
+      //         dueDate: ticketItem.due_date?.toISOString() || '',
+      //         priority: ticketItem.priority || 'normal',
+      //         status: ticketItem.status || 'open',
+      //         clientId: ticketItem.client_id,
+      //         dealId: ticketItem.deal_id,
+      //         transactionType: ticketItem.transaction_type,
+      //         clientName: ticketItem.client
+      //           ? `${ticketItem.client.firstName || ''} ${ticketItem.client.surename || ''}`.trim()
+      //           : null,
+      //         createdBy: ticketItem.created_by_user
+      //           ? `${ticketItem.created_by_user.firstName || ''} ${ticketItem.created_by_user.lastName || ''}`.trim()
+      //           : null,
+      //         message: ticketItem.due_date && new Date(ticketItem.due_date) < now
+      //           ? `Ticket #${ticketItem.ticket_id || 'N/A'} "${ticketItem.subject || 'Untitled'}" is still overdue!`
+      //           : `Reminder: Ticket #${ticketItem.ticket_id || 'N/A'} "${ticketItem.subject || 'Untitled'}" is due soon!`,
+      //       };
 
-            emitToUser(snoozedTicket.user_id, 'ticket_reminder', reminderData);
-            console.log(`Sent snoozed ticket reminder for ticket ${ticketItem.id} to user ${snoozedTicket.user_id}`);
+      //       emitToUser(snoozedTicket.user_id, 'ticket_reminder', reminderData);
+      //       console.log(`Sent snoozed ticket reminder for ticket ${ticketItem.id} to user ${snoozedTicket.user_id}`);
 
-            // Remove the snooze after sending reminder
-            await ticketSnoozeRepo.removeSnoozedTicket(ticketItem.id, snoozedTicket.user_id);
-          }
-        }
-      }
+      //       // Remove the snooze after sending reminder
+      //       await ticketSnoozeRepo.removeSnoozedTicket(ticketItem.id, snoozedTicket.user_id);
+      //     }
+      //   }
+      // }
 
-      // Get list of currently snoozed ticket IDs to exclude
-      const allSnoozedTickets = await ticketSnoozeRepo.getAllSnoozedTickets();
-      const snoozedTicketIds = allSnoozedTickets.map(s => s.ticket_id);
+      // // Get list of currently snoozed ticket IDs to exclude
+      // const allSnoozedTickets = await ticketSnoozeRepo.getAllSnoozedTickets();
+      // const snoozedTicketIds = allSnoozedTickets.map(s => s.ticket_id);
 
-      // Get ALL tickets that are either upcoming or overdue (no time limit on overdue)
-      // This includes:
-      // 1. Upcoming: Due within the next 5-6 minutes
-      // 2. All overdue tickets (regardless of how long they've been overdue)
-      const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
+      // // Get ALL tickets that are either upcoming or overdue (no time limit on overdue)
+      // // This includes:
+      // // 1. Upcoming: Due within the next 5-6 minutes
+      // // 2. All overdue tickets (regardless of how long they've been overdue)
+      // const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000);
 
+      // Get ALL tickets that are either upcoming or overdue
       const dueAndOverdueTickets = await db.query.ticket.findMany({
         where: and(
           lte(ticket.due_date, now),
@@ -116,9 +117,10 @@ export const initializeTicketReminderCron = () => {
 
       // Process all due and overdue tickets
       if (dueAndOverdueTickets.length > 0) {
-        const unSnoozedTickets = snoozedTicketIds.length > 0
-          ? dueAndOverdueTickets.filter(t => !snoozedTicketIds.includes(t.id))
-          : dueAndOverdueTickets;
+        const unSnoozedTickets = dueAndOverdueTickets
+
+        // Group tickets by user to track counts
+        const ticketsByUser = new Map<string, { overdue: number; due: number }>();
 
         for (const ticketItem of unSnoozedTickets) {
           const recipientId = ticketItem.user_id || ticketItem.agent_id;
@@ -129,6 +131,16 @@ export const initializeTicketReminderCron = () => {
               ? Math.floor((now.getTime() - new Date(ticketItem.due_date).getTime()) / (60 * 60 * 1000))
               : 0;
 
+            // Track counts per user
+            if (!ticketsByUser.has(recipientId)) {
+              ticketsByUser.set(recipientId, { overdue: 0, due: 0 });
+            }
+            const userCounts = ticketsByUser.get(recipientId)!;
+            if (isOverdue) {
+              userCounts.overdue++;
+            } else {
+              userCounts.due++;
+            }
 
             const notificationData = {
               type: "ticket_deadline",
@@ -149,6 +161,7 @@ export const initializeTicketReminderCron = () => {
                 eq(notification.reference_id, ticketItem.id),
               )
             });
+
             if (response) {
               await db.update(notification).set({
                 hoursDue: notificationData.hoursDue,
@@ -157,41 +170,24 @@ export const initializeTicketReminderCron = () => {
                 is_read: false,
               }).where(eq(notification.id, response.id));
             } else {
-
               await db.insert(notification).values({
                 ...notificationData,
                 due_date: new Date(notificationData.due_date),
               });
             }
 
-
-            const reminderData = {
-              ticketId: ticketItem.id,
-              ticketNumber: ticketItem.ticket_id || 'N/A',
-              subject: ticketItem.subject || 'Ticket Reminder',
-              description: ticketItem.description || '',
-              dueDate: ticketItem.due_date.toISOString(),
-              priority: ticketItem.priority || 'normal',
-              status: ticketItem.status || 'open',
-              clientId: ticketItem.client_id,
-              dealId: ticketItem.deal_id,
-              transactionType: ticketItem.transaction_type,
-              clientName: ticketItem.client
-                ? `${ticketItem.client.firstName || ''} ${ticketItem.client.surename || ''}`.trim()
-                : null,
-              createdBy: ticketItem.created_by_user
-                ? `${ticketItem.created_by_user.firstName || ''} ${ticketItem.created_by_user.lastName || ''}`.trim()
-                : null,
-              message: isOverdue
-                ? hoursOverdue > 0
-                  ? `Ticket #${ticketItem.ticket_id || 'N/A'} "${ticketItem.subject || 'Untitled'}" is ${hoursOverdue} hour(s) overdue!`
-                  : `Ticket #${ticketItem.ticket_id || 'N/A'} "${ticketItem.subject || 'Untitled'}" is overdue!`
-                : `Ticket #${ticketItem.ticket_id || 'N/A'} "${ticketItem.subject || 'Untitled'}" is due soon!`,
-            };
-
-            emitToUser(recipientId, 'ticket_reminder', reminderData);
-            console.log(`Sent ticket reminder for ticket ${ticketItem.id} to user ${recipientId}${isOverdue ? ' (overdue)' : ''}`);
+            console.log(`Processed ticket ${ticketItem.id} for user ${recipientId}${isOverdue ? ' (overdue)' : ''}`);
           }
+        }
+
+        // Emit counts to each user after processing all their tickets
+        for (const [userId, counts] of ticketsByUser.entries()) {
+          emitToUser(userId, 'ticket_reminder', {
+            overdueCount: counts.overdue,
+            dueCount: counts.due,
+            totalCount: counts.overdue + counts.due,
+          });
+          console.log(`Sent ticket reminder counts to user ${userId}: ${counts.overdue} overdue, ${counts.due} due`);
         }
       }
     } catch (error) {

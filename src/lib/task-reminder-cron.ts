@@ -38,59 +38,59 @@ export const initializeTaskReminderCron = () => {
       const sixMinutesFromNow = new Date(now.getTime() + 6 * 60 * 1000);
 
       // Check for snoozed tasks that need to be reminded
-      const snoozedTasksDue = await taskSnoozeRepo.getSnoozedTasksDue();
+      // const snoozedTasksDue = await taskSnoozeRepo.getSnoozedTasksDue();
 
-      if (snoozedTasksDue.length > 0) {
-        console.log(`Found ${snoozedTasksDue.length} snoozed task(s) to remind`);
+      // if (snoozedTasksDue.length > 0) {
+      //   console.log(`Found ${snoozedTasksDue.length} snoozed task(s) to remind`);
 
-        for (const snoozedTask of snoozedTasksDue) {
-          // Fetch the task details using the task_id
-          const taskItem = await db.query.task.findFirst({
-            where: (t, { eq }) => eq(t.id, snoozedTask.task_id),
-            with: {
-              client: true,
-              assigned_by_user: true,
-              transaction: true,
-              user: true,
-            },
-          });
+      //   for (const snoozedTask of snoozedTasksDue) {
+      //     // Fetch the task details using the task_id
+      //     const taskItem = await db.query.task.findFirst({
+      //       where: (t, { eq }) => eq(t.id, snoozedTask.task_id),
+      //       with: {
+      //         client: true,
+      //         assigned_by_user: true,
+      //         transaction: true,
+      //         user: true,
+      //       },
+      //     });
 
 
-          if (taskItem && snoozedTask.user_id) {
-            const reminderData = {
-              taskId: taskItem.id,
-              title: taskItem.title || 'Task Reminder',
-              task: taskItem.task || '',
-              dueDate: taskItem.due_date?.toISOString() || '',
-              priority: taskItem.priority || 'normal',
-              status: taskItem.status || 'pending',
-              transactionId: taskItem.transaction_id,
-              clientId: taskItem.client_id,
-              dealId: taskItem.deal_id,
-              transactionType: taskItem.transaction_type,
-              clientName: taskItem.client
-                ? `${taskItem.client.firstName || ''} ${taskItem.client.surename || ''}`.trim()
-                : null,
-              assignedBy: taskItem.assigned_by_user
-                ? `${taskItem.assigned_by_user.firstName || ''} ${taskItem.assigned_by_user.lastName || ''}`.trim()
-                : null,
-              message: taskItem.due_date && new Date(taskItem.due_date) < now
-                ? `Task "${taskItem.title || 'Untitled'}" is still overdue!`
-                : `Reminder: Task "${taskItem.title || 'Untitled'}" is due soon!`,
-            };
+      //     if (taskItem && snoozedTask.user_id) {
+      //       const reminderData = {
+      //         taskId: taskItem.id,
+      //         title: taskItem.title || 'Task Reminder',
+      //         task: taskItem.task || '',
+      //         dueDate: taskItem.due_date?.toISOString() || '',
+      //         priority: taskItem.priority || 'normal',
+      //         status: taskItem.status || 'pending',
+      //         transactionId: taskItem.transaction_id,
+      //         clientId: taskItem.client_id,
+      //         dealId: taskItem.deal_id,
+      //         transactionType: taskItem.transaction_type,
+      //         clientName: taskItem.client
+      //           ? `${taskItem.client.firstName || ''} ${taskItem.client.surename || ''}`.trim()
+      //           : null,
+      //         assignedBy: taskItem.assigned_by_user
+      //           ? `${taskItem.assigned_by_user.firstName || ''} ${taskItem.assigned_by_user.lastName || ''}`.trim()
+      //           : null,
+      //         message: taskItem.due_date && new Date(taskItem.due_date) < now
+      //           ? `Task "${taskItem.title || 'Untitled'}" is still overdue!`
+      //           : `Reminder: Task "${taskItem.title || 'Untitled'}" is due soon!`,
+      //       };
 
-            emitToUser(snoozedTask.user_id, 'task_reminder', reminderData);
-            console.log(`Sent snoozed task reminder for task ${taskItem.id} to user ${snoozedTask.user_id}`);
+      //       emitToUser(snoozedTask.user_id, 'task_reminder', reminderData);
+      //       console.log(`Sent snoozed task reminder for task ${taskItem.id} to user ${snoozedTask.user_id}`);
 
-            // Remove the snooze after sending reminder
-            await taskSnoozeRepo.removeSnoozedTask(taskItem.id, snoozedTask.user_id);
-          }
-        }
-      }
+      //       // Remove the snooze after sending reminder
+      //       await taskSnoozeRepo.removeSnoozedTask(taskItem.id, snoozedTask.user_id);
+      //     }
+      //   }
+      // }
 
       // Get list of currently snoozed task IDs to exclude
-      const allSnoozedTasks = await taskSnoozeRepo.getAllSnoozedTasks();
-      const snoozedTaskIds = allSnoozedTasks.map(s => s.task_id);
+      // const allSnoozedTasks = await taskSnoozeRepo.getAllSnoozedTasks();
+      // const snoozedTaskIds = allSnoozedTasks.map(s => s.task_id);
 
       // Get ALL tasks that are either upcoming or overdue (no time limit on overdue)
       // This includes:
@@ -115,9 +115,10 @@ export const initializeTaskReminderCron = () => {
 
       // Process all due and overdue tasks
       if (dueAndOverdueTasks.length > 0) {
-        const unSnoozedTasks = snoozedTaskIds.length > 0
-          ? dueAndOverdueTasks.filter(t => !snoozedTaskIds.includes(t.id))
-          : dueAndOverdueTasks;
+        const unSnoozedTasks = dueAndOverdueTasks;
+
+        // Group tasks by user to get counts per user
+        const tasksByUser = new Map<string, { overdue: number; due: number }>();
 
         for (const taskItem of unSnoozedTasks) {
           const recipientId = taskItem.user_id || taskItem.agent_id;
@@ -127,6 +128,17 @@ export const initializeTaskReminderCron = () => {
             const hoursOverdue = isOverdue
               ? Math.floor((now.getTime() - new Date(taskItem.due_date).getTime()) / (60 * 60 * 1000))
               : 0;
+
+            // Track counts per user
+            if (!tasksByUser.has(recipientId)) {
+              tasksByUser.set(recipientId, { overdue: 0, due: 0 });
+            }
+            const userCounts = tasksByUser.get(recipientId)!;
+            if (isOverdue) {
+              userCounts.overdue++;
+            } else {
+              userCounts.due++;
+            }
 
             const notificationData = {
               type: "task_deadline",
@@ -147,6 +159,7 @@ export const initializeTaskReminderCron = () => {
                 eq(notification.reference_id, taskItem.id),
               )
             });
+
             if (response) {
               await db.update(notification).set({
                 hoursDue: notificationData.hoursDue,
@@ -155,41 +168,23 @@ export const initializeTaskReminderCron = () => {
                 is_read: false,
               }).where(eq(notification.id, response.id));
             } else {
-
               await db.insert(notification).values({
                 ...notificationData,
                 due_date: new Date(notificationData.due_date),
               });
             }
 
-
-            const reminderData = {
-              taskId: taskItem.id,
-              title: taskItem.title || 'Task Reminder',
-              task: taskItem.task || '',
-              dueDate: taskItem.due_date.toISOString(),
-              priority: taskItem.priority || 'normal',
-              status: taskItem.status || 'pending',
-              transactionId: taskItem.transaction_id,
-              clientId: taskItem.client_id,
-              dealId: taskItem.deal_id,
-              transactionType: taskItem.transaction_type,
-              clientName: taskItem.client
-                ? `${taskItem.client.firstName || ''} ${taskItem.client.surename || ''}`.trim()
-                : null,
-              assignedBy: taskItem.assigned_by_user
-                ? `${taskItem.assigned_by_user.firstName || ''} ${taskItem.assigned_by_user.lastName || ''}`.trim()
-                : null,
-              message: isOverdue
-                ? hoursOverdue > 0
-                  ? `Task "${taskItem.title || 'Untitled'}" is ${hoursOverdue} hour(s) overdue!`
-                  : `Task "${taskItem.title || 'Untitled'}" is overdue!`
-                : `Task "${taskItem.title || 'Untitled'}" is due soon!`,
-            };
-
-            emitToUser(recipientId, 'task_reminder', reminderData);
             console.log(`Sent task reminder for task ${taskItem.id} to user ${recipientId}${isOverdue ? ' (overdue)' : ''}`);
           }
+        }
+
+        // Emit counts to each user after processing all their tasks
+        for (const [userId, counts] of tasksByUser.entries()) {
+          emitToUser(userId, 'task_reminder', {
+            overdueCount: counts.overdue,
+            dueCount: counts.due,
+            totalCount: counts.overdue + counts.due,
+          });
         }
       }
     } catch (error) {
