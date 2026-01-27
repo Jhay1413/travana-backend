@@ -14,4 +14,6 @@ export const notificationQuerySchema = z.object({
   type:z.nullable(z.string()).optional(),
   reference_id:z.nullable(z.string()).optional(),
   client_id:z.nullable(z.string()).optional(),
+  deal_id:z.nullable(z.string()).optional(),
+  transaction_type:z.nullable(z.string()).optional(),
 });

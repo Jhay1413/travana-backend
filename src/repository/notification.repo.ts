@@ -1,7 +1,8 @@
 import { notificationQuerySchema } from '../types/modules/notification';
 import { db } from '../db/db';
 import { notification, notification_token } from '../schema/notification-schema';
-import { and, eq } from 'drizzle-orm';
+import { task } from '../schema/task-schema';
+import { and, eq, inArray } from 'drizzle-orm';
 import z from 'zod';
 import { format } from 'date-fns';
 
@@ -78,6 +79,31 @@ export const notificationRepo: NotificationRepo = {
       },
       orderBy: (notification, { desc }) => [desc(notification.date_updated)],
     });
+    // batch-fetch related tasks for any `task_reminder` notifications
+    const taskReminderIds = Array.from(new Set(notifications
+      .filter((n) => n.type === 'task_deadline' && n.reference_id)
+      .map((n) => n.reference_id as string)));
+
+    const tasks = taskReminderIds.length > 0
+      ? await db.query.task.findMany({
+          where: inArray(task.id, taskReminderIds),
+          columns: {
+            id: true,
+            title: true,
+            task: true,
+            deal_id: true,
+            transaction_type: true,
+            due_date: true,
+            status: true,
+            priority: true,
+            client_id: true,
+            transaction_id: true,
+          },
+        })
+      : [];
+
+    const taskMap = new Map(tasks.map((t) => [t.id, t]));
+
     return notifications.map((data) => ({
       id: data.id,
       user_id: data.user_id_v2,
@@ -91,6 +117,9 @@ export const notificationRepo: NotificationRepo = {
       is_read: data.is_read,
       date: data.due_date ? format(data.due_date, 'yyyy-MM-dd') : null,
       time: data.due_date ? format(data.due_date, 'h:mmaaa') : null, // "4:30pm" or "4:30am"
+      // attach task when this notification references a task
+      deal_id:data.type === 'task_deadline' && data.reference_id ? taskMap.get(data.reference_id)?.deal_id || null : null,
+      transaction_type:data.type === 'task_deadline' && data.reference_id ? taskMap.get(data.reference_id)?.transaction_type || null : null,
 
     }));
   },

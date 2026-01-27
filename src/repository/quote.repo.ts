@@ -215,7 +215,9 @@ export const quoteRepo: QuoteRepo = {
     const response = await db.select({
       scheduledPostDate: travelDeal.postSchedule,
       title: travelDeal.title,
-      lodge_destination: park.city,
+      holiday_type: package_type.name,
+      lodge_destination: lodges.lodge_name,
+      park_location: park.location,
       lodge_name: lodges.lodge_name,
       country: country.country_name,
       destination: destination.name,
@@ -227,6 +229,7 @@ export const quoteRepo: QuoteRepo = {
     })
       .from(quote)
       .innerJoin(travelDeal, eq(quote.id, travelDeal.quote_id))
+      .leftJoin(package_type, eq(quote.holiday_type_id, package_type.id))
       .leftJoin(lodges, eq(quote.lodge_id, lodges.id))
       .leftJoin(park, eq(lodges.park_id, park.id))
       .leftJoin(cottages, eq(quote.cottage_id, cottages.id))
@@ -260,15 +263,13 @@ export const quoteRepo: QuoteRepo = {
         cottages.location,
         quote_cruise.cruise_name,
         accomodation_list.name,
-        quote.price_per_person
+        quote.price_per_person,
+        package_type.name,
+        park.location
       );
 
     return response.map((item) => {
-      const destination =
-        item.lodge_destination ??
-        item.cottage_destination ??
-        item.cruise_destination ??
-        `${item.country}, ${item.destination}`;
+      const destination = item.holiday_type === "Hot Tub Break" ? item.park_location : item.holiday_type == "Cruise Package" ? item.cruise_destination : `${item.country} ${item.destination}`;
 
       return {
         title: item.title,

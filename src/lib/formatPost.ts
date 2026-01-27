@@ -36,10 +36,8 @@ ${deal.departureAirport && deal.departureAirport != "N/A" ? `✈️ ${deal.depar
 ${deal.luggageTransfers && deal.luggageTransfers != "N/A" ? `🧳 ${deal.luggageTransfers} 🚌<br>` : ''}
 <br>
 ${priceSection}<br>
-<br>
 ${resortSummary}<br>
-<br>
-To Book:<br>
+<br>To Book:<br>
 ☎ Call us on 0191 594 7999<br>
 💬 Private message<br>
 📍 Pop in and see us<br>
