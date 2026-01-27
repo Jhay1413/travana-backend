@@ -3982,13 +3982,16 @@ export const quoteRepo: QuoteRepo = {
           id: quote.id,
           holiday_type: package_type.name,
           title: quote.title,
+          park_id: park.id,
           quote_ref: quote.quote_ref,
           num_of_nights: quote.num_of_nights,
           lodge_destination: park.city,
+          park_county: park.county,
+          park_location: park.location,
           lodge_name: lodges.lodge_name,
+          lodge_id: lodges.id,
           country: country.country_name,
           destination: destination.name,
-          park_location: park.location,
           cottage_destination: cottages.location,
           cruise_destination: quote_cruise.cruise_name,
           holiday_destination: accomodation_list.name,
@@ -4133,9 +4136,13 @@ export const quoteRepo: QuoteRepo = {
           quote.id,
           package_type.name,
           quote.title,
+          lodges.id,
           quote.quote_ref,
-          quote.num_of_nights,
+          park.county,
+          park.location,
           park.city,
+          park.id,
+          quote.num_of_nights,
           lodges.lodge_name,
           country.country_name,
           cottages.location,
@@ -4189,12 +4196,11 @@ export const quoteRepo: QuoteRepo = {
 
       const payload = response.map(data => {
         const accomId = data.accomodation_id;
+        if (data.holiday_type === "Hot Tub Break") {
+          console.log(data)
+        }
+        const destination = data.holiday_type === "Hot Tub Break" ? data.park_location : data.holiday_type == "Cruise Package" ? data.cruise_destination : `${data.country} ${data.destination}`
 
-        const destination =
-          data.park_location ??
-          data.cottage_destination ??
-          data.cruise_destination ??
-          `${data.country}, ${data.destination}`;
         return {
           id: data.id,
           onlySocialId: data.onlySocialId,
@@ -4206,7 +4212,8 @@ export const quoteRepo: QuoteRepo = {
           travel_date: data.travel_date ? new Date(data.travel_date).toISOString() : null,
           title: data.title,
           holiday_type: data.holiday_type,
-          hotel: data.lodge_destination || data.cruise_destination || data.hotel[0],
+          hotel: data.holiday_type === "Hot Tub Break" ? data.lodge_name : data.holiday_type == "Cruise Package" ? data.cruise_destination : data.hotel[0],
+
           quote_ref: data.quote_ref,
           num_of_nights: data.num_of_nights.toString(),
           lodge_destination: data.lodge_destination ?? null,
