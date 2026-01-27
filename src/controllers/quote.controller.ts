@@ -15,7 +15,16 @@ export const aiService = AiService(); // singleton instance
 const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService, s3Service);
 
 export const quoteController = {
+  fetchTodaySocialDeals: async (req: Request, res: Response) => {
+    try {
+      const deals = await service.fetchTodaySocialDeals();
+      res.status(200).json(deals);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
 
+  },
   deleteTravelDeal: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -203,7 +212,7 @@ export const quoteController = {
   },
   fetchFreeQuotesInfinite: async (req: Request, res: Response) => {
     try {
-      const { search, country_id, package_type_id, min_price,schedule_filter, max_price, start_date, end_date, cursor, limit } = req.query as {
+      const { search, country_id, package_type_id, min_price, schedule_filter, max_price, start_date, end_date, cursor, limit } = req.query as {
         search?: string;
         country_id?: string;
         package_type_id?: string;

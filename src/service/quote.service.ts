@@ -37,7 +37,9 @@ export const quoteService = (
 
 ) => {
   return {
-
+    fetchTodaySocialDeals: async () => {
+      return await repo.fetchTodaySocialDeals();
+    },
     deleteTravelDeal: async (travel_deal_id: string, onlySocialId: string) => {
       if(!onlySocialId) return await repo.deleteTravelDeal(travel_deal_id);
       await deleteOnlySocialsPost(onlySocialId);

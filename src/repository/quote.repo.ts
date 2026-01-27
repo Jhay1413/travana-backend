@@ -44,16 +44,18 @@ import {
   quoteListQuerySchema,
   quotePackageHolidayQuerySchema,
   quoteQuerySummarySchema,
+  todaySocialDealQuerySchema,
   unionAllType,
 } from '../types/modules/quote/query';
 import { GeneratedPostResponse, quoteChild, quoteTitleSchema, travelDealResponseSchema } from '../types/modules/transaction';
 import { quote_mutate_schema, travelDealType } from '../types/modules/transaction/mutation';
-import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne, like } from 'drizzle-orm';
+import { eq, sql, desc, or, and, asc, ilike, gte, lte, gt, lt, inArray, aliasedTable, ne, like, isNotNull } from 'drizzle-orm';
 import z from 'zod';
 import { dataValidator } from '../helpers/data-validator';
 import { airport } from '../schema/flights-schema';
 import { de } from 'zod/v4/locales';
 import { schedule } from 'node-cron';
+import { oneTap } from 'better-auth/plugins';
 
 export type QuoteRepo = {
   fetchHolidayTypeById: (quote_id: string) => Promise<string>;
@@ -199,9 +201,85 @@ export type QuoteRepo = {
   ) => Promise<GeneratedPostResponse[]>;
   scheduleTravelDeal: (travel_deal_id: string, postSchedule: Date | null, onlySocialsId: string, post?: string) => Promise<void>;
   fetchTravelDealById: (travel_deal_id: string) => Promise<z.infer<typeof travelDealResponseSchema> | null>;
+  fetchTodaySocialDeals: () => Promise<z.infer<typeof todaySocialDealQuerySchema[]>>;
 };
 
 export const quoteRepo: QuoteRepo = {
+  fetchTodaySocialDeals: async () => {
+    const now = new Date();
+
+    // Get start and end of today
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    const response = await db.select({
+      scheduledPostDate: travelDeal.postSchedule,
+      title: travelDeal.title,
+      lodge_destination: park.city,
+      lodge_name: lodges.lodge_name,
+      country: country.country_name,
+      destination: destination.name,
+      cottage_destination: cottages.location,
+      cruise_destination: quote_cruise.cruise_name,
+      holiday_destination: accomodation_list.name,
+      price_per_person: quote.price_per_person,
+      hotel: sql<string[]>`array_agg(DISTINCT ${accomodation_list.name})`.as('hotel'),
+    })
+      .from(quote)
+      .innerJoin(travelDeal, eq(quote.id, travelDeal.quote_id))
+      .leftJoin(lodges, eq(quote.lodge_id, lodges.id))
+      .leftJoin(park, eq(lodges.park_id, park.id))
+      .leftJoin(cottages, eq(quote.cottage_id, cottages.id))
+      .leftJoin(quote_cruise, eq(quote_cruise.quote_id, quote.id))
+      .leftJoin(
+        quote_accomodation,
+        and(
+          eq(quote_accomodation.quote_id, quote.id),
+          eq(quote_accomodation.is_primary, true)
+        )
+      )
+      .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
+      .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
+      .leftJoin(destination, eq(resorts.destination_id, destination.id))
+      .leftJoin(country, eq(destination.country_id, country.id))
+      .where(
+        and(
+          isNotNull(travelDeal.postSchedule),
+          gte(travelDeal.postSchedule, startOfDay),
+          lte(travelDeal.postSchedule, endOfDay)
+        )
+      )
+      .groupBy(
+        travelDeal.id,
+        travelDeal.postSchedule,
+        travelDeal.title,
+        park.city,
+        lodges.lodge_name,
+        country.country_name,
+        destination.name,
+        cottages.location,
+        quote_cruise.cruise_name,
+        accomodation_list.name,
+        quote.price_per_person
+      );
+
+    return response.map((item) => {
+      const destination =
+        item.lodge_destination ??
+        item.cottage_destination ??
+        item.cruise_destination ??
+        `${item.country}, ${item.destination}`;
+
+      return {
+        title: item.title,
+        destination: destination,
+        scheduledPostDate: item.scheduledPostDate,
+        scheduledPostTime: item.scheduledPostDate ? format(new Date(item.scheduledPostDate), 'HH:mm') : null,
+        price_per_person: item.price_per_person,
+
+      }
+    })
+  },
   deleteTravelDeal: async (travel_deal_id) => {
     console.log("Deleting travel deal with ID:", travel_deal_id);
     await db.delete(travelDeal).where(eq(travelDeal.id, travel_deal_id));
@@ -2141,7 +2219,7 @@ export const quoteRepo: QuoteRepo = {
 
       const payload = {
         ...data,
-        
+
         cruise_date: data?.cruise_date ? new Date(data.cruise_date) : null,
         post_cruise_stay: data?.post_cruise_stay,
         pre_cruise_stay: data?.pre_cruise_stay,
@@ -3910,6 +3988,7 @@ export const quoteRepo: QuoteRepo = {
           lodge_name: lodges.lodge_name,
           country: country.country_name,
           destination: destination.name,
+          park_location: park.location,
           cottage_destination: cottages.location,
           cruise_destination: quote_cruise.cruise_name,
           holiday_destination: accomodation_list.name,
@@ -4112,7 +4191,7 @@ export const quoteRepo: QuoteRepo = {
         const accomId = data.accomodation_id;
 
         const destination =
-          data.lodge_destination ??
+          data.park_location ??
           data.cottage_destination ??
           data.cruise_destination ??
           `${data.country}, ${data.destination}`;

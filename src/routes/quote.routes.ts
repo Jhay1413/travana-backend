@@ -11,6 +11,7 @@ router.post('/duplicate', quoteController.duplicateQuote);
 router.post('/schedule-post/:id', uploadMultiple, quoteController.scheduleTravelDeal);
 // Quote fetching
 router.get('/', quoteController.fetchQuotes);
+router.get('/today-social-deals', quoteController.fetchTodaySocialDeals);
 router.get('/travel-deals', quoteController.fetchTravelDeals);
 router.get('/summary/client/:id', quoteController.fetchQuoteSummaryByClient);
 router.get('/summary/agent/:agent_id', quoteController.fetchQuoteSummaryByAgent);
