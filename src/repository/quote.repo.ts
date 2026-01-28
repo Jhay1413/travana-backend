@@ -209,6 +209,7 @@ export type QuoteRepo = {
 
 export const quoteRepo: QuoteRepo = {
   deleteFreeQuote: async (quote_id) => {
+
     await db.delete(quote).where(eq(quote.id, quote_id));
   },
   checkIfQuoteHasClient: async (quote_id) => {
@@ -428,6 +429,7 @@ export const quoteRepo: QuoteRepo = {
             is_future_deal: data.is_future_deal,
             future_deal_date: data.future_deal_date,
             date_expiry: date_expiry,
+            isFreeQuote: data.isFreeQuote ?? false,
             deal_id: data.deal_id,
           })
           .returning({ id: quote.id });
@@ -3643,7 +3645,7 @@ export const quoteRepo: QuoteRepo = {
 
       // Build filter conditions
       const filterConditions = [];
-
+        filterConditions.push(isNotNull(transaction.client_id)); // Dummy condition to simplify logic
       // Base condition - filter by active quotes (unless is_active filter is provided)
       if (filters?.is_active !== undefined) {
         filterConditions.push(eq(quote.is_active, filters.is_active));

@@ -1,4 +1,5 @@
 import { TravelDeal } from "@/types/modules/transaction";
+import { format } from "date-fns";
 
 // Emoji pools for title and subtitle only (these will be randomized)
 const EMOJI_POOLS = {
@@ -29,7 +30,7 @@ export function formatPostHTML(deal: TravelDeal, subtitle: string, resortSummary
   return `${tropicalEmoji} ${deal.title} ${tropicalEmoji}<br>
 ${subtitleEmoji} ${subtitle} ${subtitleEmoji}<br>
 <br>
-📅 ${new Date(deal.travelDate).toLocaleDateString()}<br>
+📅 ${format(new Date(deal.travelDate), 'dd/MM/yyyy')}<br>
 🌙 ${deal.nights} Nights<br>
 ${deal.boardBasis && deal.boardBasis != "N/A" ? `🍽️ ${deal.boardBasis}<br>` : ''}
 ${deal.departureAirport && deal.departureAirport != "N/A" ? `✈️ ${deal.departureAirport}<br>` : ''}
