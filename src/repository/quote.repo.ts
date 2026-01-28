@@ -283,7 +283,7 @@ export const quoteRepo: QuoteRepo = {
         quote.price_per_person,
         package_type.name,
         park.location
-      );
+      ).orderBy(asc(travelDeal.postSchedule));
 
     return response.map((item) => {
       const destination = item.holiday_type === "Hot Tub Break" ? item.park_location : item.holiday_type == "Cruise Package" ? item.cruise_destination : `${item.country} ${item.destination}`;
