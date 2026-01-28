@@ -74,7 +74,6 @@ export const dashboardController = {
         try {
             const { agentId } = req.query;
 
-            console.log(agentId)
             const analytics = await service.fetchAdminAnalytics(agentId as string);
             res.status(200).json(analytics);
         } catch (error) {

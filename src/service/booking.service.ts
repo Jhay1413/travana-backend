@@ -188,7 +188,6 @@ export const bookingService = (
       const response = await repo.fetchBookingById(booking_id);
 
       if (response.holiday_type === 'Package Holiday' && response.hotels && response.hotels.length > 0) {
-        console.log('Fetching deal images for accomodation id:', response.hotels[0]?.accomodation_id);
         const dealImages = await transactionRepo.fetchDealImagesByOwnerId(response.hotels[0]?.accomodation_id || '');
 
         return { ...response, deal_images: dealImages };

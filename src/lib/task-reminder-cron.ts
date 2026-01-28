@@ -31,7 +31,6 @@ export const initializeTaskReminderCron = () => {
   // Run every minute
   cron.schedule('* * * * *', async () => {
     try {
-      console.log('Running task reminder check...');
 
       const now = new Date();
       const sixMinutesAgo = new Date(now.getTime() - 6 * 60 * 1000);
@@ -111,7 +110,6 @@ export const initializeTaskReminderCron = () => {
         },
       });
 
-      console.log(`Found ${dueAndOverdueTasks.length} tasks that are due or overdue.`);
 
       // Process all due and overdue tasks
       if (dueAndOverdueTasks.length > 0) {
@@ -174,7 +172,6 @@ export const initializeTaskReminderCron = () => {
               });
             }
 
-            console.log(`Sent task reminder for task ${taskItem.id} to user ${recipientId}${isOverdue ? ' (overdue)' : ''}`);
           }
         }
 
@@ -192,7 +189,6 @@ export const initializeTaskReminderCron = () => {
     }
   });
 
-  console.log('✓ Task reminder cron job initialized - running every minute');
 };
 
 /**

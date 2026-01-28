@@ -41,7 +41,6 @@ export const quoteController = {
       const { id } = req.params;
       const { onlySocialId } = req.query;
 
-      console.log(onlySocialId, "controller onlySocialId")
       await service.deleteTravelDeal(id, onlySocialId as string);
       res.status(200).json({ message: 'Travel deal deleted successfully' });
     }
@@ -148,7 +147,6 @@ export const quoteController = {
       const { id } = req.params;
       const data = req.body;
 
-      console.log(data)
       const quote = await service.convertQuoteStatus(id, data.status, data.agent_id, data.user_id, data.client_id);
       res.status(200).json(quote);
     } catch (error) {
@@ -246,7 +244,6 @@ export const quoteController = {
         cursor?: string;
         limit?: string;
       };
-      console.log(schedule_filter, "controller schedule_filter")
       const num_limit = limit ? Number(limit) : 10;
       const quote = await service.fetchFreeQuotesInfinite(
         search,
@@ -355,7 +352,6 @@ export const quoteController = {
       const { scheduledDate, onlySocialId, post, existingImages } = req.body;
       const files = req.files as Express.Multer.File[];
       const parsedExistingImages: number[] = existingImages ? JSON.parse(existingImages) : [];
-      console.log(req, "controller files")
 
       const schedule = await service.scheduleTravelDeal(id, scheduledDate, onlySocialId, files, post, parsedExistingImages);
       res.status(200).json({

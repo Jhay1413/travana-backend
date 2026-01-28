@@ -4,7 +4,6 @@ export const parsedInput = (text: string) => {
   const lines = text.split('\n').map(line => line.trim()).filter(line => line);
   const data: any = {};
 
-  console.log('[Parser] Parsing text input, total lines:', lines.length);
 
   for (const line of lines) {
     const colonIndex = line.indexOf(':');
@@ -13,7 +12,6 @@ export const parsedInput = (text: string) => {
     const key = line.substring(0, colonIndex).trim().toLowerCase();
     const value = line.substring(colonIndex + 1).trim();
 
-    console.log(`[Parser] Key: "${key}", Value: "${value}"`);
 
     // More precise matching to avoid conflicts
     if (key === 'title') {
@@ -38,6 +36,5 @@ export const parsedInput = (text: string) => {
     }
   }
 
-  console.log('[Parser] Parsed data:', data);
   return data;
 }

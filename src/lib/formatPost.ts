@@ -30,7 +30,7 @@ export function formatPostHTML(deal: TravelDeal, subtitle: string, resortSummary
   return `${tropicalEmoji} ${deal.title} ${tropicalEmoji}<br>
 ${subtitleEmoji} ${subtitle} ${subtitleEmoji}<br>
 <br>
-📅 ${format(new Date(deal.travelDate), 'dd/MM/yyyy')}<br>
+📅 ${format(new Date(deal.travelDate), 'EEE dd MMM yyyy')}<br>
 🌙 ${deal.nights} Nights<br>
 ${deal.boardBasis && deal.boardBasis != "N/A" ? `🍽️ ${deal.boardBasis}<br>` : ''}
 ${deal.departureAirport && deal.departureAirport != "N/A" ? `✈️ ${deal.departureAirport}<br>` : ''}

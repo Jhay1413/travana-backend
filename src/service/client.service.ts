@@ -89,7 +89,6 @@ export const clientService = (repo: ClientRepo, s3Service: S3Service) => {
             return await repo.deleteClientFile(fileId);
         },
         getClientFileCount: async (clientId: string) => {
-            console.log("Getting file count for client:", clientId);
             return await repo.getClientFileCount(clientId);
         },
         getClientName: async (clientId: string) => {

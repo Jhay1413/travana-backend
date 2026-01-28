@@ -147,7 +147,6 @@ export const ticketController = {
         try {
             const { id } = req.params;
             const { reply, agent_id, ticket_id } = req.body;
-            console.log(reply);
             const ticket = await service.insertTicketReply(id, { reply: reply as string, agent_id: agent_id as string, ticket_id: ticket_id as string });
             res.status(200).json({
                 message: 'Ticket reply added successfully',

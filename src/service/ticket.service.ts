@@ -28,7 +28,6 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service, notificat
             }
 
 
-            console.log(data)
             const ticket_data = {
                 ticket_type: data.ticket_type,
                 category: data.category,
@@ -49,7 +48,6 @@ export const TicketService = (repo: TicketsRepo, s3Service: S3Service, notificat
 
             const ticketId = await repo.insertTicket({ ...ticket_data });
 
-            console.log(data.due_date);
             const notificationData = {
                 type: "ticket_deadline",
                 user_id_v2: data.agent_id,

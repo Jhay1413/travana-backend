@@ -90,7 +90,6 @@ export const clientRepo: ClientRepo = {
       .select({ count: sql<number>`count(*)` })
       .from(clientFileTable)
       .where(eq(clientFileTable.clientId, clientId));
-    console.log(result)
     return result[0]?.count || 0;
   },
   fetchClientById: async (id) => {

@@ -63,7 +63,6 @@ export const quoteService = (
       // const holiday_type = await sharedRepo.fetchHolidayTypeById(data.holiday_type);
 
       // if (!data.holiday_type) throw new AppError('Holiday type is required', true, 400);
-      console.log(transaction_id)
       let id: string | undefined;
       if (!data.client_id) throw new AppError('Client ID is required', true, 400);
 
@@ -135,7 +134,6 @@ export const quoteService = (
 
         if (data.holiday_type_name === 'Package Holiday' && data.accomodation_id) {
 
-          console.log('Inserting deal images for accomodation id:', data.deal_images);
           const imagesToInsert = data.deal_images.map(image => ({
             owner_id: data.accomodation_id ?? " ",
             image_url: image,
@@ -255,13 +253,11 @@ export const quoteService = (
       const response = await repo.fetchQuoteById(quote_id);
 
       if (response.holiday_type === 'Package Holiday' && response.hotels && response.hotels.length > 0) {
-        console.log('Fetching deal images for accomodation id:', response.hotels[0]?.accomodation_id);
         const dealImages = await transactionRepo.fetchDealImagesByOwnerId(response.hotels[0]?.accomodation_id || '');
 
         return { ...response, deal_images: dealImages };
       }
       else if (response.holiday_type === 'Hot Tub Break' && response.lodge_id) {
-        console.log('Fetching deal images for lodge id:', response.lodge_id);
         const dealImages = await transactionRepo.fetchDealImagesByOwnerId(response.lodge_id || '');
         return { ...response, deal_images: dealImages };
       }
@@ -296,7 +292,6 @@ export const quoteService = (
       if (!holiday_type) throw new AppError('No holiday type found', true, 400);
 
       if (data.client_id) {
-        console.log("im updating to normal quote")
         await repo.updateFreeQuoteStatus(quote_id);
         await repo.insertQuote({ ...data, isFreeQuote: true, client_id: null });
       }
@@ -493,14 +488,12 @@ export const quoteService = (
 
 
 
-      console.log(post, "existing post")
       let mediaUuids: number[] = [];
 
       // Step 1: Upload media if provided 
       if (existingImages && existingImages.length > 0) {
         mediaUuids = [...existingImages];
       }
-      console.log(files, "its a files")
       if (files && files.length > 0) {
         const uploadedMedia = await uploadMultipleMedia(files);
         mediaUuids = uploadedMedia.map(media => media.id);

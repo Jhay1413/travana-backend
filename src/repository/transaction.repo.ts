@@ -1736,7 +1736,6 @@ export const transactionRepo: TransactionRepo = {
       },
       ...(whereClause ? { where: whereClause } : {}),
     });
-    console.log(response)
     return response.map((data) => ({
       id: data.id,
       country_name: data.country_name ?? '',

@@ -261,7 +261,6 @@ export async function uploadMedia(
       ? path.basename(file)
       : file.originalname;
 
-    console.log(`📤 Uploading: ${fileName}`);
 
     // Debug: Check environment variables
     if (!process.env.ONLY_SOCIALS) {
@@ -302,7 +301,6 @@ export async function uploadMedia(
       }
     );
 
-    console.log(`✅ Uploaded: ${fileName} -> UUID: ${response.data.uuid}`);
 
     return response.data as MediaUploadResponse;
 
@@ -319,11 +317,9 @@ export async function uploadMedia(
 export async function uploadMultipleMedia(
   files: (Express.Multer.File | string)[]
 ): Promise<MediaUploadResponse[]> {
-  console.log(`📤 Uploading ${files.length} files...`);
 
   const uploadPromises = files.map(file => uploadMedia(file));
   const results = await Promise.all(uploadPromises);
 
-  console.log(`✅ All ${files.length} files uploaded successfully`);
   return results;
 }

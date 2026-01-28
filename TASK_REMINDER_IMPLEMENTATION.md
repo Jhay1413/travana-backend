@@ -48,7 +48,6 @@ Sent automatically when a task is due in 5 minutes.
 **Client Example:**
 ```typescript
 socket.on('task_reminder', (data) => {
-  console.log('Task reminder:', data);
   // Show notification to user
   showNotification({
     title: data.title,
@@ -70,8 +69,7 @@ socket.emit('request_task_reminder_check');
 **Response Event:** `task_reminder_check_result`
 ```typescript
 socket.on('task_reminder_check_result', (data) => {
-  console.log(`Found ${data.count} tasks due in 5 minutes`);
-  console.log(data.tasks);
+
 });
 ```
 

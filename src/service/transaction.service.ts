@@ -458,7 +458,6 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
         const normalize = (s: string) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
         if (data.accommodation) {
           const fetchAccomodation = await repo.fetchAccomodationByName(data.accommodation);
-          console.log(fetchAccomodation)
           if (data.board_basis) {
             const fuse = new Fuse(board_basis, {
               keys: ['type'],

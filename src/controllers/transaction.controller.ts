@@ -94,7 +94,6 @@ export const transactionController = {
     try {
       const { transaction_id } = req.params;
       const { agentId, type, clientId, currentUserId, refId } = req.body;
-      console.log(agentId, type, clientId, currentUserId, refId);
       await service.reassignTransaction(agentId, transaction_id, type, clientId, currentUserId, refId);
       res.status(200).json({ message: 'Transaction reassigned' });
     } catch (error) {
@@ -193,7 +192,6 @@ export const transactionController = {
     try {
       const { search, destination_ids, selected_ids } = req.query as { search: string; destination_ids: string; selected_ids: string };
 
-      console.log(search, "asdasdasdassad")
       const destinationIds = (destination_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const selectedIds = (selected_ids as string)?.split(',').filter(id => id.trim() !== '') ?? [];
       const resorts = await service.fetchResorts(search ?? undefined, destinationIds ?? [], selectedIds ?? []);
@@ -446,7 +444,6 @@ export const transactionController = {
   insertAccomodation: async (req: Request, res: Response) => {
     try {
       const data = req.body;
-      console.log(data)
       await service.insertAccomodation(data);
       res.status(200).json({ message: 'Accomodation inserted' });
     } catch (error) {

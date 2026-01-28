@@ -133,7 +133,6 @@ const setupEventHandlers = () => {
         // Handle joining a room
         socket.on('join_room', async (data: { roomId: string,participantsId: string[] }) => {
             try {
-                console.log('Join room request received:', data);
                 const userSocket = connectedUsers.get(socket.id);
                 if (!userSocket) {
                     socket.emit('error', { message: 'User not authenticated' });
@@ -366,7 +365,6 @@ const setupEventHandlers = () => {
                     message: `Task snoozed for ${snoozeMinutes} minutes`,
                 });
 
-                console.log(`Task ${taskId} snoozed for ${snoozeMinutes} minutes by user ${userSocket.userId}`);
             } catch (error) {
                 console.error('Snooze task error:', error);
                 socket.emit('error', { message: 'Failed to snooze task' });
@@ -424,7 +422,6 @@ const setupEventHandlers = () => {
                     message: `Ticket snoozed for ${snoozeMinutes} minutes`,
                 });
 
-                console.log(`Ticket ${ticketId} snoozed for ${snoozeMinutes} minutes by user ${userSocket.userId}`);
             } catch (error) {
                 console.error('Snooze ticket error:', error);
                 socket.emit('error', { message: 'Failed to snooze ticket' });

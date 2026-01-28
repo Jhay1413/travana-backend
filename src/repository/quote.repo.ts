@@ -299,7 +299,6 @@ export const quoteRepo: QuoteRepo = {
     })
   },
   deleteTravelDeal: async (travel_deal_id) => {
-    console.log("Deleting travel deal with ID:", travel_deal_id);
     await db.delete(travelDeal).where(eq(travelDeal.id, travel_deal_id));
   },
   fetchTravelDealById: async (travel_deal_id) => {
@@ -326,7 +325,6 @@ export const quoteRepo: QuoteRepo = {
     await db.update(travelDeal).set({ postSchedule: postSchedule, onlySocialsId: onlySocialsId, post: post }).where(eq(travelDeal.id, travel_deal_id));
   },
   fetchTravelDealByQuoteId: async (quote_id) => {
-    console.log("Fetching travel deal for quote ID:", quote_id);
     const response = await db.query.travelDeal.findFirst({
       where: eq(travelDeal.quote_id, quote_id),
     })
@@ -2477,7 +2475,6 @@ export const quoteRepo: QuoteRepo = {
         const primary_accomodation = response.accomodation.find((accomodation) => accomodation.is_primary === true);
         // For "27-12-2025"  
         const parsedTravelDate = parse(response.travel_date, "yyyy-MM-dd", new Date());
-        console.log('Parsed Travel Date:', response.travel_date, parsedTravelDate);
         const payload_to_validate = {
           deal_type: response.deal_type,
           pre_booked_seats: response.pre_booked_seats,
@@ -2519,7 +2516,6 @@ export const quoteRepo: QuoteRepo = {
           passengers: response.passengers.map((data) => ({ type: data.type ?? "adult", age: data.age ?? 0 })),
           flights: response.flights.map((data) => {
 
-            console.log(data.departure_date_time, 'Original Departure Date Time');
             return {
               ...data,
               departure_airport_name: data.departing_airport?.airport_name,
@@ -3192,7 +3188,6 @@ export const quoteRepo: QuoteRepo = {
             .insert(quote_cruise_item_extra)
             .values(data.quote_cruise_extra.map((item) => ({ cruise_extra_id: item, quote_cruise_id: data.quote_cruise_id })));
         }
-        console.log(data.cruise_ship, "<--- cruise ship");
         await tx.update(quote_cruise).set({
           cruise_date: data.cruise_date ? data.cruise_date : null,
           cabin_type: data.cabin_type,
@@ -3993,7 +3988,6 @@ export const quoteRepo: QuoteRepo = {
   ) => {
     try {
 
-      console.log(schedule_filter);
       const pageSize = limit || 10;
 
       const query = db
@@ -4137,7 +4131,6 @@ export const quoteRepo: QuoteRepo = {
         getScheduleDateFilter(), // ✅ NEW: Add schedule date filter
         cursor ? gt(quote.id, cursor) : undefined,
       ].filter(Boolean);
-      console.log(filters.length, "filter Length")
       // ✅ Always include base conditions
       const baseConditions = [eq(quote.isQuoteCopy, false), eq(quote.isFreeQuote, true)];
       const whereClause = filters.length > 0
@@ -4215,9 +4208,7 @@ export const quoteRepo: QuoteRepo = {
 
       const payload = response.map(data => {
         const accomId = data.accomodation_id;
-        if (data.holiday_type === "Hot Tub Break") {
-          console.log(data)
-        }
+       
         const destination = data.holiday_type === "Hot Tub Break" ? data.park_location : data.holiday_type == "Cruise Package" ? data.cruise_destination : `${data.country} ${data.destination}`
 
         return {

@@ -950,7 +950,6 @@ export const bookingRepo: BookingRepo = {
     const validated_data = z.array(bookingQuerySummarySchema).safeParse(payload);
 
     if (!validated_data.success) {
-      console.log(validated_data.error);
       throw new AppError('Something went wrong fetching booking ', true, 500);
     }
     return validated_data.data;
@@ -1035,7 +1034,6 @@ export const bookingRepo: BookingRepo = {
         infants: response?.infant ? response?.infant : 0,
         passengers: response?.passengers.map((data) => ({ ...data, age: data.age })),
         flights: response?.flights.map((data) => {
-          console.log(data.departure_date_time);
           return {
             ...data,
 
@@ -1257,7 +1255,6 @@ export const bookingRepo: BookingRepo = {
     }
   },
   fetchCruiseToUpdate: async (booking_id: string) => {
-    console.log("FETCHING CRUISE TO UPDATE:", booking_id);
     const response = await db.query.booking.findFirst({
       where: eq(booking.id, booking_id),
 
@@ -1385,7 +1382,6 @@ export const bookingRepo: BookingRepo = {
       post_cruise_stay: response?.booking_cruise.post_cruise_stay?.toString(),
       flights: response?.flights.map((data) => {
 
-        console.log(data.departure_date_time, "asdasdasdasdasdsa");
 
         return {
           ...data,
@@ -2225,7 +2221,6 @@ export const bookingRepo: BookingRepo = {
       .innerJoin(package_type, eq(booking.holiday_type_id, package_type.id))
       .where(eq(booking.id, booking_id))
       .limit(1);
-    console.log('result', result);
     const groupByFields = [
       booking.id,
       agentTable.firstName,

@@ -910,7 +910,6 @@ export const inquiryRepo: InquiryRepo = {
         .where(eq(enquiry_resorts.enquiry_id, inquiryId))
         .limit(1);
 
-      console.log('accomodation_data', accomodation_data);
       const response = await db
         .select({
           id: enquiry_table.id,
@@ -977,7 +976,6 @@ export const inquiryRepo: InquiryRepo = {
 
         // For "27-12-2025"  
         const parsedTravelDate = parse(rest.travel_date!, "yyyy-MM-dd", new Date());
-        console.log('parsedTravelDate', rest.travel_date, parsedTravelDate);
         if (!acc[id]) {
           acc[id] = {
             ...rest,
@@ -1330,7 +1328,6 @@ export const inquiryRepo: InquiryRepo = {
   },
   setFutureDealDate: async (inquiryId: string, futureDealDate: string) => {
     try {
-      console.log('futureDealDate', futureDealDate);
       await db
         .update(enquiry_table)
         .set({

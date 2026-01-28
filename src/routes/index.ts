@@ -103,7 +103,6 @@ router.get('/org/list/all/:id', async (req, res) => {
         };
       })
     );
-    console.log(payload)
     res.json(payload);
   } catch (error) {
     res.status(500).json({

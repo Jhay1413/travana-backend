@@ -113,7 +113,6 @@ export const initializeTicketReminderCron = () => {
         },
       });
 
-      console.log(`Found ${dueAndOverdueTickets.length} tickets that are due or overdue.`);
 
       // Process all due and overdue tickets
       if (dueAndOverdueTickets.length > 0) {
@@ -176,7 +175,6 @@ export const initializeTicketReminderCron = () => {
               });
             }
 
-            console.log(`Processed ticket ${ticketItem.id} for user ${recipientId}${isOverdue ? ' (overdue)' : ''}`);
           }
         }
 
@@ -187,7 +185,6 @@ export const initializeTicketReminderCron = () => {
             dueCount: counts.due,
             totalCount: counts.overdue + counts.due,
           });
-          console.log(`Sent ticket reminder counts to user ${userId}: ${counts.overdue} overdue, ${counts.due} due`);
         }
       }
     } catch (error) {
@@ -195,7 +192,6 @@ export const initializeTicketReminderCron = () => {
     }
   });
 
-  console.log('✓ Ticket reminder cron job initialized - running every minute');
 };
 
 /**

@@ -520,7 +520,6 @@ export const taskRepo: TaskRepo = {
                 assigned_by_user: true,
             }
         });
-        console.log(response);
         return response.map((data) => ({
             id: data.id,
             agent: data.user,

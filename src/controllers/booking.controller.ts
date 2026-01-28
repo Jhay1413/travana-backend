@@ -206,10 +206,8 @@ export const bookingController = {
   generateForwardsReport: async (req: Request, res: Response) => {
     try {
       const {year} = req.body;
-      console.log(req.body)
       const parsedYear = year ? year: undefined;
 
-      console.log('Generating forwards report for year:', parsedYear);
       await service.generateForwardsReport(parsedYear);
       res.status(200).json({ message: 'Forwards report generated successfully' });
     } catch (error) {
