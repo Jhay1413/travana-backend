@@ -20,19 +20,22 @@ router.get('/for-update/:id', quoteController.fetchPackageToUpdate);
 router.get('/title', quoteController.fetchQuoteTitle);
 router.get('/free/infinite', quoteController.fetchFreeQuotesInfinite);
 router.get('/travel-deal/:id', quoteController.fetchTravelDealByQuoteId);
-
+router.put('/update-free-quote/:id', quoteController.updateFreeQuote);
 // Quote updates
-router.put('/:id', quoteController.updateQuote);
+
+
 router.put('/:id/status', quoteController.convertQuoteStatus);
 router.put('/:id/primary', quoteController.setPrimary);
 router.put('/:id/expiry', quoteController.updateQuoteExpiry);
 router.put('/:id/future-deal', quoteController.setFutureDealDate);
 router.put('/:id/unset-future-deal', quoteController.unsetFutureDealDate);
 router.put('/:id/generate-post', quoteController.generatePostContent);
-
+router.put('/:id/free-quote', quoteController.updateFreeQuote);
+router.put('/:id', quoteController.updateQuote);
 
 // Quote deletion
 router.delete('/:id', quoteController.deleteQuote);
 router.delete('/travel-deal/:id', quoteController.deleteTravelDeal);
+router.delete('/free-quote/:id', quoteController.deleteFreeQuote);
 
 export default router;

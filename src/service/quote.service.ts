@@ -37,11 +37,23 @@ export const quoteService = (
 
 ) => {
   return {
+    deleteFreeQuote: async (id: string) => {
+
+      const hasClient = await repo.checkIfQuoteHasClient(id);
+
+      if (hasClient) {
+        await repo.updateFreeQuoteStatus(id);
+      }
+      else {
+        await repo.deleteFreeQuote(id);
+      }
+
+    },
     fetchTodaySocialDeals: async () => {
       return await repo.fetchTodaySocialDeals();
     },
     deleteTravelDeal: async (travel_deal_id: string, onlySocialId: string) => {
-      if(!onlySocialId) return await repo.deleteTravelDeal(travel_deal_id);
+      if (!onlySocialId) return await repo.deleteTravelDeal(travel_deal_id);
       await deleteOnlySocialsPost(onlySocialId);
 
       return await repo.deleteTravelDeal(travel_deal_id);
@@ -269,11 +281,31 @@ export const quoteService = (
 
     updateQuote: async (data: z.infer<typeof quote_mutate_schema>, quote_id: string) => {
       const holiday_type = await repo.fetchHolidayTypeByQuoteId(quote_id);
+
       if (!holiday_type) throw new AppError('No holiday type found', true, 400);
 
       if (holiday_type === 'Cruise Package') return await repo.updateCruise(data, quote_id);
 
       return await repo.updateQuote(data, quote_id);
+    },
+    updateQuoteFreeQuote: async (data: z.infer<typeof quote_mutate_schema>, quote_id: string) => {
+      const holiday_type = await repo.fetchHolidayTypeByQuoteId(quote_id);
+
+
+
+      if (!holiday_type) throw new AppError('No holiday type found', true, 400);
+
+      if (data.client_id) {
+        console.log("im updating to normal quote")
+        await repo.updateFreeQuoteStatus(quote_id);
+        await repo.insertQuote({ ...data, isFreeQuote: true, client_id: null });
+      }
+      else {
+
+        if (holiday_type === 'Cruise Package') return await repo.updateCruise({ ...data, isFreeQuote: true, client_id: null }, quote_id);
+
+        return await repo.updateQuote({ ...data, isFreeQuote: true, client_id: null }, quote_id);
+      }
     },
 
     convertQuoteStatus: async (id: string, status: string, agent_id: string, user_id: string, client_id: string) => {
@@ -354,7 +386,7 @@ export const quoteService = (
       cursor?: string,
       limit?: number
     ) => {
-      return await repo.fetchFreeQuotesInfinite(search, country_id, package_type_id, min_price,schedule_filter, max_price, start_date, end_date, cursor, limit);
+      return await repo.fetchFreeQuotesInfinite(search, country_id, package_type_id, min_price, schedule_filter, max_price, start_date, end_date, cursor, limit);
     },
     updateQuoteExpiry: async (id: string, date_expiry: string) => {
       return await repo.updateQuoteExpiry(id, date_expiry);

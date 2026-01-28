@@ -15,6 +15,16 @@ export const aiService = AiService(); // singleton instance
 const service = quoteService(quoteRepo, sharedRepo, userRepo, clientRepo, notificationRepo, notificationProvider, authRepo, referralRepo, transactionRepo, aiService, s3Service);
 
 export const quoteController = {
+
+  deleteFreeQuote: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const quote = await service.deleteFreeQuote(id);
+      res.status(200).json({ quote });
+    } catch (error) {
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
   fetchTodaySocialDeals: async (req: Request, res: Response) => {
     try {
       const deals = await service.fetchTodaySocialDeals();
@@ -25,6 +35,7 @@ export const quoteController = {
     }
 
   },
+
   deleteTravelDeal: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
@@ -115,6 +126,17 @@ export const quoteController = {
       const { id } = req.params;
       const data = req.body;
       const quote = await service.updateQuote(data, id);
+      res.status(200).json({ message: 'Quote updated successfully' });
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Something went wrong' });
+    }
+  },
+  updateFreeQuote: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const data = req.body;
+      const quote = await service.updateQuoteFreeQuote(data, id);
       res.status(200).json({ message: 'Quote updated successfully' });
     } catch (error) {
       console.log(error)

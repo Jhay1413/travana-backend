@@ -202,9 +202,25 @@ export type QuoteRepo = {
   scheduleTravelDeal: (travel_deal_id: string, postSchedule: Date | null, onlySocialsId: string, post?: string) => Promise<void>;
   fetchTravelDealById: (travel_deal_id: string) => Promise<z.infer<typeof travelDealResponseSchema> | null>;
   fetchTodaySocialDeals: () => Promise<z.infer<typeof todaySocialDealQuerySchema[]>>;
+  updateFreeQuoteStatus: (quote_id: string) => Promise<void>;
+  checkIfQuoteHasClient: (quote_id: string) => Promise<boolean>;
+  deleteFreeQuote: (quote_id: string) => Promise<void>;
 };
 
 export const quoteRepo: QuoteRepo = {
+  deleteFreeQuote: async (quote_id) => {
+    await db.delete(quote).where(eq(quote.id, quote_id));
+  },
+  checkIfQuoteHasClient: async (quote_id) => {
+
+    const response = await db.select({
+      client_id: transaction.client_id,
+    }).from(quote).leftJoin(transaction, eq(quote.transaction_id, transaction.id)).where(eq(quote.id, quote_id)).limit(1);
+    return response.length > 0 && response[0].client_id ? true : false;
+  },
+  updateFreeQuoteStatus: async (quote_id) => {
+    await db.update(quote).set({ isFreeQuote: false }).where(eq(quote.id, quote_id));
+  },
   fetchTodaySocialDeals: async () => {
     const now = new Date();
 
@@ -1684,7 +1700,7 @@ export const quoteRepo: QuoteRepo = {
         .leftJoin(accomodation_list, eq(quote_accomodation.accomodation_id, accomodation_list.id))
         .leftJoin(resorts, eq(accomodation_list.resorts_id, resorts.id))
         .leftJoin(destination, eq(resorts.destination_id, destination.id))
-        .where(and(eq(quote.isFreeQuote, false), ne(quote.quote_status, 'ARCHIVED'), eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
+        .where(and(ne(quote.quote_status, 'ARCHIVED'), eq(transaction.status, 'on_quote'), eq(quote.is_active, true), eq(transaction.client_id, client_id)))
         .groupBy(
           quote.id,
           quote.transaction_id,
@@ -3627,7 +3643,7 @@ export const quoteRepo: QuoteRepo = {
 
       // Build filter conditions
       const filterConditions = [];
-      filterConditions.push(eq(quote.isFreeQuote, false));
+
       // Base condition - filter by active quotes (unless is_active filter is provided)
       if (filters?.is_active !== undefined) {
         filterConditions.push(eq(quote.is_active, filters.is_active));
@@ -4121,7 +4137,7 @@ export const quoteRepo: QuoteRepo = {
       ].filter(Boolean);
       console.log(filters.length, "filter Length")
       // ✅ Always include base conditions
-      const baseConditions = [eq(quote.isQuoteCopy, false)];
+      const baseConditions = [eq(quote.isQuoteCopy, false), eq(quote.isFreeQuote, true)];
       const whereClause = filters.length > 0
         ? and(...baseConditions, ...filters)
         : and(...baseConditions);
