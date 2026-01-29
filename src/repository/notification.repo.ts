@@ -29,6 +29,8 @@ export const notificationRepo: NotificationRepo = {
     await db.delete(notification).where(eq(notification.user_id_v2, user_id));
   },
   insertNotification: async (user_id, message, type, reference_id, client_id, due_date, hoursDue) => {
+
+    console.log(user_id)
     await db.insert(notification).values({
       user_id_v2: user_id,
       message: message,
@@ -86,20 +88,20 @@ export const notificationRepo: NotificationRepo = {
 
     const tasks = taskReminderIds.length > 0
       ? await db.query.task.findMany({
-          where: inArray(task.id, taskReminderIds),
-          columns: {
-            id: true,
-            title: true,
-            task: true,
-            deal_id: true,
-            transaction_type: true,
-            due_date: true,
-            status: true,
-            priority: true,
-            client_id: true,
-            transaction_id: true,
-          },
-        })
+        where: inArray(task.id, taskReminderIds),
+        columns: {
+          id: true,
+          title: true,
+          task: true,
+          deal_id: true,
+          transaction_type: true,
+          due_date: true,
+          status: true,
+          priority: true,
+          client_id: true,
+          transaction_id: true,
+        },
+      })
       : [];
 
     const taskMap = new Map(tasks.map((t) => [t.id, t]));
@@ -118,8 +120,8 @@ export const notificationRepo: NotificationRepo = {
       date: data.due_date ? format(data.due_date, 'yyyy-MM-dd') : null,
       time: data.due_date ? format(data.due_date, 'h:mmaaa') : null, // "4:30pm" or "4:30am"
       // attach task when this notification references a task
-      deal_id:data.type === 'task_deadline' && data.reference_id ? taskMap.get(data.reference_id)?.deal_id || null : null,
-      transaction_type:data.type === 'task_deadline' && data.reference_id ? taskMap.get(data.reference_id)?.transaction_type || null : null,
+      deal_id: data.type === 'task_deadline' && data.reference_id ? taskMap.get(data.reference_id)?.deal_id || null : null,
+      transaction_type: data.type === 'task_deadline' && data.reference_id ? taskMap.get(data.reference_id)?.transaction_type || null : null,
 
     }));
   },

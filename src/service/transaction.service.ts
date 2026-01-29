@@ -24,6 +24,7 @@ import { StructuredScrapeDataSchema } from '@/types/modules/transaction';
 import { board_basis, park, room_type } from '@/schema/transactions-schema';
 import { differenceInCalendarDays, format, formatISO, parse, startOfDay } from 'date-fns';
 import Fuse from 'fuse.js';
+import { emitToUser } from '../lib/socket-handler';
 
 export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, clientRepo: ClientRepo, notificationRepo: NotificationRepo, notificationProvider: NotificationProvider) => {
   return {
@@ -63,16 +64,9 @@ export const transactionService = (repo: TransactionRepo, userRepo: UserRepo, cl
       const message = `${agentFullName} allocated you a new ${type === 'lead' ? 'lead' : 'quote'} {{${clientFullName}}}!`;
 
 
-      await notificationRepo.insertNotification(current_user_id, message, notif_type, ref_id, client_id, due_date);
-      const tokens = await notificationRepo.fetchUserTokenService(current_user_id);
-      const unread_notif = await notificationRepo.countUnreadNotifications(current_user_id);
-      if (tokens && tokens.length > 0) {
-        await notificationProvider.notifyUser(
-          message,
-          tokens.filter((token) => token !== null),
-          unread_notif
-        );
-      }
+      await notificationRepo.insertNotification(agent_id, message, notif_type, ref_id, client_id, due_date);
+      
+      emitToUser(agent_id, "task_reminder", undefined);
 
     },
     fetchDestination: async (country_ids?: string[], selectedIds?: string[], search?: string) => {
