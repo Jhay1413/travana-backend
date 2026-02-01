@@ -121,11 +121,30 @@ export const quoteService = (
       const nextDealId = generateNextDealId(lastId || '');
       if (holiday_type.name === 'Cruise Package') {
 
+
+
         const result = await repo.insertCruise({ ...data, deal_id: nextDealId });
+        if (!data.isFreeQuote && data.client_id) {
+          await repo.insertCruise({
+            ...data,
+            client_id: null,
+            isFreeQuote: true,
+            deal_id: generateNextDealId(nextDealId || '')
+          });
+        }
+
         id = result.quote_id;
         transaction_id = result.transaction_id;
       } else {
         const result = await repo.insertQuote({ ...data, deal_id: nextDealId });
+        if (!data.isFreeQuote && data.client_id) {
+          await repo.insertQuote({
+            ...data,
+            client_id: null,
+            isFreeQuote: true,
+            deal_id: generateNextDealId(nextDealId || '')
+          });
+        }
         id = result.quote_id;
         transaction_id = result.transaction_id;
       }
