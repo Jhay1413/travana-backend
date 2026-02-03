@@ -1243,6 +1243,7 @@ export const quoteRepo: QuoteRepo = {
             child: data.children ? data.children : 0,
             adult: data.adults ? data.adults : 0,
             date_expiry: date_expiry,
+            isFreeQuote:data.isFreeQuote ?? false,
             deal_id: data.deal_id ?? null,
             is_future_deal: data.is_future_deal,
             future_deal_date: data.is_future_deal ? data.future_deal_date : null,
