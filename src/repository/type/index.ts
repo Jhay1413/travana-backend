@@ -190,7 +190,7 @@ export const allDealsQueryResult = z.object({
  passengers: z.nullable(z.array(z.object({
   id: z.string(),
   age: z.number(),
-  type: z.string(),
+  type: z.string().nullable().transform((v) => v ?? 'adult'),
  }))).optional(),
   hotels:z.array(hotels),
   transfers:z.array(transfers),

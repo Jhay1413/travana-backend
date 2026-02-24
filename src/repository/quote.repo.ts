@@ -461,7 +461,7 @@ export const quoteRepo: QuoteRepo = {
         if (data.passengers && data.passengers.length > 0) {
           await tx.insert(passengers).values(
             data.passengers.map((data) => ({
-              type: data.type,
+              type: data.type ?? 'adult',
               age: data.age ? data.age : 0,
               quote_id: quote_id.id,
             }))
@@ -647,7 +647,7 @@ export const quoteRepo: QuoteRepo = {
         if (data.passengers && data.passengers.length > 0) {
           await tx.insert(passengers).values(
             data.passengers.map((data) => ({
-              type: data.type,
+              type: data.type ?? 'adult',
               age: data.age ? data.age : 0,
               quote_id: quote_id.id,
             }))
@@ -1494,7 +1494,7 @@ export const quoteRepo: QuoteRepo = {
         if (data.passengers && data.passengers.length > 0) {
           await tx.insert(passengers).values(
             data.passengers.map((data) => ({
-              type: data.type,
+              type: data.type ?? 'adult',
               age: data.age,
               quote_id: quote_id.id,
             }))

@@ -95,7 +95,7 @@ export const quoteBasedSchema = z.object({
       z.object({
         id: z.string(),
         age: z.number(),
-        type: z.string(),
+        type: z.string().nullable().transform((v) => v ?? 'adult'),
       })
     )
     .optional(),
