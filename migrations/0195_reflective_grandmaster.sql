@@ -1,1 +1,0 @@
-ALTER TABLE "quote_table" ADD COLUMN "isQuoteCopy" boolean DEFAULT false;

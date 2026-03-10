@@ -1,1 +1,0 @@
-ALTER TABLE "client_table" ADD COLUMN "avatarUrl" varchar;

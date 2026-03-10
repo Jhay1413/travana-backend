@@ -1,1 +1,0 @@
-ALTER TABLE "deletion_codes" DROP COLUMN "expires_at";

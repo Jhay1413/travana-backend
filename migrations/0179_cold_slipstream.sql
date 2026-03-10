@@ -1,1 +1,0 @@
-ALTER TABLE "country_table" ALTER COLUMN "country_name" SET NOT NULL;

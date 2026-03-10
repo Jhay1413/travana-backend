@@ -1,1 +1,0 @@
-ALTER TABLE "travel_deal" ADD COLUMN "created_at" timestamp (0) with time zone DEFAULT now();

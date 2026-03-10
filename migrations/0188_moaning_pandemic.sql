@@ -1,1 +1,0 @@
-ALTER TABLE "forwards_report" ADD COLUMN "monthName" varchar NOT NULL;

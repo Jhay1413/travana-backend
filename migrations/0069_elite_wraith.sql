@@ -1,1 +1,0 @@
-ALTER TABLE "enquiry_table" ADD COLUMN "email" varchar;

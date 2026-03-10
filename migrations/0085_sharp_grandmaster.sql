@@ -1,1 +1,0 @@
-ALTER TABLE "enquiry_table" ALTER COLUMN "date_expiry" SET DATA TYPE date;

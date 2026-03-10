@@ -1,1 +1,0 @@
-ALTER TABLE "task_table" ADD COLUMN "type" varchar DEFAULT 'task';

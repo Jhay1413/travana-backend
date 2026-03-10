@@ -1,1 +1,0 @@
-ALTER TABLE "agent_target_table" DROP COLUMN "currency";

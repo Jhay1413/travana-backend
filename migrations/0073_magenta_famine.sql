@@ -1,1 +1,0 @@
-ALTER TABLE "task_table" ADD COLUMN "transaction_type" varchar;

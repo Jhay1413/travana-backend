@@ -1,1 +1,0 @@
-ALTER TABLE "enquiry_table" ALTER COLUMN "no_of_nights" SET DATA TYPE varchar;

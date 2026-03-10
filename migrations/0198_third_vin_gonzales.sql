@@ -1,1 +1,0 @@
-ALTER TABLE "quote_table" ADD COLUMN "deal_id" varchar;

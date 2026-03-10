@@ -1,1 +1,0 @@
-ALTER TABLE "enquiry_table" ADD COLUMN "date_created" timestamp DEFAULT now();

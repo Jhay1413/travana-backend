@@ -1,1 +1,0 @@
-ALTER TABLE "forwards_report" ADD CONSTRAINT "year_month_idx" UNIQUE("year","month");

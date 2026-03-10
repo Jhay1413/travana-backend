@@ -1,1 +1,0 @@
-ALTER TABLE "task_table" ALTER COLUMN "due_date" SET DATA TYPE timestamp;

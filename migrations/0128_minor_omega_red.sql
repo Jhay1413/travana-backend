@@ -1,1 +1,0 @@
-ALTER TABLE "client_file_table" ALTER COLUMN "clientId" DROP NOT NULL;

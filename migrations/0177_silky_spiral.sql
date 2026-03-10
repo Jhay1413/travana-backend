@@ -1,1 +1,0 @@
-ALTER TABLE "resorts_table" ALTER COLUMN "name" SET NOT NULL;

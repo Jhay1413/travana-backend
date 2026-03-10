@@ -1,1 +1,0 @@
-ALTER TABLE "booking_table" ADD COLUMN "is_active" boolean DEFAULT true;

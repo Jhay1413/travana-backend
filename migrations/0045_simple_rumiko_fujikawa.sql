@@ -1,1 +1,0 @@
-ALTER TABLE "quote_attraction_ticket" ADD COLUMN "date_of_visit" timestamp;

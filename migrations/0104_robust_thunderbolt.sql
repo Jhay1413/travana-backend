@@ -1,2 +1,0 @@
-ALTER TABLE "todo_table" ADD COLUMN "agent_id" uuid;--> statement-breakpoint
-ALTER TABLE "todo_table" ADD CONSTRAINT "todo_table_agent_id_user_table_id_fk" FOREIGN KEY ("agent_id") REFERENCES "public"."user_table"("id") ON DELETE cascade ON UPDATE no action;

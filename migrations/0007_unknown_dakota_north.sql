@@ -1,1 +1,0 @@
-ALTER TABLE "notes_table" ADD COLUMN "timestamp2" timestamp DEFAULT now() NOT NULL;

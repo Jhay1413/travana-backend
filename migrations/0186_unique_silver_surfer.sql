@@ -1,1 +1,0 @@
-ALTER TABLE "forwards_report" ADD COLUMN "target" numeric(10, 2) NOT NULL;

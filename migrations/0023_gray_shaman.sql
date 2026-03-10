@@ -1,1 +1,0 @@
-ALTER TABLE "lodges_table" ADD COLUMN "image" varchar;
